@@ -1,0 +1,1102 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Knowledge Bar 高保真 UI 原型</title>
+  <link rel="icon" href="assets/knowledge-bar-logo.png">
+  <style>
+    :root {
+      --blue: #ff6d29;
+      --blue-2: #9a3716;
+      --ink: #161316;
+      --soft-ink: #6d625c;
+      --paper: #f3ece4;
+      --panel: #fffaf3;
+      --line: #dbc9bc;
+      --lime: #ffb066;
+      --cyan: #d79050;
+      --shadow: 0 24px 80px rgba(69, 48, 39, 0.18);
+      --radius: 8px;
+      --sidebar: 180px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--paper);
+    }
+
+    body {
+      min-height: 100%;
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+      background:
+        linear-gradient(rgba(69, 48, 39, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(69, 48, 39, 0.04) 1px, transparent 1px),
+        var(--paper);
+      background-size: 28px 28px;
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      height: 40px;
+      border: 1px solid var(--ink);
+      border-radius: var(--radius);
+      padding: 0 14px;
+      color: var(--ink);
+      background: var(--panel);
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(17, 17, 20, 0.1);
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      color: var(--ink);
+      background: var(--panel);
+      outline: none;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus,
+    .doc:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(255, 109, 41, 0.16);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .global-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 16px 28px;
+      border-bottom: 1px solid rgba(17, 17, 20, 0.14);
+      background: rgba(246, 246, 241, 0.88);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 109, 41, 0.42);
+      border-radius: 50%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 35% 25%, rgba(255, 176, 102, 0.36), transparent 42%),
+        rgba(22, 19, 22, 0.9);
+      box-shadow: 0 10px 26px rgba(255, 109, 41, 0.18);
+    }
+
+    .brand-mark img {
+      width: 30px;
+      height: 30px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .brand-subtitle {
+      color: var(--soft-ink);
+      font-size: 12px;
+    }
+
+    .prototype-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .prototype-nav button {
+      height: 34px;
+      border-color: rgba(17, 17, 20, 0.18);
+      background: rgba(255, 255, 255, 0.68);
+      color: var(--soft-ink);
+      font-size: 13px;
+    }
+
+    .prototype-nav button.active {
+      border-color: var(--ink);
+      color: #fff;
+      background: var(--blue);
+      box-shadow: 0 8px 24px rgba(255, 109, 41, 0.24);
+    }
+
+    .page {
+      display: none;
+      padding: 28px;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .surface {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      border: 1px solid rgba(17, 17, 20, 0.16);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .hero-slab {
+      position: relative;
+      min-height: calc(100vh - 102px);
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 0;
+      background:
+        linear-gradient(90deg, rgba(22, 19, 22, 0.18), rgba(22, 19, 22, 0.66)),
+        url("assets/knowledge-bar-hero-warm.png") center / cover no-repeat;
+      overflow: hidden;
+    }
+
+    .hero-slab::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 18% 58%, rgba(255, 109, 41, 0.2), transparent 28%),
+        linear-gradient(180deg, rgba(22, 19, 22, 0.1), rgba(22, 19, 22, 0.72));
+      pointer-events: none;
+    }
+
+    .hero-blue {
+      position: relative;
+      min-height: 640px;
+      padding: 52px;
+      color: #fff;
+      background: transparent;
+      overflow: hidden;
+    }
+
+    .hero-blue::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: 0.38;
+      background-image:
+        linear-gradient(90deg, transparent, rgba(255, 109, 41, 0.1), transparent),
+        radial-gradient(circle at 20% 75%, rgba(255, 176, 102, 0.16), transparent 28%);
+      pointer-events: none;
+    }
+
+    .hero-blue > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 44px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 38px;
+      height: 2px;
+      border-radius: 999px;
+      background: var(--blue);
+    }
+
+    .hero-blue h1 {
+      max-width: 720px;
+      margin: 0;
+      font-size: 62px;
+      line-height: 1.02;
+      letter-spacing: 0;
+      text-shadow: 0 14px 50px rgba(0, 0, 0, 0.38);
+    }
+
+    .hero-copy {
+      max-width: 520px;
+      margin: 26px 0 0;
+      color: rgba(255, 250, 243, 0.78);
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .scribble {
+      display: none;
+    }
+
+    .login-panel {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      margin: 32px 32px 32px 0;
+      padding: 42px;
+      color: #fffaf3;
+      border: 1px solid rgba(255, 250, 243, 0.22);
+      border-radius: 8px;
+      background: rgba(22, 19, 22, 0.72);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.32);
+    }
+
+    .panel-title {
+      margin: 0 0 8px;
+      font-size: 30px;
+      line-height: 1.1;
+    }
+
+    .panel-desc {
+      margin: 0 0 26px;
+      color: rgba(255, 250, 243, 0.68);
+      line-height: 1.6;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      color: var(--soft-ink);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .login-panel .field label,
+    .login-panel .hint-link,
+    .login-panel .ghost {
+      color: rgba(255, 250, 243, 0.7);
+    }
+
+    .login-panel input {
+      color: #fffaf3;
+      border-color: rgba(255, 250, 243, 0.22);
+      background: rgba(255, 250, 243, 0.08);
+    }
+
+    .login-panel input::placeholder {
+      color: rgba(255, 250, 243, 0.44);
+    }
+
+    .primary {
+      border-color: var(--blue);
+      color: #fff;
+      background: var(--blue);
+    }
+
+    .ghost {
+      color: var(--soft-ink);
+      background: transparent;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .button-row.centered {
+      justify-content: center;
+    }
+
+    .hint-link {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      color: var(--soft-ink);
+      font-size: 14px;
+    }
+
+    .app-layout {
+      display: grid;
+      grid-template-columns: var(--sidebar) 1fr;
+      min-height: 720px;
+    }
+
+    .app-layout.sidebar-collapsed {
+      grid-template-columns: 72px 1fr;
+    }
+
+    .sidebar {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      padding: 26px 16px 88px;
+      border-right: 1px solid rgba(17, 17, 20, 0.18);
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .sidebar .avatar {
+      width: 58px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      background: var(--panel);
+      font-weight: 800;
+    }
+
+    .sidebar h3 {
+      margin: 22px 0 8px;
+      font-size: 22px;
+      line-height: 1.15;
+    }
+
+    .sidebar p {
+      margin: 0 0 20px;
+      color: var(--soft-ink);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .side-menu {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .side-menu button {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+      background: transparent;
+    }
+
+    .collapse-btn {
+      position: absolute;
+      left: 16px;
+      bottom: 22px;
+      width: 54px;
+      min-width: 54px;
+      padding: 0;
+      border-color: rgba(17, 17, 20, 0.22);
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .sidebar-content[hidden] {
+      display: none;
+    }
+
+    .workspace {
+      min-width: 0;
+      padding: 32px;
+    }
+
+    .workspace-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .workspace-bar h2 {
+      margin: 0;
+      font-size: 34px;
+      line-height: 1.1;
+    }
+
+    .expand-btn {
+      width: 54px;
+      min-width: 54px;
+      padding: 0;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .search-row {
+      position: relative;
+      margin-bottom: 22px;
+    }
+
+    .search-row input {
+      height: 52px;
+      border-color: rgba(17, 17, 20, 0.22);
+      font-size: 16px;
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    .state {
+      border: 1px dashed rgba(17, 17, 20, 0.36);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.58);
+      margin-top: 18px;
+      padding: 26px;
+    }
+
+    .state h3 {
+      margin: 0 0 18px;
+    }
+
+    .empty-state {
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(255, 109, 41, 0.08), transparent),
+        rgba(255, 255, 255, 0.72);
+    }
+
+    .empty-state .big-plus {
+      width: 76px;
+      height: 76px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 18px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      color: var(--blue);
+      background: var(--panel);
+      font-size: 42px;
+      line-height: 1;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 16px;
+    }
+
+    .kb-card,
+    .new-card {
+      position: relative;
+      min-height: 178px;
+      border: 1px solid rgba(17, 17, 20, 0.22);
+      border-radius: 8px;
+      padding: 18px;
+      background: var(--panel);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .kb-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 8px;
+      background: var(--blue);
+    }
+
+    .kb-card h4,
+    .new-card h4 {
+      margin: 18px 0 8px;
+      font-size: 24px;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 18px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      border: 1px solid rgba(17, 17, 20, 0.18);
+      border-radius: 999px;
+      padding: 0 9px;
+      color: var(--soft-ink);
+      background: #fff;
+      font-size: 12px;
+    }
+
+    .new-card {
+      display: grid;
+      place-items: center;
+      border-style: dashed;
+      color: var(--blue);
+      text-align: center;
+      background: rgba(255, 109, 41, 0.06);
+    }
+
+    .form-card {
+      width: min(760px, 100%);
+      margin: 44px auto;
+      padding: 36px;
+      border: 1px solid rgba(17, 17, 20, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: var(--shadow);
+    }
+
+    .form-card h2 {
+      margin: 0 0 22px;
+      font-size: 38px;
+    }
+
+    .two-col-field {
+      display: grid;
+      grid-template-columns: 112px 1fr;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    .two-col-field label {
+      padding-top: 12px;
+      color: var(--soft-ink);
+      font-weight: 900;
+    }
+
+    .editor-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 18px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid rgba(17, 17, 20, 0.18);
+    }
+
+    .nav-title {
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .tool-primary {
+      background: rgba(255, 109, 41, 0.12);
+      border-color: rgba(255, 109, 41, 0.5);
+    }
+
+    .danger {
+      border-color: #d43b3b;
+      color: #d43b3b;
+    }
+
+    .conditional-box {
+      margin-bottom: 18px;
+      padding: 14px;
+      border: 1px dashed rgba(17, 17, 20, 0.32);
+      border-radius: 8px;
+      color: var(--soft-ink);
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    .doc {
+      min-height: 520px;
+      padding: 38px;
+      border: 1px solid rgba(17, 17, 20, 0.22);
+      border-radius: 8px;
+      background: #fff;
+      outline: none;
+      box-shadow: 0 18px 50px rgba(17, 17, 20, 0.08);
+      line-height: 1.8;
+    }
+
+    .doc h1 {
+      margin: 0 0 18px;
+      font-size: 42px;
+    }
+
+    .doc p {
+      max-width: 760px;
+      color: var(--soft-ink);
+      font-size: 17px;
+    }
+
+    .mindmap-canvas {
+      min-height: 560px;
+      overflow: auto;
+      padding: 34px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 109, 41, 0.1), transparent 30%),
+        #fff;
+    }
+
+    .mindmap {
+      min-width: 880px;
+      display: flex;
+      align-items: center;
+      gap: 42px;
+      padding: 54px 10px;
+    }
+
+    .map-node {
+      min-width: 130px;
+      border: 1px solid var(--ink);
+      border-radius: 8px;
+      padding: 14px 16px;
+      text-align: center;
+      background: var(--panel);
+      box-shadow: 6px 6px 0 var(--lime);
+    }
+
+    .map-root {
+      color: #fff;
+      background: var(--blue);
+      box-shadow: 6px 6px 0 var(--ink);
+    }
+
+    .map-line {
+      width: 54px;
+      border-top: 2px solid var(--ink);
+    }
+
+    .map-branch {
+      display: flex;
+      flex-direction: column;
+      gap: 44px;
+    }
+
+    .map-row {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .map-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+
+    .muted {
+      color: var(--soft-ink);
+    }
+
+    @media (max-width: 900px) {
+      .global-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .hero-slab {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-blue {
+        min-height: 440px;
+        padding: 36px;
+      }
+
+      .hero-blue h1 {
+        font-size: 48px;
+      }
+
+      .login-panel {
+        padding: 32px;
+      }
+
+      .two-col-field {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .page {
+        padding: 14px;
+      }
+
+      .workspace {
+        padding: 22px;
+      }
+
+      .workspace-bar h2,
+      .form-card h2 {
+        font-size: 30px;
+      }
+
+      .doc {
+        padding: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="global-header">
+      <div class="brand">
+        <div class="brand-mark">
+          <img src="assets/knowledge-bar-logo.png" alt="Knowledge Bar logo">
+        </div>
+        <div>
+          <div class="brand-title">Knowledge Bar</div>
+          <div class="brand-subtitle">AI knowledge base and mind map studio</div>
+        </div>
+      </div>
+      <nav class="prototype-nav" aria-label="原型页面导航">
+        <button type="button" data-page="login" class="active">01 登录</button>
+        <button type="button" data-page="create">03 创建知识库</button>
+        <button type="button" data-page="dashboard">04 我的知识库</button>
+        <button type="button" data-page="detail">05 知识库详情</button>
+        <button type="button" data-page="mindmap">06 思维导图</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page active" id="login">
+        <div class="surface hero-slab">
+          <section class="hero-blue">
+            <div class="kicker">Open study bar / AI mind map</div>
+            <h1>Knowledge Bar</h1>
+            <p class="hero-copy">把零散笔记调成一杯清醒的知识鸡尾酒。输入文字，沉淀资料，让 AI 生成可编辑的思维导图。</p>
+          </section>
+          <section class="login-panel">
+            <h2 class="panel-title">进入 Knowledge Bar</h2>
+            <p class="panel-desc">邮箱密码登录。也可以先跳过体验，登录后再保存到云端。</p>
+            <div class="field">
+              <label for="login-email">邮箱</label>
+              <input id="login-email" type="email" placeholder="name@example.com">
+            </div>
+            <div class="field">
+              <label for="login-password">密码</label>
+              <input id="login-password" type="password" placeholder="请输入密码">
+            </div>
+            <div class="button-row">
+              <button type="button" class="primary" data-page="dashboard">登录</button>
+              <button type="button" class="ghost" data-page="dashboard">跳过体验</button>
+            </div>
+            <div class="hint-link">
+              <span>还没有账号？</span>
+              <button type="button" data-page="register">注册</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="register">
+        <div class="surface hero-slab">
+          <section class="hero-blue">
+            <div class="kicker">Create your own bar</div>
+            <h1>开一间自己的知识酒吧</h1>
+            <p class="hero-copy">第一版不做邮箱验证，降低使用门槛。后续可补充忘记密码、使用次数和会员能力。</p>
+          </section>
+          <section class="login-panel">
+            <h2 class="panel-title">创建账号</h2>
+            <p class="panel-desc">只需要邮箱和密码。</p>
+            <div class="field">
+              <label for="register-email">邮箱</label>
+              <input id="register-email" type="email" placeholder="name@example.com">
+            </div>
+            <div class="field">
+              <label for="register-password">密码</label>
+              <input id="register-password" type="password" placeholder="设置密码">
+            </div>
+            <div class="field">
+              <label for="register-confirm">确认密码</label>
+              <input id="register-confirm" type="password" placeholder="再次输入密码">
+            </div>
+            <div class="button-row">
+              <button type="button" class="primary" data-page="dashboard">注册并登录</button>
+              <button type="button" data-page="login">返回登录</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="create">
+        <div class="form-card">
+          <h2>创建 knowledge bar</h2>
+          <div class="two-col-field">
+            <label for="kb-name">bar 名称</label>
+            <input id="kb-name" placeholder="例如：考研政治强化复习">
+          </div>
+          <div class="two-col-field">
+            <label for="kb-desc">介绍</label>
+            <textarea id="kb-desc" placeholder="填写知识库介绍（选填）"></textarea>
+          </div>
+          <div class="two-col-field">
+            <label for="kb-tags">标签</label>
+            <input id="kb-tags" placeholder="例如：考研政治、英语、专业课">
+          </div>
+          <div class="button-row">
+            <button type="button" class="primary" data-page="detail">创建并进入详情页</button>
+            <button type="button" data-page="dashboard">取消</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="dashboard">
+        <div class="surface app-layout">
+          <aside class="sidebar">
+            <div class="sidebar-content">
+              <div class="avatar">头像</div>
+              <h3>昵称 / 游客</h3>
+              <p>游客模式提示：登录后可云端保存知识库。</p>
+              <div class="side-menu">
+                <button type="button" data-page="settings">设置</button>
+                <button type="button" data-page="login">退出登录</button>
+              </div>
+            </div>
+            <button type="button" class="collapse-btn"><<<</button>
+          </aside>
+          <section class="workspace">
+            <div class="workspace-bar">
+              <button type="button" class="expand-btn">>>></button>
+              <h2>我的 knowledge bar</h2>
+            </div>
+            <div class="search-row">
+              <input id="search" placeholder="搜索知识库名称、描述、标签">
+            </div>
+
+            <div class="state">
+              <h3>04A 无知识库状态（没有知识库时显示）</h3>
+              <div class="empty-state">
+                <div>
+                  <div class="big-plus">+</div>
+                  <button type="button" class="primary" data-page="create">创建 knowledge bar</button>
+                  <p class="muted">暂无知识库时，优先引导用户创建。</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="state">
+              <h3>04B 有知识库状态（有知识库时显示）</h3>
+              <div class="card-grid">
+                <article class="kb-card" data-page="detail">
+                  <h4>考研政治</h4>
+                  <p class="muted">马原、史纲、思修、毛中特重点整理。</p>
+                  <div class="tag-list">
+                    <span class="tag">政治</span>
+                    <span class="tag">考研</span>
+                  </div>
+                </article>
+                <article class="kb-card" data-page="detail">
+                  <h4>英语阅读</h4>
+                  <p class="muted">长难句、题型、真题复盘。</p>
+                  <div class="tag-list">
+                    <span class="tag">英语</span>
+                    <span class="tag">真题</span>
+                  </div>
+                </article>
+                <article class="new-card" data-page="create">
+                  <div>
+                    <div class="big-plus">+</div>
+                    <h4>新建</h4>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="settings">
+        <div class="surface app-layout">
+          <aside class="sidebar">
+            <div class="avatar">头像</div>
+            <h3>昵称 / 游客</h3>
+            <div class="side-menu">
+              <button type="button" data-page="dashboard">返回首页</button>
+              <button type="button" data-page="login">退出登录</button>
+            </div>
+          </aside>
+          <section class="workspace">
+            <div class="workspace-bar">
+              <h2>账号设置</h2>
+            </div>
+            <div class="two-col-field">
+              <label for="setting-name">昵称</label>
+              <input id="setting-name" placeholder="输入昵称">
+            </div>
+            <div class="two-col-field">
+              <label for="setting-email">邮箱</label>
+              <input id="setting-email" type="email" placeholder="用户邮箱">
+            </div>
+            <div class="two-col-field">
+              <label for="setting-password">新密码</label>
+              <input id="setting-password" type="password" placeholder="需要修改密码时填写">
+            </div>
+            <div class="button-row">
+              <button type="button" class="primary">保存设置</button>
+              <button type="button">上传头像</button>
+              <button type="button" data-page="register">游客注册/登录保存</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="detail">
+        <div class="surface app-layout">
+          <aside class="sidebar">
+            <div class="sidebar-content">
+              <h3>考研政治</h3>
+              <p>描述：强化复习阶段的知识库。</p>
+              <div class="conditional-box">用户添加标签后，这里显示标签筛选；没有标签时不显示标签按钮。</div>
+              <div class="side-menu">
+                <button type="button" data-page="dashboard"><<< 返回</button>
+              </div>
+            </div>
+            <button type="button" class="collapse-btn"><<<</button>
+          </aside>
+          <section class="workspace">
+            <div class="editor-nav">
+              <button type="button" class="expand-btn">>>></button>
+              <span class="nav-title">导航栏</span>
+              <button type="button" class="tool-primary">添加图片</button>
+              <button type="button" class="tool-primary">添加标签</button>
+              <span class="spacer"></span>
+              <button type="button">保存</button>
+              <button type="button" class="primary" data-page="mindmap">生成思维导图</button>
+              <button type="button">导出 MD</button>
+              <button type="button">导出 Word</button>
+              <button type="button">重命名</button>
+              <button type="button">编辑描述/标签</button>
+              <button type="button" class="danger">删除知识库</button>
+            </div>
+            <p class="muted">像空白 Word 文档一样直接写。选中文字后点击“添加标签”。图片可以通过“添加图片”上传，后续实现时也支持复制图片后粘贴。</p>
+            <div class="conditional-box">已添加标签显示区：没有标签时隐藏；用户选中文字添加标签后才显示。</div>
+            <textarea class="doc doc-textarea" aria-label="自由知识库编辑区" placeholder="在这里直接输入或粘贴你的知识内容。&#10;&#10;可以写标题、段落、列表、重点标记，也可以后续插入图片。&#10;&#10;AI 会基于这份自由文档生成一张可编辑的思维导图。"></textarea>
+          </section>
+        </div>
+      </section>
+
+      <section class="page" id="mindmap">
+        <div class="surface">
+          <section class="workspace">
+            <div class="workspace-bar">
+              <h2>思维导图</h2>
+              <span class="spacer"></span>
+              <button type="button">重新生成</button>
+              <button type="button" class="primary">保存最新版</button>
+              <button type="button">导出 MD</button>
+              <button type="button">导出 Word</button>
+              <button type="button" data-page="detail">返回详情</button>
+            </div>
+            <div class="mindmap-canvas">
+              <div class="mindmap" aria-label="AI 思维导图">
+                <div class="map-node map-root" contenteditable="true">考研政治</div>
+                <div class="map-line"></div>
+                <div class="map-branch">
+                  <div class="map-row">
+                    <div class="map-node" contenteditable="true">主题 A</div>
+                    <div class="map-line"></div>
+                    <div class="map-stack">
+                      <div class="map-node" contenteditable="true">知识 A1</div>
+                      <div class="map-node" contenteditable="true">知识 A2</div>
+                    </div>
+                  </div>
+                  <div class="map-row">
+                    <div class="map-node" contenteditable="true">主题 B</div>
+                    <div class="map-line"></div>
+                    <div class="map-stack">
+                      <div class="map-node" contenteditable="true">知识 B1</div>
+                      <div class="map-node" contenteditable="true">知识 B2</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="mindmap-md">思维导图 Markdown 源文本</label>
+              <textarea id="mindmap-md"># 考研政治
+- 主题 A
+  - 知识 A1
+  - 知识 A2
+- 主题 B
+  - 知识 B1
+  - 知识 B2</textarea>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const pages = Array.from(document.querySelectorAll(".page"));
+    const triggers = Array.from(document.querySelectorAll("[data-page]"));
+    const navButtons = Array.from(document.querySelectorAll(".prototype-nav [data-page]"));
+
+    function showPage(id) {
+      pages.forEach((page) => page.classList.toggle("active", page.id === id));
+      navButtons.forEach((button) => button.classList.toggle("active", button.dataset.page === id));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", () => showPage(trigger.dataset.page));
+    });
+
+    document.querySelectorAll(".collapse-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        const layout = button.closest(".app-layout");
+        const content = layout?.querySelector(".sidebar-content");
+        layout?.classList.add("sidebar-collapsed");
+        if (content) content.hidden = true;
+      });
+    });
+
+    document.querySelectorAll(".expand-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        const layout = button.closest(".app-layout");
+        const content = layout?.querySelector(".sidebar-content");
+        layout?.classList.remove("sidebar-collapsed");
+        if (content) content.hidden = false;
+      });
+    });
+  </script>
+</body>
+</html>

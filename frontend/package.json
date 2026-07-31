@@ -1,0 +1,28 @@
+{
+  "name": "knowledge-bar-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.53.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@xyflow/react": "^12.11.2",
+    "html-to-image": "^1.11.13",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "eslint": "^9.18.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}

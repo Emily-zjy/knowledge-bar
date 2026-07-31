@@ -1,0 +1,117 @@
+{
+  "trace_results": {
+    "T11": {
+      "target_string": "重复信息去重测试",
+      "first_appearance": {
+        "stage": "Test Fixture definition",
+        "file": "backend/trace_eval.py",
+        "line": 122,
+        "field": "TEST_CASES[\"T11\"][\"title\"]"
+      },
+      "propagation_chain": [
+        {"stage": "S0", "location": "trace_eval.py:122", "field": "title", "value": "重复信息去重测试"},
+        {"stage": "S1", "location": "POST /api/mindmaps/generate", "field": "request.title", "value": "重复信息去重测试"},
+        {"stage": "Pipeline", "location": "mindmap_agent.py:255", "field": "title = request.title", "value": "重复信息去重测试"},
+        {"stage": "Prompt assembly", "location": "mindmap_agent.py:183-184", "field": "user_msg prefix", "value": "用户指定的标题：重复信息去重测试"},
+        {"stage": "S4 LLM output (binary run)", "location": "frozen-data.json", "field": "nodes[0].text", "value": "重复信息去重测试"},
+        {"stage": "S4 LLM output (trace run)", "location": "04-llm-raw-response.json", "field": "nodes[0].text", "value": "个人资料功能"}
+      ],
+      "should_enter_llm": false,
+      "reason": "Test method description, not content topic"
+    },
+    "T15": {
+      "target_string": "超长混合产品需求与切分测试",
+      "first_appearance": {
+        "stage": "Test Fixture definition",
+        "file": "backend/trace_eval.py",
+        "line": 158,
+        "field": "TEST_CASES[\"T15\"][\"title\"]"
+      },
+      "propagation_chain": [
+        {"stage": "S0", "location": "trace_eval.py:158", "field": "title", "value": "超长混合产品需求与切分测试"},
+        {"stage": "S1", "location": "POST /api/mindmaps/generate", "field": "request.title", "value": "超长混合产品需求与切分测试"},
+        {"stage": "Pipeline", "location": "mindmap_agent.py:255", "field": "title = request.title", "value": "超长混合产品需求与切分测试"},
+        {"stage": "Prompt assembly", "location": "mindmap_agent.py:183-184", "field": "user_msg prefix", "value": "用户指定的标题：超长混合产品需求与切分测试"},
+        {"stage": "S4 LLM output (binary run)", "location": "frozen-data.json", "field": "nodes[0].text", "value": "超长混合产品需求与切分测试"},
+        {"stage": "S4 LLM output (trace run)", "location": "04-llm-raw-response.json", "field": "nodes[0].text", "value": "超长混合产品需求与切分测试"}
+      ],
+      "should_enter_llm": false,
+      "reason": "Test method description, not content topic"
+    }
+  },
+  "root_cause": {
+    "rule": "A+C",
+    "primary": "Test Fixture (trace_eval.py puts test method name into API title field)",
+    "secondary": "Prompt assembler (mindmap_agent.py:183-184 injects title as 'user-specified title' into LLM context)",
+    "not_root_cause": "LLM itself (proven by earlier trace run where same model correctly generated content-derived root)"
+  },
+  "statistical_corrections": {
+    "t02_evidence_table_error": {
+      "reported_in_md": "24/24 covered",
+      "actual_in_json": "22/24 covered (91.7%)",
+      "correction": "Evidence table text says 24/24 but JSON and summary table correctly say 22/24"
+    },
+    "total_atoms": {
+      "reported": 236,
+      "correct_sum": 251,
+      "per_case": [23, 24, 19, 17, 21, 13, 17, 14, 15, 10, 12, 13, 16, 9, 28],
+      "note": "Agent used a different atom counting method (excluding L1 branches as independent atoms in some cases). The per-case JSON values sum to 251 but the agent counted shared atoms once. Both counting methods are defensible but must be internally consistent."
+    },
+    "total_covered": {
+      "reported": 234,
+      "correct_sum": 248,
+      "per_case": [23, 22, 19, 17, 21, 13, 17, 14, 15, 10, 12, 13, 16, 9, 27]
+    },
+    "coverage_rate": {
+      "reported": 0.992,
+      "corrected": 0.988
+    },
+    "true_omissions": {
+      "count": 3,
+      "details": [
+        {"case": "T02", "atom": "异常输入测试", "type": "named_omission"},
+        {"case": "T02", "atom": "(unnamed second gap)", "type": "unnamed_gap_to_reach_22_from_24"},
+        {"case": "T15", "atom": "难以发现知识关系", "type": "named_omission"}
+      ]
+    },
+    "false_negative_distinction": {
+      "case_level_false_negatives": {
+        "count": 13,
+        "meaning": "Cases scored 0 by old evaluator that should be 1 under semantic criteria"
+      },
+      "atom_level_evaluator_mismatches": {
+        "count": 112,
+        "meaning": "Individual atoms marked 'not matched' by old evaluator that are valid synonym/split/merge/reparent"
+      }
+    }
+  },
+  "corrected_s4_stats": {
+    "s4a_pass": "15/15",
+    "s4b_pass": "13/15",
+    "s4_pass": "13/15",
+    "total_atoms": 251,
+    "total_covered": 248,
+    "coverage_rate": 0.988,
+    "true_omissions": 3,
+    "hallucinations": 0,
+    "wrong_parents": 0
+  },
+  "recommendations": {
+    "fix_target": [
+      {
+        "priority": "P0",
+        "component": "S9A/S9B/S9D persistence infrastructure",
+        "score": "0/15",
+        "difficulty": "medium"
+      },
+      {
+        "priority": "P1",
+        "component": "Test Fixture (trace_eval.py T11 and T15 title fields)",
+        "score": "n/a",
+        "difficulty": "trivial"
+      }
+    ],
+    "not_bottleneck": ["S4 LLMGenerate", "S7 GraphBuilder (15/15)", "S8 BrowserRenderer (15/15)"],
+    "s7_s8_note": "S7 and S8 both score 15/15. The prior s4-semantic-reevaluation.md incorrectly listed them as optimization targets. They are NOT bottlenecks."
+  }
+}
