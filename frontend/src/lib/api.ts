@@ -2,6 +2,15 @@ import type { GenerateMindMapResponse, MindMapData } from "../types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
+async function readApiError(response: Response): Promise<string> {
+  try {
+    const payload = await response.json();
+    return payload?.error?.message || payload?.detail || "请求失败，请稍后重试。";
+  } catch {
+    return "请求失败，请稍后重试。";
+  }
+}
+
 export async function generateMindMap(input: {
   knowledge_base_id: string;
   title: string;
@@ -45,6 +54,7 @@ export async function generateMindMap(input: {
 export async function exportWordDocument(input: {
   title: string;
   markdown: string;
+  knowledgeBaseId?: string;
   token?: string;
 }): Promise<Blob> {
   const headers: HeadersInit = {
@@ -61,11 +71,12 @@ export async function exportWordDocument(input: {
     body: JSON.stringify({
       title: input.title,
       markdown: input.markdown,
+      knowledge_base_id: input.knowledgeBaseId,
     }),
   });
 
   if (!response.ok) {
-    throw new Error("导出 Word 失败，请稍后重试。");
+    throw new Error(await readApiError(response));
   }
 
   return response.blob();

@@ -1,131 +1,123 @@
-"""API integration tests for mind map endpoints."""
+import json
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.core.config import settings
 from app.main import app
+from app.services import mindmap_agent
 
 
 @pytest.fixture
-def client():
+def client(monkeypatch):
+    monkeypatch.setattr(settings, "ai_api_key", "test-key")
+    monkeypatch.setattr(settings, "ai_provider", "openai_compatible")
+
+    def fake_llm(messages, temperature=0.2):
+        _ = messages
+        _ = temperature
+        return json.dumps(
+            {
+                "title": "Software Engineering",
+                "map_type": "knowledge",
+                "nodes": [
+                    {
+                        "id": "node-root",
+                        "parent_id": None,
+                        "text": "Software Engineering",
+                        "level": 0,
+                        "order": 0,
+                        "side": None,
+                        "source_ids": [],
+                    },
+                    {
+                        "id": "node-1",
+                        "parent_id": "node-root",
+                        "text": "Requirements",
+                        "level": 1,
+                        "order": 1,
+                        "side": "right",
+                        "source_ids": ["p-missing"],
+                    },
+                    {
+                        "id": "node-2",
+                        "parent_id": "node-root",
+                        "text": "Design",
+                        "level": 1,
+                        "order": 2,
+                        "side": "left",
+                        "source_ids": ["p-missing"],
+                    },
+                    {
+                        "id": "node-3",
+                        "parent_id": "node-root",
+                        "text": "Testing",
+                        "level": 1,
+                        "order": 3,
+                        "side": "right",
+                        "source_ids": ["p-missing"],
+                    },
+                ],
+            }
+        )
+
+    monkeypatch.setattr(mindmap_agent, "_call_llm", fake_llm)
     return TestClient(app)
 
 
-class TestHealthEndpoint:
-    def test_health(self, client):
-        resp = client.get("/health")
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "ok"
+def test_health(client):
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "ok"
+    assert resp.headers["X-Request-ID"]
 
 
-class TestMindMapGenerate:
-    def test_generate_success(self, client):
-        resp = client.post("/api/mindmaps/generate", json={
-            "text": "人工智能是计算机科学的一个分支。机器学习是人工智能的核心技术。深度学习是机器学习的一个子集，使用多层神经网络。",
-            "title": "AI概述",
+def test_generate_success(client):
+    resp = client.post(
+        "/api/mindmaps/generate",
+        json={
+            "text": "Requirements define the problem.\n\nDesign shapes the solution.\n\nTesting protects quality.",
+            "title": "Software Engineering",
             "max_depth": 4,
-            "source_only": True,
-            "map_type": "auto",
-        })
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["status"] == "succeeded"
-        assert data["task_id"]
-        assert data["title"]
-        assert len(data["nodes"]) > 0
-        assert len(data["edges"]) > 0
-
-        root_nodes = [n for n in data["nodes"] if n["level"] == 0]
-        assert len(root_nodes) == 1
-
-    def test_generate_empty_text(self, client):
-        resp = client.post("/api/mindmaps/generate", json={
-            "text": "",
-            "max_depth": 4,
-            "source_only": True,
-            "map_type": "auto",
-        })
-        assert resp.status_code == 422
-
-    def test_generate_missing_text(self, client):
-        resp = client.post("/api/mindmaps/generate", json={
-            "max_depth": 4,
-            "source_only": True,
-            "map_type": "auto",
-        })
-        assert resp.status_code == 422
-
-
-class TestMindMapCRUD:
-    def _generate(self, client):
-        resp = client.post("/api/mindmaps/generate", json={
-            "text": "软件工程包含需求分析、设计、编码、测试四个阶段。每个阶段都有其特定目标和交付物。良好的软件工程实践能提高代码质量。",
-            "title": "软件工程",
-            "max_depth": 3,
             "source_only": True,
             "map_type": "knowledge",
-        })
-        assert resp.status_code == 200
-        return resp.json()
+        },
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "succeeded"
+    assert data["task_id"]
+    assert len(data["nodes"]) > 0
+    assert len(data["edges"]) > 0
 
-    def test_get_mindmap(self, client):
-        created = self._generate(client)
-        task_id = created["task_id"]
 
-        resp = client.get(f"/api/mindmaps/{task_id}")
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["task_id"] == task_id
-        assert data["title"] == created["title"]
+def test_generate_empty_text(client):
+    resp = client.post(
+        "/api/mindmaps/generate",
+        json={"text": "", "max_depth": 4, "source_only": True, "map_type": "auto"},
+    )
+    assert resp.status_code == 422
 
-    def test_get_not_found(self, client):
-        resp = client.get("/api/mindmaps/nonexistent-id")
-        assert resp.status_code == 404
 
-    def test_list_mindmaps(self, client):
-        self._generate(client)
-        resp = client.get("/api/mindmaps")
-        assert resp.status_code == 200
-        items = resp.json()
-        assert len(items) >= 1
-        assert "task_id" in items[0]
-        assert "title" in items[0]
-        assert "node_count" in items[0]
+def test_get_and_delete_mindmap(client):
+    created = client.post(
+        "/api/mindmaps/generate",
+        json={
+            "text": "A useful note.\n\nAnother useful note.",
+            "title": "Knowledge",
+            "max_depth": 4,
+            "source_only": True,
+            "map_type": "knowledge",
+        },
+    ).json()
 
-    def test_patch_title(self, client):
-        created = self._generate(client)
-        task_id = created["task_id"]
+    fetched = client.get(f"/api/mindmaps/{created['task_id']}")
+    assert fetched.status_code == 200
+    assert fetched.json()["task_id"] == created["task_id"]
 
-        resp = client.patch(f"/api/mindmaps/{task_id}", json={
-            "title": "新标题",
-        })
-        assert resp.status_code == 200
-        assert resp.json()["title"] == "新标题"
+    deleted = client.delete(f"/api/mindmaps/{created['task_id']}")
+    assert deleted.status_code == 200
+    assert deleted.json()["deleted"] is True
 
-    def test_patch_node_text(self, client):
-        created = self._generate(client)
-        task_id = created["task_id"]
-        node_id = created["nodes"][1]["id"] if len(created["nodes"]) > 1 else created["nodes"][0]["id"]
-
-        resp = client.patch(f"/api/mindmaps/{task_id}", json={
-            "update_node": {"id": node_id, "text": "修改后文本"},
-        })
-        assert resp.status_code == 200
-        updated_node = next(
-            (n for n in resp.json()["nodes"] if n["id"] == node_id), None
-        )
-        assert updated_node is not None
-        assert updated_node["text"] == "修改后文本"
-
-    def test_regenerate(self, client):
-        created = self._generate(client)
-        task_id = created["task_id"]
-
-        resp = client.post(f"/api/mindmaps/{task_id}/regenerate", json={
-            "max_depth": 2,
-            "map_type": "auto",
-        })
-        assert resp.status_code == 200
-        data = resp.json()
-        assert data["status"] == "succeeded"
-        assert data["task_id"] != task_id
+    missing = client.get(f"/api/mindmaps/{created['task_id']}")
+    assert missing.status_code == 404

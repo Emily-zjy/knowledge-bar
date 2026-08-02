@@ -1,4 +1,4 @@
-from typing import Generic, Literal, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -26,15 +26,15 @@ class GenerateMindMapRequest(BaseModel):
 
 
 class MindMapNode(BaseModel):
-    id: str
+    id: str = Field(min_length=1, max_length=80)
     parentId: str | None = None
     text: str = Field(min_length=1, max_length=120)
     order: int = Field(ge=0)
 
 
 class MindMapData(BaseModel):
-    title: str
-    nodes: list[MindMapNode]
+    title: str = Field(min_length=1, max_length=120)
+    nodes: list[MindMapNode] = Field(min_length=1, max_length=25)
 
 
 class GenerateMindMapResult(BaseModel):
@@ -45,4 +45,29 @@ class GenerateMindMapResult(BaseModel):
 
 class ExportWordRequest(BaseModel):
     title: str = Field(min_length=1, max_length=120)
-    markdown: str = Field(default="", max_length=120_000)
+    markdown: str = Field(default="", max_length=5_000_000)
+    knowledge_base_id: UUID | str | None = None
+
+
+class GenerationJobResponse(BaseModel):
+    id: str
+    knowledge_base_id: str
+    status: str
+    error_code: str | None = None
+    error_message: str | None = None
+    model_name: str | None = None
+    prompt_version: str | None = None
+    created_at: str | None = None
+    updated_at: str | None = None
+
+
+class LatestMindMapResponse(BaseModel):
+    knowledge_base_id: str
+    version_no: int
+    mind_map: MindMapData
+    markdown: str = ""
+    updated_at: str | None = None
+
+
+class SupabaseRow(BaseModel):
+    data: dict[str, Any]

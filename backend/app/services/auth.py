@@ -15,7 +15,7 @@ def verify_optional_supabase_jwt(authorization: str | None) -> str | None:
         return None
 
     if not authorization.startswith("Bearer "):
-        raise AuthError("UNAUTHORIZED", "Authorization 请求头格式无效。")
+        raise AuthError("UNAUTHORIZED", "Authorization header must use Bearer token.")
 
     if not settings.supabase_jwt_secret:
         return None
@@ -30,9 +30,22 @@ def verify_optional_supabase_jwt(authorization: str | None) -> str | None:
             options={"verify_aud": False},
         )
     except jwt.PyJWTError as exc:
-        raise AuthError("UNAUTHORIZED", "登录状态无效，请重新登录。") from exc
+        raise AuthError("UNAUTHORIZED", "Login token is invalid or expired.") from exc
 
     user_id = payload.get("sub")
     if not user_id:
-        raise AuthError("UNAUTHORIZED", "登录状态缺少用户信息。")
+        raise AuthError("UNAUTHORIZED", "Login token is missing the user id.")
     return str(user_id)
+
+
+def verify_required_supabase_jwt(authorization: str | None) -> str:
+    if not authorization:
+        raise AuthError("UNAUTHORIZED", "Login is required for this API.")
+
+    if not settings.supabase_jwt_secret:
+        raise AuthError("AUTH_NOT_CONFIGURED", "SUPABASE_JWT_SECRET is not configured on the backend.")
+
+    user_id = verify_optional_supabase_jwt(authorization)
+    if not user_id:
+        raise AuthError("UNAUTHORIZED", "Login is required for this API.")
+    return user_id

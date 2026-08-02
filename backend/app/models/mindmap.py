@@ -85,8 +85,8 @@ class MindMapState(BaseModel):
     validation: ValidationResult | None = None
     render_data: RenderData | None = None
     error_message: str | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
 
 # --- API Request/Response Models ---

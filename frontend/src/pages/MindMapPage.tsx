@@ -3,7 +3,7 @@
  * Uses @xyflow/react for rendering, communicates with new /api/mindmaps endpoints
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ReactFlow,
@@ -18,9 +18,12 @@ import {
   MarkerType,
   ReactFlowProvider,
   useReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
+import { getCloudSession } from "../lib/cloudStore";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
@@ -72,6 +75,12 @@ interface HistoryItem {
   updated_at: string;
 }
 
+type MindMapReturnState = {
+  initialText?: string;
+  from?: "dashboard" | "detail";
+  knowledgeBaseId?: string;
+};
+
 type GenerationStep =
   | "idle"
   | "preparing"
@@ -92,6 +101,15 @@ const STEP_LABELS: Record<GenerationStep, string> = {
 };
 
 // --- API Calls ---
+async function authHeaders(json = false): Promise<HeadersInit> {
+  const session = await getCloudSession();
+  const headers: HeadersInit = json ? { "Content-Type": "application/json" } : {};
+  if (session?.access_token) {
+    headers.Authorization = `Bearer ${session.access_token}`;
+  }
+  return headers;
+}
+
 async function apiGenerate(body: {
   text: string;
   title?: string;
@@ -101,7 +119,7 @@ async function apiGenerate(body: {
 }): Promise<MindMapResponse> {
   const res = await fetch(`${API_BASE}/api/mindmaps/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(true),
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -112,7 +130,7 @@ async function apiGenerate(body: {
 }
 
 async function apiGetMindmap(taskId: string): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`);
+  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`, { headers: await authHeaders() });
   if (!res.ok) throw new Error("获取导图失败");
   return res.json();
 }
@@ -123,7 +141,7 @@ async function apiRegenerate(
 ): Promise<MindMapResponse> {
   const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}/regenerate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(true),
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error("重新生成失败");
@@ -136,7 +154,7 @@ async function apiPatch(
 ): Promise<MindMapResponse> {
   const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders(true),
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error("修改失败");
@@ -144,9 +162,20 @@ async function apiPatch(
 }
 
 async function apiListHistory(): Promise<HistoryItem[]> {
-  const res = await fetch(`${API_BASE}/api/mindmaps`);
+  const res = await fetch(`${API_BASE}/api/mindmaps`, { headers: await authHeaders() });
   if (!res.ok) return [];
   return res.json();
+}
+
+async function apiDeleteMindmap(taskId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`, {
+    method: "DELETE",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "删除历史记录失败");
+  }
 }
 
 // --- Helpers ---
@@ -176,19 +205,19 @@ function responseToFlow(data: MindMapResponse): { nodes: Node[]; edges: Edge[] }
       style: {
         width: n.width,
         minHeight: n.height,
-        background: n.level === 0 ? "#22c55e" : n.level === 1 ? "#f3f4f6" : "#fafafa",
-        color: n.level === 0 ? "#fff" : "#1f2937",
-        border: n.level === 0 ? "2px solid #16a34a" : "1px solid #e5e7eb",
-        borderRadius: n.level === 0 ? "12px" : "8px",
-        padding: "10px 14px",
-        fontSize: n.level === 0 ? "15px" : "13px",
-        fontWeight: n.level === 0 ? "700" : n.level === 1 ? "600" : "400",
+        background: n.level === 0 ? "#FF6A1A" : n.level === 1 ? (n.order % 3 === 0 ? "#171513" : "#FFE2CF") : "#FFFFFF",
+        color: n.level === 0 ? "#fff" : n.level === 1 && n.order % 3 === 0 ? "#fff" : "#171513",
+        border: n.level === 0 ? "2px solid #E9510E" : n.level === 1 ? "1.5px solid #FF813F" : "1px solid #FFB98F",
+        borderRadius: n.level === 0 ? "22px" : n.level === 1 ? "18px" : "14px",
+        padding: "12px 16px",
+        fontSize: n.level === 0 ? "16px" : "13px",
+        fontWeight: n.level === 0 ? "800" : n.level === 1 ? "700" : "500",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center" as const,
         lineHeight: "1.4",
-        boxShadow: n.level === 0 ? "0 2px 8px rgba(34,197,94,0.2)" : "0 1px 3px rgba(0,0,0,0.06)",
+        boxShadow: n.level === 0 ? "0 18px 34px rgba(255,106,26,0.24)" : "0 10px 24px rgba(23,21,19,0.08)",
       },
     };
   });
@@ -199,8 +228,8 @@ function responseToFlow(data: MindMapResponse): { nodes: Node[]; edges: Edge[] }
       source: e.source,
       target: e.target,
       type: "smoothstep",
-      style: { stroke: "#d1d5db", strokeWidth: 1.5 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#d1d5db", width: 12, height: 12 },
+      style: { stroke: e.id.length % 2 === 0 ? "#FF813F" : "#4A4541", strokeWidth: 1.8 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: e.id.length % 2 === 0 ? "#FF813F" : "#4A4541", width: 12, height: 12 },
     };
   });
 
@@ -208,18 +237,20 @@ function responseToFlow(data: MindMapResponse): { nodes: Node[]; edges: Edge[] }
 }
 
 // --- Flow Inner Component ---
-function FlowCanvas({
-  flowNodes,
-  flowEdges,
-  onNodeDoubleClick,
-}: {
+export interface FlowCanvasHandle {
+  exportPng: () => Promise<string | null>;
+}
+
+const FlowCanvas = forwardRef<FlowCanvasHandle, {
   flowNodes: Node[];
   flowEdges: Edge[];
-  onNodeDoubleClick: (id: string) => void;
-}) {
+  onNodeDoubleClick: (id: string, newText: string) => void;
+}>(function FlowCanvas({ flowNodes, flowEdges, onNodeDoubleClick }, ref) {
   const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges);
-  const { fitView } = useReactFlow();
+  const { fitView, getNodes } = useReactFlow();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     setNodes(flowNodes);
@@ -227,31 +258,117 @@ function FlowCanvas({
     setTimeout(() => fitView({ padding: 0.2 }), 50);
   }, [flowNodes, flowEdges, setNodes, setEdges, fitView]);
 
+  useImperativeHandle(ref, () => ({
+    exportPng: async () => {
+      const nodesBounds = getNodesBounds(getNodes());
+      const padding = 50;
+      const width = nodesBounds.width + padding * 2;
+      const height = nodesBounds.height + padding * 2;
+      const viewport = getViewportForBounds(nodesBounds, width, height, 0.5, 2, 0.2);
+      const el = document.querySelector(".react-flow__viewport") as HTMLElement;
+      if (!el) return null;
+      const prev = el.style.transform;
+      el.style.transform = `translate(${viewport.x + padding}px, ${viewport.y + padding}px) scale(${viewport.zoom})`;
+      try {
+        const dataUrl = await toPng(el, {
+          backgroundColor: "#FFFCF9",
+          width,
+          height,
+          style: {
+            width: `${width}px`,
+            height: `${height}px`,
+            transform: `translate(${viewport.x + padding}px, ${viewport.y + padding}px) scale(${viewport.zoom})`,
+          },
+        });
+        return dataUrl;
+      } finally {
+        el.style.transform = prev;
+      }
+    },
+  }), [getNodes]);
+
+  const commitEdit = useCallback(() => {
+    if (editingId && editText.trim()) {
+      onNodeDoubleClick(editingId, editText.trim());
+    }
+    setEditingId(null);
+    setEditText("");
+  }, [editingId, editText, onNodeDoubleClick]);
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onNodeDoubleClick={(_, node) => onNodeDoubleClick(node.id)}
-      fitView
-      minZoom={0.15}
-      maxZoom={2}
-      proOptions={{ hideAttribution: true }}
-    >
-      <Background gap={20} color="#f0f0f0" />
+    <>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeDoubleClick={(_, node) => {
+          setEditingId(node.id);
+          setEditText(node.data.label as string);
+        }}
+        onPaneClick={() => { if (editingId) commitEdit(); }}
+        fitView
+        minZoom={0.15}
+        maxZoom={2}
+        proOptions={{ hideAttribution: true }}
+      >
+      <Background gap={22} color="#F0D8C8" />
       <Controls showInteractive={false} />
       <MiniMap
         pannable
         zoomable
-        style={{ background: "#fafafa", border: "1px solid #e5e7eb" }}
+        style={{ background: "#FFF8F3", border: "1px solid #F0C8AE", borderRadius: 16 }}
       />
     </ReactFlow>
+    {editingId && (
+      <div style={{
+        position: "absolute",
+        top: 0, left: 0, right: 0, bottom: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(255, 248, 243, 0.72)",
+        zIndex: 10,
+      }} onClick={commitEdit}>
+        <input
+          autoFocus
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitEdit();
+            if (e.key === "Escape") { setEditingId(null); setEditText(""); }
+          }}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: "300px",
+            padding: "12px 16px",
+            fontSize: "15px",
+            background: "#FFFFFF",
+            color: "#171513",
+            border: "2px solid #FF6A1A",
+            borderRadius: "14px",
+            outline: "none",
+            textAlign: "center",
+          }}
+        />
+      </div>
+    )}
+    </>
   );
-}
+});
 
 // --- Main Page Component ---
-export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: () => void; initialText?: string; taskId?: string }) {
+export default function MindMapPage({
+  onBack,
+  initialText,
+  taskId,
+  returnState,
+}: {
+  onBack?: () => void;
+  initialText?: string;
+  taskId?: string;
+  returnState?: MindMapReturnState;
+}) {
   const navigate = useNavigate();
   const [inputText, setInputText] = useState(initialText || "");
   const [inputTitle, setInputTitle] = useState("");
@@ -269,22 +386,37 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLDivElement>(null);
+  const flowCanvasRef = useRef<FlowCanvasHandle>(null);
   const autoTriggered = useRef(false);
+
+  const preservedReturnState = useMemo(() => {
+    if (!returnState?.from && !returnState?.knowledgeBaseId) return undefined;
+    return {
+      from: returnState?.from,
+      knowledgeBaseId: returnState?.knowledgeBaseId,
+    } satisfies MindMapReturnState;
+  }, [returnState]);
 
   // Load history on mount
   useEffect(() => {
     apiListHistory().then(setHistory).catch(() => {});
   }, []);
 
-  // Load from taskId (URL-based restore)
+  // Load from taskId (URL-based restore or history switch)
   useEffect(() => {
-    if (taskId && !currentData) {
+    if (taskId && taskId !== currentData?.task_id) {
+      setCurrentData(null);
+      setFlowNodes([]);
+      setFlowEdges([]);
+      setStep("idle");
       apiGetMindmap(taskId)
         .then((result) => {
           applyResponse(result);
           setStep("done");
+          refreshHistory();
         })
         .catch(() => {
           setErrorMsg("导图不存在或加载失败");
@@ -345,7 +477,7 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
         setStep("done");
         applyResponse(result);
         refreshHistory();
-        navigate(`/mindmap/${result.task_id}`, { replace: true });
+        navigate(`/mindmap/${result.task_id}`, { replace: true, state: preservedReturnState });
       }
     } catch (e) {
       clearTimeout(stepTimer);
@@ -356,7 +488,7 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
     } finally {
       setGenerating(false);
     }
-  }, [inputText, inputTitle, maxDepth, sourceOnly, mapType, applyResponse, refreshHistory, navigate]);
+  }, [inputText, inputTitle, maxDepth, sourceOnly, mapType, applyResponse, refreshHistory, navigate, preservedReturnState]);
 
   // Auto-trigger generation when initialText is provided
   useEffect(() => {
@@ -380,34 +512,64 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
       setStep("done");
       applyResponse(result);
       refreshHistory();
-      navigate(`/mindmap/${result.task_id}`, { replace: true });
+      navigate(`/mindmap/${result.task_id}`, { replace: true, state: preservedReturnState });
     } catch (e) {
       setStep("failed");
       setErrorMsg(e instanceof Error ? e.message : "重新生成失败");
     } finally {
       setGenerating(false);
     }
-  }, [currentData, maxDepth, mapType, applyResponse, refreshHistory, navigate]);
+  }, [currentData, maxDepth, mapType, applyResponse, refreshHistory, navigate, preservedReturnState]);
 
   // Load from history - navigate to URL
   const handleLoadHistory = useCallback(
     (taskId: string) => {
-      navigate(`/mindmap/${taskId}`);
+      navigate(`/mindmap/${taskId}`, { state: preservedReturnState });
     },
-    [navigate]
+    [navigate, preservedReturnState]
+  );
+
+  const resetToNew = useCallback(() => {
+    navigate("/mindmap/new", { replace: true, state: preservedReturnState });
+    setCurrentData(null);
+    setFlowNodes([]);
+    setFlowEdges([]);
+    setInputText("");
+    setInputTitle("");
+    setStep("idle");
+    setErrorMsg("");
+    autoTriggered.current = false;
+  }, [navigate, preservedReturnState]);
+
+  const handleDeleteHistory = useCallback(
+    async (event: MouseEvent<HTMLButtonElement>, item: HistoryItem) => {
+      event.stopPropagation();
+      if (!window.confirm(`删除「${item.title}」这条思维导图历史？`)) return;
+      setDeletingTaskId(item.task_id);
+      try {
+        await apiDeleteMindmap(item.task_id);
+        setHistory((items) => items.filter((entry) => entry.task_id !== item.task_id));
+        if (currentData?.task_id === item.task_id) {
+          resetToNew();
+        }
+      } catch (error) {
+        setErrorMsg(error instanceof Error ? error.message : "删除历史记录失败");
+      } finally {
+        setDeletingTaskId(null);
+      }
+    },
+    [currentData, resetToNew],
   );
 
   // Node edit (double-click)
   const handleNodeDoubleClick = useCallback(
-    async (nodeId: string) => {
+    async (nodeId: string, newText: string) => {
       if (!currentData) return;
       const node = currentData.nodes.find((n) => n.id === nodeId);
-      if (!node) return;
-      const newText = prompt("编辑节点内容", node.text);
-      if (!newText?.trim() || newText.trim() === node.text) return;
+      if (!node || newText === node.text) return;
       try {
         const result = await apiPatch(currentData.task_id, {
-          update_node: { id: nodeId, text: newText.trim() },
+          update_node: { id: nodeId, text: newText },
         });
         applyResponse(result);
       } catch {
@@ -419,17 +581,20 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
 
   // Download PNG
   const handleDownloadPng = useCallback(async () => {
-    const el = canvasRef.current?.querySelector(".react-flow") as HTMLElement;
-    if (!el) return;
+    if (!flowCanvasRef.current) return;
     try {
-      const dataUrl = await toPng(el, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 2,
-      });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `${currentData?.title || "mindmap"}.png`;
-      a.click();
+      const dataUrl = await flowCanvasRef.current.exportPng();
+      if (!dataUrl) {
+        setErrorMsg("PNG导出失败，请重试");
+        return;
+      }
+      const title = currentData?.title?.trim() || "mindmap";
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `${title}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch {
       setErrorMsg("PNG导出失败，请重试");
     }
@@ -459,37 +624,46 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
           {sidebarOpen && <span className="mm-sidebar-title">历史记录</span>}
         </div>
         {sidebarOpen && (
-          <div className="mm-sidebar-list">
-            <button
-              className="mm-btn-new"
-              onClick={() => {
-                setCurrentData(null);
-                setFlowNodes([]);
-                setFlowEdges([]);
-                setStep("idle");
-                setErrorMsg("");
-              }}
-            >
-              + 新建
-            </button>
-            {history.map((item) => (
-              <button
-                key={item.task_id}
-                className={`mm-history-item ${
-                  currentData?.task_id === item.task_id ? "active" : ""
-                }`}
-                onClick={() => handleLoadHistory(item.task_id)}
-              >
-                <span className="mm-history-title">{item.title}</span>
-                <span className="mm-history-meta">
-                  {item.node_count}节点 · {new Date(item.created_at).toLocaleDateString()}
-                </span>
+          <>
+            <div className="mm-sidebar-actions">
+              <button className="mm-btn-new" onClick={resetToNew}>
+                + 新建
               </button>
-            ))}
-            {history.length === 0 && (
-              <p className="mm-empty-hint">暂无历史记录</p>
-            )}
-          </div>
+              {onBack && (
+                <button className="mm-btn-back-sidebar" onClick={onBack}>
+                  返回知识库
+                </button>
+              )}
+            </div>
+            <div className="mm-sidebar-list">
+              {history.map((item) => {
+                const isActive = currentData?.task_id === item.task_id;
+                return (
+                  <div key={item.task_id} className={`mm-history-row ${isActive ? "active" : ""}`}>
+                    <button className="mm-history-item" onClick={() => handleLoadHistory(item.task_id)}>
+                      <span className="mm-history-title">{item.title}</span>
+                      <span className="mm-history-meta">
+                        {item.node_count}节点 · {new Date(item.created_at).toLocaleString(undefined, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      className="mm-history-delete"
+                      title="删除历史"
+                      aria-label={`删除历史：${item.title}`}
+                      disabled={deletingTaskId === item.task_id}
+                      onClick={(event) => handleDeleteHistory(event, item)}
+                    >
+                      删除
+                    </button>
+                  </div>
+                );
+              })}
+              {history.length === 0 && (
+                <p className="mm-empty-hint">暂无历史记录</p>
+              )}
+            </div>
+          </>
         )}
       </aside>
 
@@ -498,6 +672,11 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
         {/* Input panel - show when no result */}
         {!currentData && (
           <div className="mm-input-panel">
+            {onBack && (
+              <button className="mm-btn-back-top" onClick={onBack}>
+                ← 返回知识库
+              </button>
+            )}
             <h2 className="mm-heading">思维导图生成</h2>
             <p className="mm-desc">
               粘贴长文本，AI 自动提取知识点并生成结构化思维导图。
@@ -583,12 +762,6 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
             >
               {generating ? "生成中..." : "生成思维导图"}
             </button>
-
-            {onBack && (
-              <button className="mm-btn-back" onClick={onBack}>
-                ← 返回知识库
-              </button>
-            )}
           </div>
         )}
 
@@ -598,19 +771,14 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
             <div className="mm-toolbar">
               <h3 className="mm-canvas-title">{currentData.title}</h3>
               <div className="mm-toolbar-actions">
-                <button onClick={handleRegenerate} disabled={generating}>
+                <button className="mm-btn-regen" onClick={() => {
+                  if (window.confirm("确认重新生成？当前导图将被替换。")) handleRegenerate();
+                }} disabled={generating}>
                   重新生成
                 </button>
                 <button onClick={handleDownloadPng}>下载 PNG</button>
                 <button onClick={handleCopyJson}>复制 JSON</button>
-                <button
-                  onClick={() => {
-                    setCurrentData(null);
-                    setFlowNodes([]);
-                    setFlowEdges([]);
-                    setStep("idle");
-                  }}
-                >
+                <button onClick={resetToNew}>
                   新建
                 </button>
                 {onBack && <button onClick={onBack}>返回</button>}
@@ -635,6 +803,7 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
             <div className="mm-canvas" ref={canvasRef}>
               <ReactFlowProvider>
                 <FlowCanvas
+                  ref={flowCanvasRef}
                   flowNodes={flowNodes}
                   flowEdges={flowEdges}
                   onNodeDoubleClick={handleNodeDoubleClick}
