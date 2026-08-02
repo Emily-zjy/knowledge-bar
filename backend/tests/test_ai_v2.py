@@ -61,7 +61,7 @@ class FakeSupabaseStore:
             raise SupabaseStoreError(404, "MIND_MAP_NOT_FOUND", "Mind map was not found.")
         return row
 
-    def save_latest_mind_map(self, *, user_id: str, knowledge_base_id: str, mind_map: MindMapData, markdown: str) -> dict:
+    def save_mind_map(self, *, user_id: str, knowledge_base_id: str, mind_map: MindMapData, markdown: str) -> dict:
         key = f"{user_id}:{knowledge_base_id}"
         previous = self.maps.get(key)
         version_no = int(previous["version_no"]) + 1 if previous else 1

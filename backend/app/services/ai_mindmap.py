@@ -228,7 +228,12 @@ def generate_mind_map(
 
     provider = settings.ai_provider.lower().strip()
     if provider == "mock":
+        if settings.app_env == "production":
+            raise MindMapGenerationError("MOCK_DISABLED", "Mock AI provider is disabled in production.")
         return _fallback_mind_map(payload)
+
+    if settings.app_env == "production" and settings.ai_mock_fallback:
+        raise MindMapGenerationError("MOCK_DISABLED", "AI_MOCK_FALLBACK must be false in production.")
 
     attempts = max(settings.ai_max_retries, 0) + 1
     last_error: MindMapGenerationError | None = None

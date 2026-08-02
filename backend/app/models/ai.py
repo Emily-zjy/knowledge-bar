@@ -25,6 +25,12 @@ class GenerateMindMapRequest(BaseModel):
     content_md: str = Field(min_length=1, max_length=120_000)
 
 
+class GuestGenerateRequest(BaseModel):
+    title: str = Field(min_length=1, max_length=120)
+    description: str = Field(default="", max_length=500)
+    content_md: str = Field(min_length=1, max_length=30_000)
+
+
 class MindMapNode(BaseModel):
     id: str = Field(min_length=1, max_length=80)
     parentId: str | None = None

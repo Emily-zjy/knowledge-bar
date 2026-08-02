@@ -170,7 +170,7 @@ Core tables (managed via migrations in `supabase/migrations/`):
 
 - `knowledge_bases` — user content storage
 - `mind_maps` — generated mind map data (unique per user+KB, versioned)
-- `generation_jobs` — async generation job tracking
+- `ai_generation_jobs` — async generation job tracking
 - `tags`, `knowledge_base_tags` — tagging system
 - `attachments` — image metadata
 

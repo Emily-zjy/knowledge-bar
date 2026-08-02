@@ -4,14 +4,17 @@ import base64
 import binascii
 import logging
 import re
+import time
+from collections import defaultdict
 from io import BytesIO
 from urllib.parse import quote
 
 from docx import Document
 from docx.shared import Inches
-from fastapi import APIRouter, Header
+from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
+from app.core.config import settings
 from app.models.ai import (
     ApiError,
     ApiResponse,
@@ -19,6 +22,7 @@ from app.models.ai import (
     GenerateMindMapRequest,
     GenerateMindMapResult,
     GenerationJobResponse,
+    GuestGenerateRequest,
     LatestMindMapResponse,
     MindMapData,
 )
@@ -30,6 +34,20 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 IMAGE_MARKDOWN_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)(?:\{width=(\d+)\})?")
+
+GUEST_RATE_WINDOW = 600  # 10 minutes
+GUEST_RATE_LIMIT = 5  # max requests per window per IP
+_guest_requests: dict[str, list[float]] = defaultdict(list)
+
+
+def _check_guest_rate_limit(client_ip: str) -> bool:
+    now = time.time()
+    window = _guest_requests[client_ip]
+    window[:] = [t for t in window if now - t < GUEST_RATE_WINDOW]
+    if len(window) >= GUEST_RATE_LIMIT:
+        return False
+    window.append(now)
+    return True
 
 
 def _api_error(status_code: int, code: str, message: str) -> JSONResponse:
@@ -164,7 +182,7 @@ def generate_mindmap(
         result = generate_mind_map(payload=generation_payload, authorization=authorization, guest_session_id=None)
         result.generation_id = job_id
         markdown = mind_map_to_markdown(result.mind_map)
-        supabase_store.save_latest_mind_map(
+        supabase_store.save_mind_map(
             user_id=user_id,
             knowledge_base_id=str(payload.knowledge_base_id),
             mind_map=result.mind_map,
@@ -189,6 +207,28 @@ def generate_mindmap(
                 )
             except SupabaseStoreError:
                 logger.exception("failed_to_update_generation_job")
+        return _api_error(502, exc.code, exc.message)
+
+
+@router.post("/mindmap/generate-guest", response_model=None)
+def generate_mindmap_guest(
+    payload: GuestGenerateRequest,
+    request: Request,
+) -> ApiResponse[GenerateMindMapResult] | JSONResponse:
+    client_ip = request.client.host if request.client else "unknown"
+    if not _check_guest_rate_limit(client_ip):
+        return _api_error(429, "RATE_LIMITED", "Too many requests. Please try again later.")
+
+    generation_payload = GenerateMindMapRequest(
+        knowledge_base_id="00000000-0000-0000-0000-000000000000",
+        title=payload.title,
+        description=payload.description,
+        content_md=payload.content_md,
+    )
+    try:
+        result = generate_mind_map(payload=generation_payload, authorization=None, guest_session_id=client_ip)
+        return ApiResponse(success=True, data=result)
+    except MindMapGenerationError as exc:
         return _api_error(502, exc.code, exc.message)
 
 
@@ -291,7 +331,7 @@ def export_word(
     payload: ExportWordRequest,
     authorization: str | None = Header(default=None),
 ) -> StreamingResponse | JSONResponse:
-    if payload.knowledge_base_id and authorization:
+    if payload.knowledge_base_id:
         try:
             user_id = verify_required_supabase_jwt(authorization)
             supabase_store.get_knowledge_base_for_user(str(payload.knowledge_base_id), user_id)

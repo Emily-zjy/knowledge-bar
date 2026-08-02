@@ -184,7 +184,7 @@ class SupabaseStore:
             raise SupabaseStoreError(404, "MIND_MAP_NOT_FOUND", "Mind map was not found.")
         return rows[0]
 
-    def save_latest_mind_map(
+    def save_mind_map(
         self,
         *,
         user_id: str,
@@ -194,46 +194,30 @@ class SupabaseStore:
     ) -> dict[str, Any]:
         try:
             existing = self.get_latest_mind_map(knowledge_base_id, user_id)
+            version_no = int(existing.get("version_no") or 0) + 1
         except SupabaseStoreError as exc:
             if exc.status_code != 404:
                 raise
-            payload = {
-                "id": str(uuid4()),
-                "user_id": user_id,
-                "knowledge_base_id": knowledge_base_id,
-                "data_jsonb": mind_map.model_dump(),
-                "markdown": markdown,
-                "version_no": 1,
-            }
-            rows = _as_list(
-                self._request(
-                    "POST",
-                    "mind_maps",
-                    json_body=payload,
-                    prefer="return=representation",
-                    expected=(201,),
-                ),
-            )
-            return rows[0] if rows else payload
+            version_no = 1
 
-        version_no = int(existing.get("version_no") or 0) + 1
         payload = {
+            "id": str(uuid4()),
+            "user_id": user_id,
+            "knowledge_base_id": knowledge_base_id,
             "data_jsonb": mind_map.model_dump(),
             "markdown": markdown,
             "version_no": version_no,
-            "updated_at": _now_iso(),
         }
         rows = _as_list(
             self._request(
-                "PATCH",
+                "POST",
                 "mind_maps",
-                params={"id": f"eq.{existing['id']}", "user_id": f"eq.{user_id}"},
                 json_body=payload,
                 prefer="return=representation",
-                expected=(200,),
+                expected=(201,),
             ),
         )
-        return rows[0] if rows else {**existing, **payload}
+        return rows[0] if rows else payload
 
 
 supabase_store = SupabaseStore()
