@@ -1,14 +1,12 @@
 """
-Comprehensive P0 blocker tests for Knowledge Bar V2.
-Tests: table name consistency, mind_maps versioning, guest generation,
-JWT auth, export auth, production mock guard.
+P0 blocker tests for Knowledge Bar V2.
+Tests: table name consistency, mind_maps versioning, JWT auth (via Supabase Auth API),
+export auth, production mock guard, route table verification.
 """
 from __future__ import annotations
 
-import time
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
-import jwt
 import pytest
 from fastapi.testclient import TestClient
 
@@ -20,7 +18,8 @@ from app.services.ai_mindmap import MindMapGenerationError
 from app.services.supabase_store import SupabaseStoreError
 
 
-SECRET = "test-secret-p0"
+USER_ID = "user-p0-1111-1111-111111111111"
+VALID_TOKEN = "valid-p0-token"
 
 
 class FakeStore:
@@ -68,8 +67,15 @@ class FakeStore:
         return row
 
 
-def _make_token(sub: str = "user-1") -> str:
-    return jwt.encode({"sub": sub, "aud": "authenticated", "exp": int(time.time()) + 3600}, SECRET, algorithm="HS256")
+def _mock_supabase_auth(token: str):
+    mock_response = MagicMock()
+    if token == VALID_TOKEN:
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"id": USER_ID, "email": "p0@test.com"}
+    else:
+        mock_response.status_code = 401
+        mock_response.json.return_value = {"error": "invalid_token"}
+    return mock_response
 
 
 def _mock_generate(payload, authorization, guest_session_id):
@@ -89,37 +95,43 @@ def _mock_generate(payload, authorization, guest_session_id):
 @pytest.fixture
 def client(monkeypatch):
     store = FakeStore()
-    monkeypatch.setattr(settings, "supabase_jwt_secret", SECRET)
+    monkeypatch.setattr(settings, "supabase_url", "http://fake-supabase.local")
+    monkeypatch.setattr(settings, "supabase_anon_key", "fake-anon-key")
     monkeypatch.setattr(settings, "ai_provider", "mock")
     monkeypatch.setattr(settings, "ai_mock_fallback", False)
     monkeypatch.setattr(settings, "app_env", "local")
     monkeypatch.setattr(ai_api, "supabase_store", store)
     monkeypatch.setattr(ai_api, "generate_mind_map", _mock_generate)
-    with TestClient(app) as c:
-        c.store = store
-        yield c
+
+    with patch("app.services.auth.httpx.Client") as mock_client_cls:
+        mock_http = MagicMock()
+        mock_client_cls.return_value.__enter__ = MagicMock(return_value=mock_http)
+        mock_client_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_http.get.side_effect = lambda url, headers: _mock_supabase_auth(
+            headers.get("Authorization", "").removeprefix("Bearer ").strip()
+        )
+        with TestClient(app) as c:
+            c.store = store
+            yield c
 
 
 def _auth():
-    return {"Authorization": f"Bearer {_make_token()}"}
+    return {"Authorization": f"Bearer {VALID_TOKEN}"}
 
 
 # === 1. Table name consistency ===
 
 def test_supabase_store_uses_ai_generation_jobs_table():
     from app.services.supabase_store import SupabaseStore
-    store = SupabaseStore()
-    # Verify the table name used in create_generation_job
     import inspect
-    src = inspect.getsource(store.create_generation_job)
+    src = inspect.getsource(SupabaseStore.create_generation_job)
     assert "ai_generation_jobs" in src
 
 
 def test_supabase_store_uses_mind_maps_table():
     from app.services.supabase_store import SupabaseStore
-    store = SupabaseStore()
     import inspect
-    src = inspect.getsource(store.save_mind_map)
+    src = inspect.getsource(SupabaseStore.save_mind_map)
     assert "mind_maps" in src
 
 
@@ -160,75 +172,20 @@ def test_concurrent_versions_get_unique_version_no(client):
     assert versions == [1, 2, 3, 4, 5]
 
 
-# === 3. Guest generation ===
+# === 3. Guest endpoint removed ===
 
-def test_guest_generate_succeeds(client):
+def test_guest_generate_endpoint_not_registered(client):
     body = {"title": "Guest Map", "description": "", "content_md": "Some study notes"}
     resp = client.post("/api/ai/mindmap/generate-guest", json=body)
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["success"] is True
-    assert data["data"]["mind_map"]["title"] == "Guest Map"
+    assert resp.status_code in (404, 405, 422)
 
 
-def test_guest_generate_empty_content_rejected(client):
-    body = {"title": "Guest Map", "description": "", "content_md": ""}
-    resp = client.post("/api/ai/mindmap/generate-guest", json=body)
-    assert resp.status_code == 422
-
-
-def test_guest_generate_too_long_content_rejected(client):
-    body = {"title": "Guest Map", "description": "", "content_md": "x" * 30_001}
-    resp = client.post("/api/ai/mindmap/generate-guest", json=body)
-    assert resp.status_code == 422
-
-
-def test_guest_cannot_specify_user_id(client):
-    body = {"title": "Guest Map", "description": "", "content_md": "notes", "user_id": "hacker"}
-    resp = client.post("/api/ai/mindmap/generate-guest", json=body)
-    # user_id is not in the model - Pydantic ignores extra fields by default
-    assert resp.status_code == 200
-    # Verify nothing was saved to DB
-    assert len(client.store.maps) == 0
-
-
-def test_guest_does_not_write_mind_maps_table(client):
-    body = {"title": "Guest Map", "description": "", "content_md": "notes"}
-    resp = client.post("/api/ai/mindmap/generate-guest", json=body)
-    assert resp.status_code == 200
-    assert len(client.store.maps) == 0
-
-
-def test_guest_cannot_access_user_knowledge_base(client):
+def test_guest_cannot_access_authenticated_endpoints(client):
     resp = client.get("/api/ai/mindmap/latest/kb-1")
     assert resp.status_code == 401
 
 
-def test_guest_rate_limit(client, monkeypatch):
-    monkeypatch.setattr(ai_api, "GUEST_RATE_LIMIT", 2)
-    ai_api._guest_requests.clear()
-    body = {"title": "T", "description": "", "content_md": "notes"}
-
-    resp1 = client.post("/api/ai/mindmap/generate-guest", json=body)
-    assert resp1.status_code == 200
-    resp2 = client.post("/api/ai/mindmap/generate-guest", json=body)
-    assert resp2.status_code == 200
-    resp3 = client.post("/api/ai/mindmap/generate-guest", json=body)
-    assert resp3.status_code == 429
-    assert resp3.json()["error"]["code"] == "RATE_LIMITED"
-
-
-def test_authenticated_user_unaffected_by_guest_rate_limit(client, monkeypatch):
-    monkeypatch.setattr(ai_api, "GUEST_RATE_LIMIT", 1)
-    guest_body = {"title": "T", "description": "", "content_md": "notes"}
-    client.post("/api/ai/mindmap/generate-guest", json=guest_body)
-
-    auth_body = {"knowledge_base_id": "kb-1", "title": "T", "description": "", "content_md": "notes"}
-    resp = client.post("/api/ai/mindmap/generate", headers=_auth(), json=auth_body)
-    assert resp.status_code == 200
-
-
-# === 4. JWT auth ===
+# === 4. Auth via Supabase Auth API ===
 
 def test_no_token_returns_401(client):
     body = {"knowledge_base_id": "kb-1", "title": "T", "description": "", "content_md": "notes"}
@@ -243,21 +200,15 @@ def test_invalid_token_returns_401(client):
     assert resp.status_code == 401
 
 
-def test_expired_token_returns_401(client):
-    expired = jwt.encode({"sub": "user-1", "aud": "authenticated", "exp": int(time.time()) - 100}, SECRET, algorithm="HS256")
-    body = {"knowledge_base_id": "kb-1", "title": "T", "description": "", "content_md": "notes"}
-    resp = client.post("/api/ai/mindmap/generate", headers={"Authorization": f"Bearer {expired}"}, json=body)
-    assert resp.status_code == 401
-
-
 def test_cross_user_kb_returns_404(client):
     body = {"knowledge_base_id": "other-user-kb", "title": "T", "description": "", "content_md": "notes"}
     resp = client.post("/api/ai/mindmap/generate", headers=_auth(), json=body)
     assert resp.status_code == 404
 
 
-def test_no_jwt_secret_returns_503(client, monkeypatch):
-    monkeypatch.setattr(settings, "supabase_jwt_secret", "")
+def test_no_supabase_config_returns_503(client, monkeypatch):
+    monkeypatch.setattr(settings, "supabase_url", "")
+    monkeypatch.setattr(settings, "supabase_anon_key", "")
     body = {"knowledge_base_id": "kb-1", "title": "T", "description": "", "content_md": "notes"}
     resp = client.post("/api/ai/mindmap/generate", headers=_auth(), json=body)
     assert resp.status_code == 503
@@ -297,7 +248,6 @@ def test_export_markdown_no_token_returns_401(client):
 
 
 def test_export_markdown_own_kb_succeeds(client):
-    # First generate a mind map so there's data
     client.post("/api/ai/mindmap/generate", headers=_auth(), json={"knowledge_base_id": "kb-1", "title": "T", "description": "", "content_md": "notes"})
     resp = client.get("/api/ai/export/markdown/kb-1", headers=_auth())
     assert resp.status_code == 200
@@ -306,11 +256,10 @@ def test_export_markdown_own_kb_succeeds(client):
 
 # === 6. Production mock guard ===
 
-def test_mock_provider_blocked_in_production(client, monkeypatch):
+def test_mock_provider_blocked_in_production(monkeypatch):
     from app.services import ai_mindmap
     monkeypatch.setattr(settings, "ai_provider", "mock")
     monkeypatch.setattr(settings, "app_env", "production")
-    # Call the service directly
     from app.models.ai import GenerateMindMapRequest
     payload = GenerateMindMapRequest(knowledge_base_id="kb-1", title="T", description="", content_md="notes")
     with pytest.raises(MindMapGenerationError) as exc:
@@ -318,7 +267,7 @@ def test_mock_provider_blocked_in_production(client, monkeypatch):
     assert exc.value.code == "MOCK_DISABLED"
 
 
-def test_mock_fallback_blocked_in_production(client, monkeypatch):
+def test_mock_fallback_blocked_in_production(monkeypatch):
     from app.services import ai_mindmap
     monkeypatch.setattr(settings, "ai_provider", "openai_compatible")
     monkeypatch.setattr(settings, "ai_mock_fallback", True)
@@ -330,7 +279,7 @@ def test_mock_fallback_blocked_in_production(client, monkeypatch):
     assert exc.value.code == "MOCK_DISABLED"
 
 
-def test_mock_provider_allowed_in_local(client, monkeypatch):
+def test_mock_provider_allowed_in_local(monkeypatch):
     from app.services import ai_mindmap
     monkeypatch.setattr(settings, "ai_provider", "mock")
     monkeypatch.setattr(settings, "app_env", "local")
@@ -338,3 +287,19 @@ def test_mock_provider_allowed_in_local(client, monkeypatch):
     payload = GenerateMindMapRequest(knowledge_base_id="kb-1", title="T", description="", content_md="notes")
     result = ai_mindmap.generate_mind_map(payload, authorization=None, guest_session_id=None)
     assert result.status == "succeeded"
+
+
+# === 7. V0 routes not registered ===
+
+def test_v0_mindmaps_routes_not_registered(client):
+    assert client.get("/api/mindmaps/list").status_code == 404
+    assert client.post("/api/mindmaps/generate", json={}).status_code == 404
+    assert client.get("/api/mindmaps/some-id").status_code == 404
+
+
+# === 8. Health check ===
+
+def test_health_endpoint(client):
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "ok", "service": "knowledge-bar-api"}

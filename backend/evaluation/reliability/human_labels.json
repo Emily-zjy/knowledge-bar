@@ -1,0 +1,476 @@
+[
+  {
+    "case_id": "T04",
+    "node": "决议事项",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "待确认",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "P0支付Bug",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "P1用户画像",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "P2界面改版",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "行为标签",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "消费偏好",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "活跃度分析",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "数据源待定",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T04",
+    "node": "设计规范待定",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "选型",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "架构设计",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存策略",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "防护措施",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "监控指标",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "Redis Cluster",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "Hash Slot",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "故障转移",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "Cache-Aside",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "Write-Through",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存穿透",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存击穿",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存雪崩",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "并发",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "并行",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "异步",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "时间片轮转",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "多核CPU",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "非阻塞",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "回调驱动",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T11",
+    "node": "关系区分",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "GMV",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "用户数据",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "转化漏斗",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "品类表现",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "12.8亿",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "MAU 3200万",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "客单价215元",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "转化率6.3%",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "服饰35%",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T14",
+    "node": "美妆25%",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "支持方观点",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "反对方观点",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "讨论结果",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "后续TODO",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "减少过度获取",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "缓存困难",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "未达成一致",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T17",
+    "node": "折中方案",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "TCP握手",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "HTTP状态码",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "排序算法",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "Redis数据类型",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "三次握手",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "四次挥手",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "快速排序",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T18",
+    "node": "归并排序",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "版本控制",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "测试策略",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "CI/CD",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "代码质量",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "架构设计原则",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "Git",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "测试金字塔",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "流水线",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "代码审查",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T21",
+    "node": "SOLID",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T23",
+    "node": "用户体验优先",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T23",
+    "node": "界面简洁一致",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T23",
+    "node": "操作反馈及时",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T23",
+    "node": "性能即功能",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T23",
+    "node": "移动端优先",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T23",
+    "node": "无障碍设计",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T25",
+    "node": "B+树索引",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T25",
+    "node": "Hash索引",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T25",
+    "node": "复合索引",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T25",
+    "node": "叶子节点",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T25",
+    "node": "范围查询",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  },
+  {
+    "case_id": "T25",
+    "node": "最左前缀",
+    "human_label": "correct",
+    "comment": "待人工标注"
+  }
+]

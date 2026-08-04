@@ -1,123 +1,98 @@
-import json
+"""Tests for supabase_store version retry logic."""
+from __future__ import annotations
 
 import pytest
-from fastapi.testclient import TestClient
 
-from app.core.config import settings
-from app.main import app
-from app.services import mindmap_agent
+from app.models.ai import MindMapData, MindMapNode
+from app.services.supabase_store import MAX_VERSION_RETRIES, SupabaseStore, SupabaseStoreError
 
 
-@pytest.fixture
-def client(monkeypatch):
-    monkeypatch.setattr(settings, "ai_api_key", "test-key")
-    monkeypatch.setattr(settings, "ai_provider", "openai_compatible")
-
-    def fake_llm(messages, temperature=0.2):
-        _ = messages
-        _ = temperature
-        return json.dumps(
-            {
-                "title": "Software Engineering",
-                "map_type": "knowledge",
-                "nodes": [
-                    {
-                        "id": "node-root",
-                        "parent_id": None,
-                        "text": "Software Engineering",
-                        "level": 0,
-                        "order": 0,
-                        "side": None,
-                        "source_ids": [],
-                    },
-                    {
-                        "id": "node-1",
-                        "parent_id": "node-root",
-                        "text": "Requirements",
-                        "level": 1,
-                        "order": 1,
-                        "side": "right",
-                        "source_ids": ["p-missing"],
-                    },
-                    {
-                        "id": "node-2",
-                        "parent_id": "node-root",
-                        "text": "Design",
-                        "level": 1,
-                        "order": 2,
-                        "side": "left",
-                        "source_ids": ["p-missing"],
-                    },
-                    {
-                        "id": "node-3",
-                        "parent_id": "node-root",
-                        "text": "Testing",
-                        "level": 1,
-                        "order": 3,
-                        "side": "right",
-                        "source_ids": ["p-missing"],
-                    },
-                ],
-            }
-        )
-
-    monkeypatch.setattr(mindmap_agent, "_call_llm", fake_llm)
-    return TestClient(app)
-
-
-def test_health(client):
-    resp = client.get("/health")
-    assert resp.status_code == 200
-    assert resp.json()["status"] == "ok"
-    assert resp.headers["X-Request-ID"]
-
-
-def test_generate_success(client):
-    resp = client.post(
-        "/api/mindmaps/generate",
-        json={
-            "text": "Requirements define the problem.\n\nDesign shapes the solution.\n\nTesting protects quality.",
-            "title": "Software Engineering",
-            "max_depth": 4,
-            "source_only": True,
-            "map_type": "knowledge",
-        },
+def _make_mind_map() -> MindMapData:
+    return MindMapData(
+        title="Test",
+        nodes=[
+            MindMapNode(id="node-root", parentId=None, text="Test", order=0),
+            MindMapNode(id="node-1", parentId="node-root", text="Branch", order=1),
+        ],
     )
-    assert resp.status_code == 200
-    data = resp.json()
-    assert data["status"] == "succeeded"
-    assert data["task_id"]
-    assert len(data["nodes"]) > 0
-    assert len(data["edges"]) > 0
 
 
-def test_generate_empty_text(client):
-    resp = client.post(
-        "/api/mindmaps/generate",
-        json={"text": "", "max_depth": 4, "source_only": True, "map_type": "auto"},
-    )
-    assert resp.status_code == 422
+class TestVersionRetry:
+    """Unit tests for save_mind_map retry-on-conflict behavior."""
 
+    def test_first_two_conflicts_third_succeeds(self, monkeypatch):
+        """When version conflict occurs twice, third attempt succeeds."""
+        store = SupabaseStore()
+        attempts = []
 
-def test_get_and_delete_mindmap(client):
-    created = client.post(
-        "/api/mindmaps/generate",
-        json={
-            "text": "A useful note.\n\nAnother useful note.",
-            "title": "Knowledge",
-            "max_depth": 4,
-            "source_only": True,
-            "map_type": "knowledge",
-        },
-    ).json()
+        def mock_request(method, table, *, params=None, json_body=None, prefer=None, expected=(200,)):
+            if method == "GET" and table == "mind_maps":
+                return [{"id": "existing", "version_no": 1, "knowledge_base_id": "kb-1",
+                         "user_id": "u1", "data_jsonb": {}, "markdown": "", "updated_at": None}]
+            if method == "POST" and table == "mind_maps":
+                attempts.append(json_body.get("version_no"))
+                if len(attempts) < 3:
+                    raise SupabaseStoreError(409, "SUPABASE_REST_ERROR", "Supabase REST request failed with HTTP 409.")
+                return [json_body]
+            return None
 
-    fetched = client.get(f"/api/mindmaps/{created['task_id']}")
-    assert fetched.status_code == 200
-    assert fetched.json()["task_id"] == created["task_id"]
+        monkeypatch.setattr(store, "_request", mock_request)
+        result = store.save_mind_map(user_id="u1", knowledge_base_id="kb-1", mind_map=_make_mind_map(), markdown="# Test")
+        assert len(attempts) == 3
+        assert result["version_no"] == 2
 
-    deleted = client.delete(f"/api/mindmaps/{created['task_id']}")
-    assert deleted.status_code == 200
-    assert deleted.json()["deleted"] is True
+    def test_non_conflict_error_not_retried(self, monkeypatch):
+        """Permission or network errors are NOT retried."""
+        store = SupabaseStore()
+        attempts = []
 
-    missing = client.get(f"/api/mindmaps/{created['task_id']}")
-    assert missing.status_code == 404
+        def mock_request(method, table, *, params=None, json_body=None, prefer=None, expected=(200,)):
+            if method == "GET" and table == "mind_maps":
+                return [{"id": "existing", "version_no": 1, "knowledge_base_id": "kb-1",
+                         "user_id": "u1", "data_jsonb": {}, "markdown": "", "updated_at": None}]
+            if method == "POST" and table == "mind_maps":
+                attempts.append(1)
+                raise SupabaseStoreError(403, "SUPABASE_REST_ERROR", "Supabase REST request failed with HTTP 403.")
+            return None
+
+        monkeypatch.setattr(store, "_request", mock_request)
+        with pytest.raises(SupabaseStoreError) as exc:
+            store.save_mind_map(user_id="u1", knowledge_base_id="kb-1", mind_map=_make_mind_map(), markdown="# Test")
+        assert exc.value.status_code == 403
+        assert len(attempts) == 1  # Only one attempt — no retry
+
+    def test_max_retries_exhausted_raises_409(self, monkeypatch):
+        """After MAX_VERSION_RETRIES conflicts, raises 409."""
+        store = SupabaseStore()
+        attempts = []
+
+        def mock_request(method, table, *, params=None, json_body=None, prefer=None, expected=(200,)):
+            if method == "GET" and table == "mind_maps":
+                return [{"id": "existing", "version_no": 1, "knowledge_base_id": "kb-1",
+                         "user_id": "u1", "data_jsonb": {}, "markdown": "", "updated_at": None}]
+            if method == "POST" and table == "mind_maps":
+                attempts.append(1)
+                raise SupabaseStoreError(409, "SUPABASE_REST_ERROR", "Supabase REST request failed with HTTP 409.")
+            return None
+
+        monkeypatch.setattr(store, "_request", mock_request)
+        with pytest.raises(SupabaseStoreError) as exc:
+            store.save_mind_map(user_id="u1", knowledge_base_id="kb-1", mind_map=_make_mind_map(), markdown="# Test")
+        assert exc.value.status_code == 409
+        assert len(attempts) == MAX_VERSION_RETRIES
+
+    def test_first_version_when_no_existing_map(self, monkeypatch):
+        """When no existing map (404), version_no starts at 1."""
+        store = SupabaseStore()
+
+        def mock_request(method, table, *, params=None, json_body=None, prefer=None, expected=(200,)):
+            if method == "GET" and table == "mind_maps":
+                return []
+            if method == "POST" and table == "mind_maps":
+                assert json_body["version_no"] == 1
+                return [json_body]
+            return None
+
+        monkeypatch.setattr(store, "_request", mock_request)
+        result = store.save_mind_map(user_id="u1", knowledge_base_id="kb-1", mind_map=_make_mind_map(), markdown="# Test")
+        assert result["version_no"] == 1

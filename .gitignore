@@ -40,6 +40,8 @@ artifacts/mindmap-trace-eval/run_binary/phase*.json
 artifacts/mindmap-trace-eval/run_binary/s4-semantic-comparison.json
 artifacts/mindmap-trace-eval/run_binary/s5-s6-check.json
 artifacts/mindmap-trace-eval/run_unified/
+backend/evaluation/runs/
+backend/evaluation/rollout/stage1_metrics_latest.*
 
 # claude internal
 .claude/

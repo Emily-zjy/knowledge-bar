@@ -4,14 +4,12 @@ import base64
 import binascii
 import logging
 import re
-import time
-from collections import defaultdict
 from io import BytesIO
 from urllib.parse import quote
 
 from docx import Document
 from docx.shared import Inches
-from fastapi import APIRouter, Header, Request
+from fastapi import APIRouter, Header
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 
 from app.core.config import settings
@@ -22,9 +20,11 @@ from app.models.ai import (
     GenerateMindMapRequest,
     GenerateMindMapResult,
     GenerationJobResponse,
-    GuestGenerateRequest,
     LatestMindMapResponse,
     MindMapData,
+    MindMapVersionItem,
+    MindMapVersionsResponse,
+    PatchMindMapRequest,
 )
 from app.services.ai_mindmap import MindMapGenerationError, generate_mind_map
 from app.services.auth import AuthError, verify_required_supabase_jwt
@@ -35,26 +35,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/ai", tags=["ai"])
 IMAGE_MARKDOWN_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)(?:\{width=(\d+)\})?")
 
-GUEST_RATE_WINDOW = 600  # 10 minutes
-GUEST_RATE_LIMIT = 5  # max requests per window per IP
-_guest_requests: dict[str, list[float]] = defaultdict(list)
-
-
-def _check_guest_rate_limit(client_ip: str) -> bool:
-    now = time.time()
-    window = _guest_requests[client_ip]
-    window[:] = [t for t in window if now - t < GUEST_RATE_WINDOW]
-    if len(window) >= GUEST_RATE_LIMIT:
-        return False
-    window.append(now)
-    return True
-
 
 def _api_error(status_code: int, code: str, message: str) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
         content=ApiResponse(success=False, error=ApiError(code=code, message=message)).model_dump(),
     )
+
+
+def _handle_auth_error(exc: AuthError) -> JSONResponse:
+    status = 503 if exc.code in ("AUTH_NOT_CONFIGURED", "AUTH_UNAVAILABLE") else 401
+    return _api_error(status, exc.code, exc.message)
 
 
 def mind_map_to_markdown(mind_map: MindMapData) -> str:
@@ -156,6 +147,9 @@ def _word_stream(title: str, markdown: str) -> StreamingResponse:
     )
 
 
+# === Mind Map Generation ===
+
+
 @router.post("/mindmap/generate", response_model=None)
 def generate_mindmap(
     payload: GenerateMindMapRequest,
@@ -169,6 +163,8 @@ def generate_mindmap(
         content_md = payload.content_md.strip() or str(kb.get("content_md") or "").strip()
         if not content_md:
             return _api_error(422, "EMPTY_CONTENT", "Knowledge content cannot be empty.")
+        if len(content_md) > settings.max_content_length:
+            return _api_error(422, "CONTENT_TOO_LONG", "Content exceeds the maximum allowed length.")
 
         job = supabase_store.create_generation_job(user_id, str(payload.knowledge_base_id), "running")
         job_id = str(job["id"])
@@ -191,8 +187,7 @@ def generate_mindmap(
         supabase_store.update_generation_job(job_id, user_id, status="succeeded")
         return ApiResponse(success=True, data=result)
     except AuthError as exc:
-        status = 503 if exc.code == "AUTH_NOT_CONFIGURED" else 401
-        return _api_error(status, exc.code, exc.message)
+        return _handle_auth_error(exc)
     except SupabaseStoreError as exc:
         return _api_error(exc.status_code, exc.code, exc.message)
     except MindMapGenerationError as exc:
@@ -210,26 +205,58 @@ def generate_mindmap(
         return _api_error(502, exc.code, exc.message)
 
 
-@router.post("/mindmap/generate-guest", response_model=None)
-def generate_mindmap_guest(
-    payload: GuestGenerateRequest,
-    request: Request,
-) -> ApiResponse[GenerateMindMapResult] | JSONResponse:
-    client_ip = request.client.host if request.client else "unknown"
-    if not _check_guest_rate_limit(client_ip):
-        return _api_error(429, "RATE_LIMITED", "Too many requests. Please try again later.")
+# === Regenerate ===
 
-    generation_payload = GenerateMindMapRequest(
-        knowledge_base_id="00000000-0000-0000-0000-000000000000",
-        title=payload.title,
-        description=payload.description,
-        content_md=payload.content_md,
-    )
+
+@router.post("/mindmap/{knowledge_base_id}/regenerate", response_model=None)
+def regenerate_mindmap(
+    knowledge_base_id: str,
+    authorization: str | None = Header(default=None),
+) -> ApiResponse[GenerateMindMapResult] | JSONResponse:
+    job_id: str | None = None
+    user_id: str | None = None
     try:
-        result = generate_mind_map(payload=generation_payload, authorization=None, guest_session_id=client_ip)
+        user_id = verify_required_supabase_jwt(authorization)
+        kb = supabase_store.get_knowledge_base_for_user(knowledge_base_id, user_id)
+        content_md = str(kb.get("content_md") or "").strip()
+        if not content_md:
+            return _api_error(422, "EMPTY_CONTENT", "Knowledge content cannot be empty.")
+
+        job = supabase_store.create_generation_job(user_id, knowledge_base_id, "running")
+        job_id = str(job["id"])
+        generation_payload = GenerateMindMapRequest(
+            knowledge_base_id=knowledge_base_id,
+            title=str(kb.get("name") or "Untitled"),
+            description=str(kb.get("description") or ""),
+            content_md=content_md,
+        )
+        result = generate_mind_map(payload=generation_payload, authorization=authorization, guest_session_id=None)
+        result.generation_id = job_id
+        markdown = mind_map_to_markdown(result.mind_map)
+        supabase_store.save_mind_map(
+            user_id=user_id,
+            knowledge_base_id=knowledge_base_id,
+            mind_map=result.mind_map,
+            markdown=markdown,
+        )
+        supabase_store.update_generation_job(job_id, user_id, status="succeeded")
         return ApiResponse(success=True, data=result)
+    except AuthError as exc:
+        return _handle_auth_error(exc)
+    except SupabaseStoreError as exc:
+        return _api_error(exc.status_code, exc.code, exc.message)
     except MindMapGenerationError as exc:
+        if job_id and user_id:
+            try:
+                supabase_store.update_generation_job(
+                    job_id, user_id, status="failed", error_code=exc.code, error_message=exc.message,
+                )
+            except SupabaseStoreError:
+                logger.exception("failed_to_update_generation_job")
         return _api_error(502, exc.code, exc.message)
+
+
+# === Job Status ===
 
 
 @router.get("/mindmap/jobs/{job_id}", response_model=None)
@@ -242,10 +269,12 @@ def get_generation_job(
         row = supabase_store.get_generation_job_for_user(job_id, user_id)
         return ApiResponse(success=True, data=GenerationJobResponse(**row))
     except AuthError as exc:
-        status = 503 if exc.code == "AUTH_NOT_CONFIGURED" else 401
-        return _api_error(status, exc.code, exc.message)
+        return _handle_auth_error(exc)
     except SupabaseStoreError as exc:
         return _api_error(exc.status_code, exc.code, exc.message)
+
+
+# === Get Latest Mind Map ===
 
 
 @router.get("/mindmap/latest/{knowledge_base_id}", response_model=None)
@@ -261,6 +290,7 @@ def get_latest_mind_map(
         return ApiResponse(
             success=True,
             data=LatestMindMapResponse(
+                id=str(row.get("id") or ""),
                 knowledge_base_id=knowledge_base_id,
                 version_no=int(row.get("version_no") or 1),
                 mind_map=data,
@@ -269,10 +299,110 @@ def get_latest_mind_map(
             ),
         )
     except AuthError as exc:
-        status = 503 if exc.code == "AUTH_NOT_CONFIGURED" else 401
-        return _api_error(status, exc.code, exc.message)
+        return _handle_auth_error(exc)
     except SupabaseStoreError as exc:
         return _api_error(exc.status_code, exc.code, exc.message)
+
+
+# === Version List ===
+
+
+@router.get("/mindmap/versions/{knowledge_base_id}", response_model=None)
+def list_mind_map_versions(
+    knowledge_base_id: str,
+    authorization: str | None = Header(default=None),
+) -> ApiResponse[MindMapVersionsResponse] | JSONResponse:
+    try:
+        user_id = verify_required_supabase_jwt(authorization)
+        supabase_store.get_knowledge_base_for_user(knowledge_base_id, user_id)
+        rows = supabase_store.list_mind_map_versions(knowledge_base_id, user_id)
+        versions = [
+            MindMapVersionItem(
+                id=str(r.get("id") or ""),
+                version_no=int(r.get("version_no") or 1),
+                updated_at=r.get("updated_at"),
+            )
+            for r in rows
+        ]
+        return ApiResponse(success=True, data=MindMapVersionsResponse(knowledge_base_id=knowledge_base_id, versions=versions))
+    except AuthError as exc:
+        return _handle_auth_error(exc)
+    except SupabaseStoreError as exc:
+        return _api_error(exc.status_code, exc.code, exc.message)
+
+
+# === Patch Mind Map (manual edit) ===
+
+
+@router.patch("/mindmap/{mind_map_id}", response_model=None)
+def patch_mind_map(
+    mind_map_id: str,
+    payload: PatchMindMapRequest,
+    authorization: str | None = Header(default=None),
+) -> ApiResponse[LatestMindMapResponse] | JSONResponse:
+    try:
+        user_id = verify_required_supabase_jwt(authorization)
+        existing = supabase_store.get_mind_map_by_id(mind_map_id, user_id)
+        kb_id = str(existing.get("knowledge_base_id") or "")
+        supabase_store.get_knowledge_base_for_user(kb_id, user_id)
+
+        current_data = MindMapData.model_validate(existing["data_jsonb"])
+        nodes = current_data.nodes
+
+        if payload.update_node:
+            node_id = payload.update_node.id
+            new_text = payload.update_node.text
+            for node in nodes:
+                if node.id == node_id:
+                    node.text = new_text[:120]
+                    break
+
+        if payload.title:
+            current_data.title = payload.title
+
+        updated_data = MindMapData(title=current_data.title, nodes=nodes)
+        markdown = mind_map_to_markdown(updated_data)
+        row = supabase_store.patch_mind_map(mind_map_id, user_id, updated_data.model_dump(), markdown)
+
+        return ApiResponse(
+            success=True,
+            data=LatestMindMapResponse(
+                id=mind_map_id,
+                knowledge_base_id=kb_id,
+                version_no=int(row.get("version_no") or 1),
+                mind_map=updated_data,
+                markdown=markdown,
+                updated_at=row.get("updated_at"),
+            ),
+        )
+    except AuthError as exc:
+        return _handle_auth_error(exc)
+    except SupabaseStoreError as exc:
+        return _api_error(exc.status_code, exc.code, exc.message)
+
+
+# === Delete Mind Map ===
+
+
+@router.delete("/mindmap/{mind_map_id}", response_model=None)
+def delete_mind_map(
+    mind_map_id: str,
+    authorization: str | None = Header(default=None),
+) -> ApiResponse | JSONResponse:
+    try:
+        user_id = verify_required_supabase_jwt(authorization)
+        existing = supabase_store.get_mind_map_by_id(mind_map_id, user_id)
+        kb_id = str(existing.get("knowledge_base_id") or "")
+        supabase_store.get_knowledge_base_for_user(kb_id, user_id)
+        supabase_store.delete_mind_map(mind_map_id, user_id)
+        return ApiResponse(success=True)
+    except AuthError as exc:
+        return _handle_auth_error(exc)
+    except SupabaseStoreError as exc:
+        return _api_error(exc.status_code, exc.code, exc.message)
+
+
+# === Export: Markdown ===
 
 
 @router.get("/export/markdown/{knowledge_base_id}", response_model=None)
@@ -297,10 +427,12 @@ def export_markdown(
             headers={"Content-Disposition": f"attachment; filename*=UTF-8''{filename}"},
         )
     except AuthError as exc:
-        status = 503 if exc.code == "AUTH_NOT_CONFIGURED" else 401
-        return _api_error(status, exc.code, exc.message)
+        return _handle_auth_error(exc)
     except SupabaseStoreError as exc:
         return _api_error(exc.status_code, exc.code, exc.message)
+
+
+# === Export: Word (GET with KB ID) ===
 
 
 @router.get("/export/word/{knowledge_base_id}", response_model=None)
@@ -320,10 +452,12 @@ def export_word_from_knowledge_base(
             markdown = str(kb.get("content_md") or "")
         return _word_stream(str(kb.get("name") or "Knowledge Bar"), markdown)
     except AuthError as exc:
-        status = 503 if exc.code == "AUTH_NOT_CONFIGURED" else 401
-        return _api_error(status, exc.code, exc.message)
+        return _handle_auth_error(exc)
     except SupabaseStoreError as exc:
         return _api_error(exc.status_code, exc.code, exc.message)
+
+
+# === Export: Word (POST with inline markdown) ===
 
 
 @router.post("/export/word", response_model=None)
@@ -336,9 +470,11 @@ def export_word(
             user_id = verify_required_supabase_jwt(authorization)
             supabase_store.get_knowledge_base_for_user(str(payload.knowledge_base_id), user_id)
         except AuthError as exc:
-            status = 503 if exc.code == "AUTH_NOT_CONFIGURED" else 401
-            return _api_error(status, exc.code, exc.message)
+            return _handle_auth_error(exc)
         except SupabaseStoreError as exc:
             return _api_error(exc.status_code, exc.code, exc.message)
+
+    if len(payload.markdown) > settings.max_export_length:
+        return _api_error(422, "CONTENT_TOO_LONG", "Export content exceeds the maximum allowed length.")
 
     return _word_stream(payload.title, payload.markdown)

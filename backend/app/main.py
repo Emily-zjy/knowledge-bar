@@ -10,24 +10,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.ai import router as ai_router
-from app.api.mindmap import router as mindmap_router
 from app.core.config import settings
-from app.db.store import init_db
 from app.models.ai import ApiError, ApiResponse
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("knowledge_bar.api")
 
-app = FastAPI(title="Knowledge Bar API", version="0.2.0")
+app = FastAPI(title="Knowledge Bar API", version="0.3.0")
 
-init_db()
+_origins = settings.cors_origins
+if settings.app_env == "production" and not _origins:
+    logger.warning("cors_no_origins_configured_in_production")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
 
 
@@ -91,7 +91,10 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 
 app.include_router(ai_router, prefix="/api")
-app.include_router(mindmap_router, prefix="/api")
+
+# NOTE: V0 mindmap_router (/api/mindmaps/*) is intentionally NOT registered.
+# The legacy SQLite-backed implementation is preserved in app/api/mindmap.py
+# for reference only. All mind map operations now use the V2 /api/ai/* endpoints.
 
 
 @app.get("/health")

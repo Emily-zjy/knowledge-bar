@@ -1,9 +1,9 @@
 /**
- * Mind Map page - V0 refactored implementation
- * Uses @xyflow/react for rendering, communicates with new /api/mindmaps endpoints
+ * Mind Map page - V2 implementation using /api/ai/* endpoints.
+ * Guests are blocked from generation and prompted to log in.
  */
 
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef, type MouseEvent } from "react";
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ReactFlow,
@@ -24,57 +24,18 @@ import {
 import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
 import { getCloudSession } from "../lib/cloudStore";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+import {
+  generateMindMap,
+  regenerateMindMap,
+  getLatestMindMap,
+  listMindMapVersions,
+  patchMindMap,
+  deleteMindMap,
+  type LatestMindMapResponse,
+  type MindMapVersionItem,
+} from "../lib/api";
 
 // --- Types ---
-interface RenderNode {
-  id: string;
-  parent_id: string | null;
-  text: string;
-  level: number;
-  order: number;
-  side: string | null;
-  source_ids: string[];
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-interface RenderEdge {
-  id: string;
-  source: string;
-  target: string;
-}
-
-interface ValidationResult {
-  passed: boolean;
-  score: number;
-  errors: Array<{ code: string; message: string; node_id?: string }>;
-  warnings: Array<{ code: string; message: string; node_id?: string }>;
-  retry_count: number;
-}
-
-interface MindMapResponse {
-  task_id: string;
-  status: string;
-  title: string;
-  nodes: RenderNode[];
-  edges: RenderEdge[];
-  validation: ValidationResult | null;
-  created_at: string;
-}
-
-interface HistoryItem {
-  task_id: string;
-  title: string;
-  status: string;
-  node_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
 type MindMapReturnState = {
   initialText?: string;
   from?: "dashboard" | "detail";
@@ -100,140 +61,81 @@ const STEP_LABELS: Record<GenerationStep, string> = {
   failed: "生成失败",
 };
 
-// --- API Calls ---
-async function authHeaders(json = false): Promise<HeadersInit> {
-  const session = await getCloudSession();
-  const headers: HeadersInit = json ? { "Content-Type": "application/json" } : {};
-  if (session?.access_token) {
-    headers.Authorization = `Bearer ${session.access_token}`;
-  }
-  return headers;
-}
-
-async function apiGenerate(body: {
-  text: string;
-  title?: string;
-  max_depth: number;
-  source_only: boolean;
-  map_type: string;
-}): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/generate`, {
-    method: "POST",
-    headers: await authHeaders(true),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `生成失败 (HTTP ${res.status})`);
-  }
-  return res.json();
-}
-
-async function apiGetMindmap(taskId: string): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`, { headers: await authHeaders() });
-  if (!res.ok) throw new Error("获取导图失败");
-  return res.json();
-}
-
-async function apiRegenerate(
-  taskId: string,
-  body: { max_depth: number; map_type: string }
-): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}/regenerate`, {
-    method: "POST",
-    headers: await authHeaders(true),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("重新生成失败");
-  return res.json();
-}
-
-async function apiPatch(
-  taskId: string,
-  body: Record<string, unknown>
-): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`, {
-    method: "PATCH",
-    headers: await authHeaders(true),
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("修改失败");
-  return res.json();
-}
-
-async function apiListHistory(): Promise<HistoryItem[]> {
-  const res = await fetch(`${API_BASE}/api/mindmaps`, { headers: await authHeaders() });
-  if (!res.ok) return [];
-  return res.json();
-}
-
-async function apiDeleteMindmap(taskId: string): Promise<void> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`, {
-    method: "DELETE",
-    headers: await authHeaders(),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || "删除历史记录失败");
-  }
-}
-
 // --- Helpers ---
-function responseToFlow(data: MindMapResponse): { nodes: Node[]; edges: Edge[] } {
-  const nodes: Node[] = data.nodes.map((n) => {
-    let sourcePosition = Position.Right;
-    let targetPosition = Position.Left;
+function mindMapToFlowNodes(data: LatestMindMapResponse): { nodes: Node[]; edges: Edge[] } {
+  const nodeMap = new Map(data.mind_map.nodes.map((n) => [n.id, n]));
+  const childrenByParent = new Map<string | null, typeof data.mind_map.nodes>();
+  for (const node of data.mind_map.nodes) {
+    const list = childrenByParent.get(node.parentId) || [];
+    list.push(node);
+    childrenByParent.set(node.parentId, list);
+  }
 
-    if (n.level === 0) {
-      sourcePosition = Position.Right;
-      targetPosition = Position.Left;
-    } else if (n.side === "left") {
-      sourcePosition = Position.Left;
-      targetPosition = Position.Right;
-    } else {
-      sourcePosition = Position.Right;
-      targetPosition = Position.Left;
+  const positions = new Map<string, { x: number; y: number; level: number }>();
+  function layout(parentId: string | null, x: number, y: number, level: number): number {
+    const children = childrenByParent.get(parentId) || [];
+    children.sort((a, b) => a.order - b.order);
+    let currentY = y;
+    for (const child of children) {
+      positions.set(child.id, { x: x + level * 280, y: currentY, level });
+      const subtreeHeight = layout(child.id, x, currentY, level + 1);
+      currentY += Math.max(subtreeHeight, 80);
     }
+    return currentY - y || 60;
+  }
 
+  const root = data.mind_map.nodes.find((n) => n.parentId === null);
+  if (root) {
+    positions.set(root.id, { x: 0, y: 0, level: 0 });
+    layout(root.id, 0, 0, 1);
+    const allY = Array.from(positions.values()).map((p) => p.y);
+    const midY = (Math.min(...allY) + Math.max(...allY)) / 2;
+    const rootPos = positions.get(root.id)!;
+    rootPos.y = midY;
+  }
+
+  const flowNodes: Node[] = data.mind_map.nodes.map((n) => {
+    const pos = positions.get(n.id) || { x: 0, y: 0, level: 0 };
+    const level = pos.level;
     return {
       id: n.id,
-      position: { x: n.x, y: n.y },
-      data: { label: n.text, level: n.level, side: n.side },
+      position: { x: pos.x, y: pos.y },
+      data: { label: n.text, level },
       type: "default",
-      sourcePosition,
-      targetPosition,
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
       style: {
-        width: n.width,
-        minHeight: n.height,
-        background: n.level === 0 ? "#FF6A1A" : n.level === 1 ? (n.order % 3 === 0 ? "#171513" : "#FFE2CF") : "#FFFFFF",
-        color: n.level === 0 ? "#fff" : n.level === 1 && n.order % 3 === 0 ? "#fff" : "#171513",
-        border: n.level === 0 ? "2px solid #E9510E" : n.level === 1 ? "1.5px solid #FF813F" : "1px solid #FFB98F",
-        borderRadius: n.level === 0 ? "22px" : n.level === 1 ? "18px" : "14px",
+        width: level === 0 ? 200 : level === 1 ? 180 : 160,
+        minHeight: 40,
+        background: level === 0 ? "#FF6A1A" : level === 1 ? (n.order % 3 === 0 ? "#171513" : "#FFE2CF") : "#FFFFFF",
+        color: level === 0 ? "#fff" : level === 1 && n.order % 3 === 0 ? "#fff" : "#171513",
+        border: level === 0 ? "2px solid #E9510E" : level === 1 ? "1.5px solid #FF813F" : "1px solid #FFB98F",
+        borderRadius: level === 0 ? "22px" : level === 1 ? "18px" : "14px",
         padding: "12px 16px",
-        fontSize: n.level === 0 ? "16px" : "13px",
-        fontWeight: n.level === 0 ? "800" : n.level === 1 ? "700" : "500",
+        fontSize: level === 0 ? "16px" : "13px",
+        fontWeight: level === 0 ? "800" : level === 1 ? "700" : "500",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center" as const,
         lineHeight: "1.4",
-        boxShadow: n.level === 0 ? "0 18px 34px rgba(255,106,26,0.24)" : "0 10px 24px rgba(23,21,19,0.08)",
+        boxShadow: level === 0 ? "0 18px 34px rgba(255,106,26,0.24)" : "0 10px 24px rgba(23,21,19,0.08)",
       },
     };
   });
 
-  const edges: Edge[] = data.edges.map((e) => {
-    return {
-      id: e.id,
-      source: e.source,
-      target: e.target,
+  const flowEdges: Edge[] = data.mind_map.nodes
+    .filter((n) => n.parentId !== null)
+    .map((n) => ({
+      id: `edge-${n.parentId}-${n.id}`,
+      source: n.parentId!,
+      target: n.id,
       type: "smoothstep",
-      style: { stroke: e.id.length % 2 === 0 ? "#FF813F" : "#4A4541", strokeWidth: 1.8 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: e.id.length % 2 === 0 ? "#FF813F" : "#4A4541", width: 12, height: 12 },
-    };
-  });
+      style: { stroke: n.order % 2 === 0 ? "#FF813F" : "#4A4541", strokeWidth: 1.8 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: n.order % 2 === 0 ? "#FF813F" : "#4A4541", width: 12, height: 12 },
+    }));
 
-  return { nodes, edges };
+  return { nodes: flowNodes, edges: flowEdges };
 }
 
 // --- Flow Inner Component ---
@@ -361,36 +263,36 @@ const FlowCanvas = forwardRef<FlowCanvasHandle, {
 export default function MindMapPage({
   onBack,
   initialText,
-  taskId,
+  knowledgeBaseId,
   returnState,
+  taskId: _taskId,
 }: {
   onBack?: () => void;
   initialText?: string;
-  taskId?: string;
+  knowledgeBaseId?: string;
   returnState?: MindMapReturnState;
+  taskId?: string;
 }) {
   const navigate = useNavigate();
   const [inputText, setInputText] = useState(initialText || "");
   const [inputTitle, setInputTitle] = useState("");
-  const [maxDepth, setMaxDepth] = useState(4);
-  const [sourceOnly, setSourceOnly] = useState(true);
-  const [mapType, setMapType] = useState<"auto" | "knowledge" | "process">("auto");
 
-  const [currentData, setCurrentData] = useState<MindMapResponse | null>(null);
+  const [currentData, setCurrentData] = useState<LatestMindMapResponse | null>(null);
   const [flowNodes, setFlowNodes] = useState<Node[]>([]);
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
 
   const [step, setStep] = useState<GenerationStep>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [versions, setVersions] = useState<MindMapVersionItem[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
-  const canvasRef = useRef<HTMLDivElement>(null);
   const flowCanvasRef = useRef<FlowCanvasHandle>(null);
   const autoTriggered = useRef(false);
+
+  const effectiveKbId = knowledgeBaseId || returnState?.knowledgeBaseId;
 
   const preservedReturnState = useMemo(() => {
     if (!returnState?.from && !returnState?.knowledgeBaseId) return undefined;
@@ -400,38 +302,37 @@ export default function MindMapPage({
     } satisfies MindMapReturnState;
   }, [returnState]);
 
-  // Load history on mount
+  // Load existing mind map if we have a KB ID
   useEffect(() => {
-    apiListHistory().then(setHistory).catch(() => {});
-  }, []);
-
-  // Load from taskId (URL-based restore or history switch)
-  useEffect(() => {
-    if (taskId && taskId !== currentData?.task_id) {
-      setCurrentData(null);
-      setFlowNodes([]);
-      setFlowEdges([]);
-      setStep("idle");
-      apiGetMindmap(taskId)
-        .then((result) => {
-          applyResponse(result);
+    if (effectiveKbId && !currentData && !autoTriggered.current) {
+      (async () => {
+        const session = await getCloudSession();
+        if (!session?.access_token) return;
+        try {
+          const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+          applyResponse(latest);
           setStep("done");
-          refreshHistory();
-        })
-        .catch(() => {
-          setErrorMsg("导图不存在或加载失败");
-        });
+          loadVersions(session.access_token);
+        } catch {
+          // No existing mind map — that's fine, user can generate
+        }
+      })();
     }
-  }, [taskId]);
+  }, [effectiveKbId]);
 
-  const refreshHistory = useCallback(() => {
-    apiListHistory().then(setHistory).catch(() => {});
-  }, []);
+  const loadVersions = useCallback(async (token: string) => {
+    if (!effectiveKbId) return;
+    try {
+      const items = await listMindMapVersions({ knowledge_base_id: effectiveKbId, token });
+      setVersions(items);
+    } catch {
+      // ignore
+    }
+  }, [effectiveKbId]);
 
-  // Apply response to canvas
-  const applyResponse = useCallback((data: MindMapResponse) => {
+  const applyResponse = useCallback((data: LatestMindMapResponse) => {
     setCurrentData(data);
-    const { nodes, edges } = responseToFlow(data);
+    const { nodes, edges } = mindMapToFlowNodes(data);
     setFlowNodes(nodes);
     setFlowEdges(edges);
   }, []);
@@ -448,37 +349,42 @@ export default function MindMapPage({
       return;
     }
 
+    const session = await getCloudSession();
+    if (!session?.access_token) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    if (!effectiveKbId) {
+      setErrorMsg("请先保存知识库再生成导图");
+      return;
+    }
+
     setGenerating(true);
     setErrorMsg("");
     setStep("preparing");
 
-    // Simulate step progression for UX
     const stepTimer = setTimeout(() => setStep("extracting"), 800);
     const stepTimer2 = setTimeout(() => setStep("validating"), 2500);
     const stepTimer3 = setTimeout(() => setStep("rendering"), 4000);
 
     try {
-      const result = await apiGenerate({
-        text,
-        title: inputTitle.trim() || undefined,
-        max_depth: maxDepth,
-        source_only: sourceOnly,
-        map_type: mapType,
+      const result = await generateMindMap({
+        knowledge_base_id: effectiveKbId,
+        title: inputTitle.trim() || "知识导图",
+        description: "",
+        content_md: text,
+        token: session.access_token,
       });
 
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
       clearTimeout(stepTimer3);
 
-      if (result.status === "failed") {
-        setStep("failed");
-        setErrorMsg("生成失败，请重试");
-      } else {
-        setStep("done");
-        applyResponse(result);
-        refreshHistory();
-        navigate(`/mindmap/${result.task_id}`, { replace: true, state: preservedReturnState });
-      }
+      setStep("done");
+      const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+      applyResponse(latest);
+      loadVersions(session.access_token);
     } catch (e) {
       clearTimeout(stepTimer);
       clearTimeout(stepTimer2);
@@ -488,49 +394,44 @@ export default function MindMapPage({
     } finally {
       setGenerating(false);
     }
-  }, [inputText, inputTitle, maxDepth, sourceOnly, mapType, applyResponse, refreshHistory, navigate, preservedReturnState]);
+  }, [inputText, inputTitle, effectiveKbId, applyResponse, loadVersions]);
 
   // Auto-trigger generation when initialText is provided
   useEffect(() => {
-    if (initialText && initialText.trim().length >= 20 && !autoTriggered.current) {
+    if (initialText && initialText.trim().length >= 20 && !autoTriggered.current && effectiveKbId) {
       autoTriggered.current = true;
       handleGenerate();
     }
-  }, [initialText, handleGenerate]);
+  }, [initialText, handleGenerate, effectiveKbId]);
 
   // Regenerate
   const handleRegenerate = useCallback(async () => {
-    if (!currentData) return;
+    if (!effectiveKbId) return;
+
+    const session = await getCloudSession();
+    if (!session?.access_token) {
+      setShowLoginPrompt(true);
+      return;
+    }
+
     setGenerating(true);
     setStep("preparing");
     setErrorMsg("");
     try {
-      const result = await apiRegenerate(currentData.task_id, {
-        max_depth: maxDepth,
-        map_type: mapType,
-      });
+      await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
       setStep("done");
-      applyResponse(result);
-      refreshHistory();
-      navigate(`/mindmap/${result.task_id}`, { replace: true, state: preservedReturnState });
+      const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+      applyResponse(latest);
+      loadVersions(session.access_token);
     } catch (e) {
       setStep("failed");
       setErrorMsg(e instanceof Error ? e.message : "重新生成失败");
     } finally {
       setGenerating(false);
     }
-  }, [currentData, maxDepth, mapType, applyResponse, refreshHistory, navigate, preservedReturnState]);
-
-  // Load from history - navigate to URL
-  const handleLoadHistory = useCallback(
-    (taskId: string) => {
-      navigate(`/mindmap/${taskId}`, { state: preservedReturnState });
-    },
-    [navigate, preservedReturnState]
-  );
+  }, [effectiveKbId, applyResponse, loadVersions]);
 
   const resetToNew = useCallback(() => {
-    navigate("/mindmap/new", { replace: true, state: preservedReturnState });
     setCurrentData(null);
     setFlowNodes([]);
     setFlowEdges([]);
@@ -539,36 +440,22 @@ export default function MindMapPage({
     setStep("idle");
     setErrorMsg("");
     autoTriggered.current = false;
-  }, [navigate, preservedReturnState]);
-
-  const handleDeleteHistory = useCallback(
-    async (event: MouseEvent<HTMLButtonElement>, item: HistoryItem) => {
-      event.stopPropagation();
-      if (!window.confirm(`删除「${item.title}」这条思维导图历史？`)) return;
-      setDeletingTaskId(item.task_id);
-      try {
-        await apiDeleteMindmap(item.task_id);
-        setHistory((items) => items.filter((entry) => entry.task_id !== item.task_id));
-        if (currentData?.task_id === item.task_id) {
-          resetToNew();
-        }
-      } catch (error) {
-        setErrorMsg(error instanceof Error ? error.message : "删除历史记录失败");
-      } finally {
-        setDeletingTaskId(null);
-      }
-    },
-    [currentData, resetToNew],
-  );
+  }, []);
 
   // Node edit (double-click)
   const handleNodeDoubleClick = useCallback(
     async (nodeId: string, newText: string) => {
       if (!currentData) return;
-      const node = currentData.nodes.find((n) => n.id === nodeId);
+      const node = currentData.mind_map.nodes.find((n) => n.id === nodeId);
       if (!node || newText === node.text) return;
+
+      const session = await getCloudSession();
+      if (!session?.access_token) return;
+
       try {
-        const result = await apiPatch(currentData.task_id, {
+        const result = await patchMindMap({
+          mind_map_id: currentData.id,
+          token: session.access_token,
           update_node: { id: nodeId, text: newText },
         });
         applyResponse(result);
@@ -579,6 +466,23 @@ export default function MindMapPage({
     [currentData, applyResponse]
   );
 
+  // Delete current mind map version
+  const handleDeleteVersion = useCallback(async () => {
+    if (!currentData?.id) return;
+    if (!window.confirm("确认删除这个版本的思维导图？")) return;
+
+    const session = await getCloudSession();
+    if (!session?.access_token) return;
+
+    try {
+      await deleteMindMap({ mind_map_id: currentData.id, token: session.access_token });
+      resetToNew();
+      loadVersions(session.access_token);
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : "删除失败");
+    }
+  }, [currentData, resetToNew, loadVersions]);
+
   // Download PNG
   const handleDownloadPng = useCallback(async () => {
     if (!flowCanvasRef.current) return;
@@ -588,10 +492,11 @@ export default function MindMapPage({
         setErrorMsg("PNG导出失败，请重试");
         return;
       }
-      const title = currentData?.title?.trim() || "mindmap";
+      const title = currentData?.mind_map.title?.trim() || "mindmap";
+      const safeName = title.replace(/[<>:"/\\|?*\x00-\x1f]/g, "_");
       const link = document.createElement("a");
       link.href = dataUrl;
-      link.download = `${title}.png`;
+      link.download = `${safeName}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -603,11 +508,7 @@ export default function MindMapPage({
   // Copy JSON
   const handleCopyJson = useCallback(() => {
     if (!currentData) return;
-    const json = JSON.stringify(
-      { title: currentData.title, nodes: currentData.nodes, edges: currentData.edges },
-      null,
-      2
-    );
+    const json = JSON.stringify(currentData.mind_map, null, 2);
     navigator.clipboard.writeText(json).then(() => {
       setErrorMsg("");
     });
@@ -615,13 +516,62 @@ export default function MindMapPage({
 
   return (
     <div className="mm-page">
-      {/* Sidebar - History */}
+      {/* Login prompt modal */}
+      {showLoginPrompt && (
+        <div
+          className="mm-login-overlay"
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(23,21,19,0.5)", zIndex: 1000,
+          }}
+          onClick={() => setShowLoginPrompt(false)}
+        >
+          <div
+            style={{
+              background: "#fff", borderRadius: "20px", padding: "32px",
+              maxWidth: "380px", width: "90%", textAlign: "center",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: "0 0 12px", fontSize: "18px", color: "#171513" }}>需要登录</h3>
+            <p style={{ margin: "0 0 24px", color: "#77716c", fontSize: "14px", lineHeight: "1.6" }}>
+              生成思维导图需要登录账号。登录后即可使用 AI 生成功能。
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                style={{
+                  padding: "10px 24px", borderRadius: "12px", border: "none",
+                  background: "#FF6A1A", color: "#fff", fontWeight: "700",
+                  cursor: "pointer", fontSize: "14px",
+                }}
+                onClick={() => { setShowLoginPrompt(false); navigate("/"); }}
+              >
+                去登录
+              </button>
+              <button
+                style={{
+                  padding: "10px 24px", borderRadius: "12px", border: "1px solid #e8e0d8",
+                  background: "#fff", color: "#171513", fontWeight: "500",
+                  cursor: "pointer", fontSize: "14px",
+                }}
+                onClick={() => setShowLoginPrompt(false)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Sidebar - Versions */}
       <aside className={`mm-sidebar ${sidebarOpen ? "" : "mm-sidebar-collapsed"}`}>
         <div className="mm-sidebar-header">
           <button className="mm-btn-icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? "◁" : "▷"}
           </button>
-          {sidebarOpen && <span className="mm-sidebar-title">历史记录</span>}
+          {sidebarOpen && <span className="mm-sidebar-title">版本记录</span>}
         </div>
         {sidebarOpen && (
           <>
@@ -636,31 +586,35 @@ export default function MindMapPage({
               )}
             </div>
             <div className="mm-sidebar-list">
-              {history.map((item) => {
-                const isActive = currentData?.task_id === item.task_id;
+              {versions.map((item) => {
+                const isActive = currentData?.id === item.id;
                 return (
-                  <div key={item.task_id} className={`mm-history-row ${isActive ? "active" : ""}`}>
-                    <button className="mm-history-item" onClick={() => handleLoadHistory(item.task_id)}>
-                      <span className="mm-history-title">{item.title}</span>
-                      <span className="mm-history-meta">
-                        {item.node_count}节点 · {new Date(item.created_at).toLocaleString(undefined, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </button>
+                  <div key={item.id} className={`mm-history-row ${isActive ? "active" : ""}`}>
                     <button
-                      type="button"
-                      className="mm-history-delete"
-                      title="删除历史"
-                      aria-label={`删除历史：${item.title}`}
-                      disabled={deletingTaskId === item.task_id}
-                      onClick={(event) => handleDeleteHistory(event, item)}
+                      className="mm-history-item"
+                      onClick={async () => {
+                        if (!effectiveKbId) return;
+                        const session = await getCloudSession();
+                        if (!session?.access_token) return;
+                        try {
+                          const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+                          applyResponse(latest);
+                          setStep("done");
+                        } catch {
+                          setErrorMsg("加载版本失败");
+                        }
+                      }}
                     >
-                      删除
+                      <span className="mm-history-title">版本 {item.version_no}</span>
+                      <span className="mm-history-meta">
+                        {item.updated_at ? new Date(item.updated_at).toLocaleString(undefined, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}
+                      </span>
                     </button>
                   </div>
                 );
               })}
-              {history.length === 0 && (
-                <p className="mm-empty-hint">暂无历史记录</p>
+              {versions.length === 0 && (
+                <p className="mm-empty-hint">暂无版本记录</p>
               )}
             </div>
           </>
@@ -706,46 +660,6 @@ export default function MindMapPage({
               <span className="mm-char-count">{inputText.length} 字</span>
             </div>
 
-            <div className="mm-options">
-              <div className="mm-option">
-                <label htmlFor="mm-depth">最大层级</label>
-                <select
-                  id="mm-depth"
-                  value={maxDepth}
-                  onChange={(e) => setMaxDepth(Number(e.target.value))}
-                >
-                  <option value={2}>2</option>
-                  <option value={3}>3</option>
-                  <option value={4}>4</option>
-                  <option value={5}>5</option>
-                  <option value={6}>6</option>
-                </select>
-              </div>
-              <div className="mm-option">
-                <label htmlFor="mm-type">类型</label>
-                <select
-                  id="mm-type"
-                  value={mapType}
-                  onChange={(e) =>
-                    setMapType(e.target.value as "auto" | "knowledge" | "process")
-                  }
-                >
-                  <option value="auto">自动</option>
-                  <option value="knowledge">知识型</option>
-                  <option value="process">流程型</option>
-                </select>
-              </div>
-              <div className="mm-option mm-checkbox">
-                <input
-                  id="mm-source"
-                  type="checkbox"
-                  checked={sourceOnly}
-                  onChange={(e) => setSourceOnly(e.target.checked)}
-                />
-                <label htmlFor="mm-source">仅依据原文</label>
-              </div>
-            </div>
-
             {/* Status */}
             {step !== "idle" && step !== "done" && (
               <div className={`mm-status ${step === "failed" ? "mm-status-error" : ""}`}>
@@ -769,18 +683,17 @@ export default function MindMapPage({
         {currentData && (
           <div className="mm-canvas-panel">
             <div className="mm-toolbar">
-              <h3 className="mm-canvas-title">{currentData.title}</h3>
+              <h3 className="mm-canvas-title">{currentData.mind_map.title}</h3>
               <div className="mm-toolbar-actions">
                 <button className="mm-btn-regen" onClick={() => {
-                  if (window.confirm("确认重新生成？当前导图将被替换。")) handleRegenerate();
+                  if (window.confirm("确认重新生成？将创建新版本。")) handleRegenerate();
                 }} disabled={generating}>
                   重新生成
                 </button>
                 <button onClick={handleDownloadPng}>下载 PNG</button>
                 <button onClick={handleCopyJson}>复制 JSON</button>
-                <button onClick={resetToNew}>
-                  新建
-                </button>
+                <button onClick={handleDeleteVersion}>删除版本</button>
+                <button onClick={resetToNew}>新建</button>
                 {onBack && <button onClick={onBack}>返回</button>}
               </div>
             </div>
@@ -792,15 +705,7 @@ export default function MindMapPage({
               </div>
             )}
 
-            {currentData.validation && !currentData.validation.passed && (
-              <div className="mm-validation-warn">
-                校验分数: {currentData.validation.score}/100
-                {currentData.validation.errors.length > 0 &&
-                  ` · ${currentData.validation.errors.length} 个错误`}
-              </div>
-            )}
-
-            <div className="mm-canvas" ref={canvasRef}>
+            <div className="mm-canvas">
               <ReactFlowProvider>
                 <FlowCanvas
                   ref={flowCanvasRef}
@@ -811,7 +716,7 @@ export default function MindMapPage({
               </ReactFlowProvider>
             </div>
 
-            <p className="mm-hint">双击节点可编辑内容</p>
+            <p className="mm-hint">双击节点可编辑内容 · 版本 {currentData.version_no}</p>
           </div>
         )}
       </main>

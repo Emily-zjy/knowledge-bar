@@ -1,0 +1,902 @@
+[
+  {
+    "run_id": "ab_prompt_v1_T08_run1_07f15655",
+    "prompt_version": "prompt_v1",
+    "case_id": "T08",
+    "node_count": 24,
+    "precision": 0.5652,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T08_run2_9a7226af",
+    "prompt_version": "prompt_v1",
+    "case_id": "T08",
+    "node_count": 24,
+    "precision": 0.5652,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T14_run1_ead667b0",
+    "prompt_version": "prompt_v1",
+    "case_id": "T14",
+    "node_count": 25,
+    "precision": 0.4167,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T14_run2_06e09085",
+    "prompt_version": "prompt_v1",
+    "case_id": "T14",
+    "node_count": 25,
+    "precision": 0.4167,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T17_run1_b81b5563",
+    "prompt_version": "prompt_v1",
+    "case_id": "T17",
+    "node_count": 21,
+    "precision": 0.4,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T17_run2_7019423a",
+    "prompt_version": "prompt_v1",
+    "case_id": "T17",
+    "node_count": 19,
+    "precision": 0.4444,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T18_run1_3b204382",
+    "prompt_version": "prompt_v1",
+    "case_id": "T18",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T18_run2_94240173",
+    "prompt_version": "prompt_v1",
+    "case_id": "T18",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T25_run1_319847ab",
+    "prompt_version": "prompt_v1",
+    "case_id": "T25",
+    "node_count": 10,
+    "precision": 0.6667,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T25_run2_682579da",
+    "prompt_version": "prompt_v1",
+    "case_id": "T25",
+    "node_count": 10,
+    "precision": 0.6667,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T08_run1_5c8dc37d",
+    "prompt_version": "prompt_v2",
+    "case_id": "T08",
+    "node_count": 23,
+    "precision": 0.5909,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T08_run2_445baaba",
+    "prompt_version": "prompt_v2",
+    "case_id": "T08",
+    "node_count": 23,
+    "precision": 0.5909,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T14_run1_844ab943",
+    "prompt_version": "prompt_v2",
+    "case_id": "T14",
+    "node_count": 21,
+    "precision": 0.5,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T14_run2_e461e7e4",
+    "prompt_version": "prompt_v2",
+    "case_id": "T14",
+    "node_count": 21,
+    "precision": 0.5,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T17_run1_407653db",
+    "prompt_version": "prompt_v2",
+    "case_id": "T17",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T17_run2_7caffc0e",
+    "prompt_version": "prompt_v2",
+    "case_id": "T17",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T18_run1_41a507dc",
+    "prompt_version": "prompt_v2",
+    "case_id": "T18",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T18_run2_3b6fd512",
+    "prompt_version": "prompt_v2",
+    "case_id": "T18",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T25_run1_5b1157d8",
+    "prompt_version": "prompt_v2",
+    "case_id": "T25",
+    "node_count": 9,
+    "precision": 0.75,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T25_run2_c492a19d",
+    "prompt_version": "prompt_v2",
+    "case_id": "T25",
+    "node_count": 9,
+    "precision": 0.75,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T08_run1_1a881647",
+    "prompt_version": "prompt_v1",
+    "case_id": "T08",
+    "node_count": 24,
+    "precision": 0.5652,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T08_run2_e55afe91",
+    "prompt_version": "prompt_v1",
+    "case_id": "T08",
+    "node_count": 24,
+    "precision": 0.5652,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T08_run3_d3f1970e",
+    "prompt_version": "prompt_v1",
+    "case_id": "T08",
+    "node_count": 24,
+    "precision": 0.5652,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T14_run1_51678eff",
+    "prompt_version": "prompt_v1",
+    "case_id": "T14",
+    "node_count": 25,
+    "precision": 0.4167,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T14_run2_6ed7a5d9",
+    "prompt_version": "prompt_v1",
+    "case_id": "T14",
+    "node_count": 25,
+    "precision": 0.4167,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T14_run3_8ac694a0",
+    "prompt_version": "prompt_v1",
+    "case_id": "T14",
+    "node_count": 25,
+    "precision": 0.4167,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T17_run1_755dcf9a",
+    "prompt_version": "prompt_v1",
+    "case_id": "T17",
+    "node_count": 21,
+    "precision": 0.4,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T17_run2_08578f13",
+    "prompt_version": "prompt_v1",
+    "case_id": "T17",
+    "node_count": 21,
+    "precision": 0.4,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T17_run3_8daa4098",
+    "prompt_version": "prompt_v1",
+    "case_id": "T17",
+    "node_count": 19,
+    "precision": 0.4444,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T18_run1_f0c47ca3",
+    "prompt_version": "prompt_v1",
+    "case_id": "T18",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T18_run2_0cb47941",
+    "prompt_version": "prompt_v1",
+    "case_id": "T18",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T18_run3_a6898751",
+    "prompt_version": "prompt_v1",
+    "case_id": "T18",
+    "node_count": 22,
+    "precision": 0.381,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T25_run1_3f1c8637",
+    "prompt_version": "prompt_v1",
+    "case_id": "T25",
+    "node_count": 10,
+    "precision": 0.6667,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T25_run2_ccaf38a7",
+    "prompt_version": "prompt_v1",
+    "case_id": "T25",
+    "node_count": 10,
+    "precision": 0.6667,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v1_T25_run3_a74ab5e9",
+    "prompt_version": "prompt_v1",
+    "case_id": "T25",
+    "node_count": 10,
+    "precision": 0.6667,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T08_run1_35017fa8",
+    "prompt_version": "prompt_v2",
+    "case_id": "T08",
+    "node_count": 24,
+    "precision": 0.5652,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T08_run2_50f26e06",
+    "prompt_version": "prompt_v2",
+    "case_id": "T08",
+    "node_count": 23,
+    "precision": 0.5909,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T08_run3_b9d5efc2",
+    "prompt_version": "prompt_v2",
+    "case_id": "T08",
+    "node_count": 23,
+    "precision": 0.5909,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T14_run1_842f91b7",
+    "prompt_version": "prompt_v2",
+    "case_id": "T14",
+    "node_count": 18,
+    "precision": 0.5882,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T14_run2_aeb2cb1b",
+    "prompt_version": "prompt_v2",
+    "case_id": "T14",
+    "node_count": 21,
+    "precision": 0.5,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T14_run3_cc4a7dde",
+    "prompt_version": "prompt_v2",
+    "case_id": "T14",
+    "node_count": 20,
+    "precision": 0.5263,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T17_run1_0b8265ab",
+    "prompt_version": "prompt_v2",
+    "case_id": "T17",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T17_run2_97ce7648",
+    "prompt_version": "prompt_v2",
+    "case_id": "T17",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T17_run3_13ab8b3a",
+    "prompt_version": "prompt_v2",
+    "case_id": "T17",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T18_run1_08bc8c19",
+    "prompt_version": "prompt_v2",
+    "case_id": "T18",
+    "node_count": 16,
+    "precision": 0.5333,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T18_run2_68213623",
+    "prompt_version": "prompt_v2",
+    "case_id": "T18",
+    "node_count": 18,
+    "precision": 0.4706,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T18_run3_0d917a5c",
+    "prompt_version": "prompt_v2",
+    "case_id": "T18",
+    "node_count": 17,
+    "precision": 0.5,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T25_run1_d7ecf652",
+    "prompt_version": "prompt_v2",
+    "case_id": "T25",
+    "node_count": 9,
+    "precision": 0.75,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T25_run2_968cf798",
+    "prompt_version": "prompt_v2",
+    "case_id": "T25",
+    "node_count": 9,
+    "precision": 0.75,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  },
+  {
+    "run_id": "ab_prompt_v2_T25_run3_69214fc7",
+    "prompt_version": "prompt_v2",
+    "case_id": "T25",
+    "node_count": 9,
+    "precision": 0.75,
+    "recall": 1.0,
+    "human_review": {
+      "entity_replaced": null,
+      "numbers_changed": null,
+      "negation_reversed": null,
+      "external_knowledge_added": null,
+      "injection_leaked": null,
+      "overall_verdict": null,
+      "reviewer": "PENDING",
+      "comment": ""
+    }
+  }
+]

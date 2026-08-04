@@ -11,29 +11,23 @@ async function readApiError(response: Response): Promise<string> {
   }
 }
 
+function authHeaders(token: string | undefined, json = false): HeadersInit {
+  const headers: HeadersInit = {};
+  if (json) headers["Content-Type"] = "application/json";
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
+
 export async function generateMindMap(input: {
   knowledge_base_id: string;
   title: string;
   description: string;
   content_md: string;
-  token?: string;
-  guestSessionId?: string;
+  token: string;
 }): Promise<GenerateMindMapResponse> {
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
-  if (input.token) {
-    headers.Authorization = `Bearer ${input.token}`;
-  }
-
-  if (input.guestSessionId) {
-    headers["X-Guest-Session-Id"] = input.guestSessionId;
-  }
-
   const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/generate`, {
     method: "POST",
-    headers,
+    headers: authHeaders(input.token, true),
     body: JSON.stringify({
       knowledge_base_id: input.knowledge_base_id,
       title: input.title,
@@ -51,19 +45,142 @@ export async function generateMindMap(input: {
   return payload.data;
 }
 
+export async function regenerateMindMap(input: {
+  knowledge_base_id: string;
+  token: string;
+}): Promise<GenerateMindMapResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/${input.knowledge_base_id}/regenerate`, {
+    method: "POST",
+    headers: authHeaders(input.token, true),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload?.error?.message || "重新生成失败，请稍后重试。");
+  }
+  return payload.data;
+}
+
+export type LatestMindMapResponse = {
+  id: string;
+  knowledge_base_id: string;
+  version_no: number;
+  mind_map: MindMapData;
+  markdown: string;
+  updated_at: string | null;
+};
+
+export async function getLatestMindMap(input: {
+  knowledge_base_id: string;
+  token: string;
+}): Promise<LatestMindMapResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/latest/${input.knowledge_base_id}`, {
+    headers: authHeaders(input.token),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload?.error?.message || "获取导图失败。");
+  }
+  return payload.data;
+}
+
+export type MindMapVersionItem = {
+  id: string;
+  version_no: number;
+  updated_at: string | null;
+};
+
+export async function listMindMapVersions(input: {
+  knowledge_base_id: string;
+  token: string;
+}): Promise<MindMapVersionItem[]> {
+  const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/versions/${input.knowledge_base_id}`, {
+    headers: authHeaders(input.token),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload?.error?.message || "获取版本列表失败。");
+  }
+  return payload.data.versions;
+}
+
+export async function patchMindMap(input: {
+  mind_map_id: string;
+  token: string;
+  title?: string;
+  update_node?: { id: string; text: string };
+}): Promise<LatestMindMapResponse> {
+  const body: Record<string, unknown> = {};
+  if (input.title) body.title = input.title;
+  if (input.update_node) body.update_node = input.update_node;
+
+  const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/${input.mind_map_id}`, {
+    method: "PATCH",
+    headers: authHeaders(input.token, true),
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload?.error?.message || "修改导图失败。");
+  }
+  return payload.data;
+}
+
+export async function deleteMindMap(input: {
+  mind_map_id: string;
+  token: string;
+}): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/${input.mind_map_id}`, {
+    method: "DELETE",
+    headers: authHeaders(input.token),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload?.error?.message || "删除导图失败。");
+  }
+}
+
+export async function getGenerationJob(input: {
+  job_id: string;
+  token: string;
+}): Promise<{ id: string; status: string; error_code?: string; error_message?: string }> {
+  const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/jobs/${input.job_id}`, {
+    headers: authHeaders(input.token),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload?.error?.message || "获取任务状态失败。");
+  }
+  return payload.data;
+}
+
+export async function exportMarkdown(input: {
+  knowledge_base_id: string;
+  token: string;
+}): Promise<Blob> {
+  const response = await fetch(`${apiBaseUrl}/api/ai/export/markdown/${input.knowledge_base_id}`, {
+    headers: authHeaders(input.token),
+  });
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response));
+  }
+  return response.blob();
+}
+
 export async function exportWordDocument(input: {
   title: string;
   markdown: string;
   knowledgeBaseId?: string;
   token?: string;
 }): Promise<Blob> {
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
-  if (input.token) {
-    headers.Authorization = `Bearer ${input.token}`;
-  }
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (input.token) headers["Authorization"] = `Bearer ${input.token}`;
 
   const response = await fetch(`${apiBaseUrl}/api/ai/export/word`, {
     method: "POST",

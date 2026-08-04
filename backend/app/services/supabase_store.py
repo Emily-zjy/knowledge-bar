@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
@@ -8,6 +9,10 @@ import httpx
 
 from app.core.config import settings
 from app.models.ai import MindMapData
+
+logger = logging.getLogger(__name__)
+
+MAX_VERSION_RETRIES = 3
 
 
 class SupabaseStoreError(RuntimeError):
@@ -35,7 +40,7 @@ def _as_list(payload: Any) -> list[dict[str, Any]]:
 class SupabaseStore:
     def __init__(self) -> None:
         self.base_url = (settings.supabase_url or "").rstrip("/")
-        self.service_key = settings.supabase_service_role_key
+        self.service_key = settings.supabase_secret_key or settings.supabase_service_role_key
 
     @property
     def configured(self) -> bool:
@@ -46,16 +51,18 @@ class SupabaseStore:
             raise SupabaseStoreError(
                 503,
                 "SUPABASE_NOT_CONFIGURED",
-                "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be configured on the backend.",
+                "Supabase is not configured on the backend.",
             )
 
     def _headers(self, prefer: str | None = None) -> dict[str, str]:
         self._ensure_configured()
-        headers = {
-            "apikey": self.service_key or "",
-            "Authorization": f"Bearer {self.service_key}",
+        key = self.service_key or ""
+        headers: dict[str, str] = {
+            "apikey": key,
             "Content-Type": "application/json",
         }
+        if not key.startswith("sb_secret_"):
+            headers["Authorization"] = f"Bearer {key}"
         if prefer:
             headers["Prefer"] = prefer
         return headers
@@ -83,7 +90,7 @@ class SupabaseStore:
 
         if response.status_code not in expected:
             raise SupabaseStoreError(
-                502,
+                response.status_code if response.status_code in (409, 404, 401, 403) else 502,
                 "SUPABASE_REST_ERROR",
                 f"Supabase REST request failed with HTTP {response.status_code}.",
             )
@@ -184,6 +191,76 @@ class SupabaseStore:
             raise SupabaseStoreError(404, "MIND_MAP_NOT_FOUND", "Mind map was not found.")
         return rows[0]
 
+    def list_mind_map_versions(self, knowledge_base_id: str, user_id: str) -> list[dict[str, Any]]:
+        rows = _as_list(
+            self._request(
+                "GET",
+                "mind_maps",
+                params={
+                    "select": "id,version_no,updated_at",
+                    "knowledge_base_id": f"eq.{knowledge_base_id}",
+                    "user_id": f"eq.{user_id}",
+                    "order": "version_no.desc",
+                },
+            ),
+        )
+        return rows
+
+    def get_mind_map_by_id(self, mind_map_id: str, user_id: str) -> dict[str, Any]:
+        rows = _as_list(
+            self._request(
+                "GET",
+                "mind_maps",
+                params={
+                    "select": "id,user_id,knowledge_base_id,data_jsonb,markdown,version_no,updated_at",
+                    "id": f"eq.{mind_map_id}",
+                    "user_id": f"eq.{user_id}",
+                    "limit": "1",
+                },
+            ),
+        )
+        if not rows:
+            raise SupabaseStoreError(404, "MIND_MAP_NOT_FOUND", "Mind map was not found.")
+        return rows[0]
+
+    def patch_mind_map(self, mind_map_id: str, user_id: str, data_jsonb: dict, markdown: str) -> dict[str, Any]:
+        payload = {
+            "data_jsonb": data_jsonb,
+            "markdown": markdown,
+            "updated_at": _now_iso(),
+        }
+        self._request(
+            "PATCH",
+            "mind_maps",
+            params={"id": f"eq.{mind_map_id}", "user_id": f"eq.{user_id}"},
+            json_body=payload,
+            prefer="return=minimal",
+            expected=(204,),
+        )
+        return self.get_mind_map_by_id(mind_map_id, user_id)
+
+    def delete_mind_map(self, mind_map_id: str, user_id: str) -> None:
+        rows = _as_list(
+            self._request(
+                "GET",
+                "mind_maps",
+                params={
+                    "select": "id",
+                    "id": f"eq.{mind_map_id}",
+                    "user_id": f"eq.{user_id}",
+                    "limit": "1",
+                },
+            ),
+        )
+        if not rows:
+            raise SupabaseStoreError(404, "MIND_MAP_NOT_FOUND", "Mind map was not found.")
+        self._request(
+            "DELETE",
+            "mind_maps",
+            params={"id": f"eq.{mind_map_id}", "user_id": f"eq.{user_id}"},
+            expected=(200, 204),
+        )
+
     def save_mind_map(
         self,
         *,
@@ -192,32 +269,45 @@ class SupabaseStore:
         mind_map: MindMapData,
         markdown: str,
     ) -> dict[str, Any]:
-        try:
-            existing = self.get_latest_mind_map(knowledge_base_id, user_id)
-            version_no = int(existing.get("version_no") or 0) + 1
-        except SupabaseStoreError as exc:
-            if exc.status_code != 404:
-                raise
-            version_no = 1
+        """Insert a new mind map version with retry on unique constraint conflict."""
+        for attempt in range(MAX_VERSION_RETRIES):
+            try:
+                existing = self.get_latest_mind_map(knowledge_base_id, user_id)
+                version_no = int(existing.get("version_no") or 0) + 1
+            except SupabaseStoreError as exc:
+                if exc.status_code != 404:
+                    raise
+                version_no = 1
 
-        payload = {
-            "id": str(uuid4()),
-            "user_id": user_id,
-            "knowledge_base_id": knowledge_base_id,
-            "data_jsonb": mind_map.model_dump(),
-            "markdown": markdown,
-            "version_no": version_no,
-        }
-        rows = _as_list(
-            self._request(
-                "POST",
-                "mind_maps",
-                json_body=payload,
-                prefer="return=representation",
-                expected=(201,),
-            ),
-        )
-        return rows[0] if rows else payload
+            payload = {
+                "id": str(uuid4()),
+                "user_id": user_id,
+                "knowledge_base_id": knowledge_base_id,
+                "data_jsonb": mind_map.model_dump(),
+                "markdown": markdown,
+                "version_no": version_no,
+            }
+            try:
+                rows = _as_list(
+                    self._request(
+                        "POST",
+                        "mind_maps",
+                        json_body=payload,
+                        prefer="return=representation",
+                        expected=(201,),
+                    ),
+                )
+                return rows[0] if rows else payload
+            except SupabaseStoreError as exc:
+                is_conflict = exc.status_code == 409
+                if is_conflict and attempt < MAX_VERSION_RETRIES - 1:
+                    logger.warning("version_conflict_retry", extra={"attempt": attempt + 1, "version_no": version_no})
+                    continue
+                if not is_conflict:
+                    raise
+                raise
+
+        raise SupabaseStoreError(409, "VERSION_CONFLICT", "Failed to save mind map after retries.")
 
 
 supabase_store = SupabaseStore()

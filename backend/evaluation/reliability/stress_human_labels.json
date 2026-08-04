@@ -1,0 +1,226 @@
+[
+  {
+    "case_id": "stress_001",
+    "node": "P0支付Bug",
+    "agent_output_node": "P0：修复支付系统超时Bug",
+    "human_label": "correct",
+    "comment": "关键词等价，Agent添加了前缀和细节但核心概念一致"
+  },
+  {
+    "case_id": "stress_002",
+    "node": "P1用户画像",
+    "agent_output_node": "P1：完善用户画像模块",
+    "human_label": "correct",
+    "comment": "语义等价，核心关键词用户画像完全匹配"
+  },
+  {
+    "case_id": "stress_003",
+    "node": "数据源待定",
+    "agent_output_node": "用户画像数据源：埋点 vs 问卷",
+    "human_label": "correct",
+    "comment": "语义等价，Agent具体化了数据源的待定选项"
+  },
+  {
+    "case_id": "stress_004",
+    "node": "设计规范待定",
+    "agent_output_node": "是否沿用现有Design System",
+    "human_label": "correct",
+    "comment": "跨语言语义等价，设计规范=Design System"
+  },
+  {
+    "case_id": "stress_005",
+    "node": "Redis Cluster",
+    "agent_output_node": "Redis Cluster（最终选型）",
+    "human_label": "correct",
+    "comment": "精确匹配加补充信息"
+  },
+  {
+    "case_id": "stress_006",
+    "node": "故障转移",
+    "agent_output_node": "Sentinel自动failover，30秒内完成",
+    "human_label": "correct",
+    "comment": "跨语言语义等价，故障转移=failover"
+  },
+  {
+    "case_id": "stress_007",
+    "node": "缓存雪崩",
+    "agent_output_node": "缓存雪崩：TTL随机化 + L1/L2多级缓存",
+    "human_label": "correct",
+    "comment": "完全包含核心概念"
+  },
+  {
+    "case_id": "stress_008",
+    "node": "关系区分",
+    "agent_output_node": "三者关系",
+    "human_label": "correct",
+    "comment": "语义等价"
+  },
+  {
+    "case_id": "stress_009",
+    "node": "客单价215元",
+    "agent_output_node": "客单价215元",
+    "human_label": "correct",
+    "comment": "完全精确匹配"
+  },
+  {
+    "case_id": "stress_010",
+    "node": "MAU 3200万",
+    "agent_output_node": "MAU 3200万",
+    "human_label": "correct",
+    "comment": "完全精确匹配"
+  },
+  {
+    "case_id": "stress_011",
+    "node": "流水线",
+    "agent_output_node": "CI/CD流水线",
+    "human_label": "correct",
+    "comment": "关键词匹配"
+  },
+  {
+    "case_id": "stress_012",
+    "node": "B+树索引",
+    "agent_output_node": "B+树索引",
+    "human_label": "correct",
+    "comment": "完全精确匹配"
+  },
+  {
+    "case_id": "stress_013",
+    "node": "行为标签",
+    "agent_output_node": "行为标签",
+    "human_label": "correct",
+    "comment": "完全精确匹配"
+  },
+  {
+    "case_id": "stress_014",
+    "node": "Redis Cluster",
+    "agent_output_node": "MongoDB Cluster",
+    "human_label": "incorrect",
+    "comment": "技术方案错误，原文明确选型Redis不是MongoDB"
+  },
+  {
+    "case_id": "stress_015",
+    "node": "缓存雪崩",
+    "agent_output_node": "缓存策略优化",
+    "human_label": "incorrect",
+    "comment": "概念不对等，缓存策略优化是泛化描述不等于缓存雪崩"
+  },
+  {
+    "case_id": "stress_016",
+    "node": "Hash Slot",
+    "agent_output_node": "一致性Hash",
+    "human_label": "incorrect",
+    "comment": "技术概念错误，Hash Slot不是一致性Hash"
+  },
+  {
+    "case_id": "stress_017",
+    "node": "时间片轮转",
+    "agent_output_node": "进程调度",
+    "human_label": "incorrect",
+    "comment": "概念过于泛化，进程调度不等于时间片轮转"
+  },
+  {
+    "case_id": "stress_018",
+    "node": "12.8亿",
+    "agent_output_node": "15.2亿",
+    "human_label": "incorrect",
+    "comment": "数据错误，原文GMV为12.8亿不是15.2亿"
+  },
+  {
+    "case_id": "stress_019",
+    "node": "转化率6.3%",
+    "agent_output_node": "转化率8.5%",
+    "human_label": "incorrect",
+    "comment": "数据错误，原文转化率6.3%不是8.5%"
+  },
+  {
+    "case_id": "stress_020",
+    "node": "快速排序",
+    "agent_output_node": "GPU并行排序",
+    "human_label": "incorrect",
+    "comment": "幻觉内容，原文未涉及GPU并行排序"
+  },
+  {
+    "case_id": "stress_021",
+    "node": "B+树索引",
+    "agent_output_node": "红黑树索引",
+    "human_label": "incorrect",
+    "comment": "技术概念错误，原文讨论B+树不是红黑树"
+  },
+  {
+    "case_id": "stress_022",
+    "node": "未达成一致",
+    "agent_output_node": "已决定采用GraphQL",
+    "human_label": "incorrect",
+    "comment": "事实相反，原文明确未达成一致"
+  },
+  {
+    "case_id": "stress_023",
+    "node": "测试金字塔",
+    "agent_output_node": "自动化测试框架",
+    "human_label": "incorrect",
+    "comment": "概念不等价，测试金字塔是分层策略不是测试框架"
+  },
+  {
+    "case_id": "stress_024",
+    "node": "缓存穿透",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent未生成任何匹配缓存穿透的节点"
+  },
+  {
+    "case_id": "stress_025",
+    "node": "监控指标",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent遗漏了监控指标相关内容"
+  },
+  {
+    "case_id": "stress_026",
+    "node": "回调驱动",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent未生成回调驱动机制节点"
+  },
+  {
+    "case_id": "stress_027",
+    "node": "12.8亿",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent未生成GMV总额数据节点"
+  },
+  {
+    "case_id": "stress_028",
+    "node": "折中方案",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent未明确提出折中方案节点"
+  },
+  {
+    "case_id": "stress_029",
+    "node": "Redis数据类型",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent遗漏了Redis数据类型知识点"
+  },
+  {
+    "case_id": "stress_030",
+    "node": "SOLID",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent未生成SOLID原则节点"
+  },
+  {
+    "case_id": "stress_031",
+    "node": "无障碍设计",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent遗漏了无障碍设计原则"
+  },
+  {
+    "case_id": "stress_032",
+    "node": "最左前缀",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "comment": "Agent未生成最左前缀匹配规则节点"
+  }
+]

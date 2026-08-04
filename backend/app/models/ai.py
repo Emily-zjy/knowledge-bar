@@ -25,12 +25,6 @@ class GenerateMindMapRequest(BaseModel):
     content_md: str = Field(min_length=1, max_length=120_000)
 
 
-class GuestGenerateRequest(BaseModel):
-    title: str = Field(min_length=1, max_length=120)
-    description: str = Field(default="", max_length=500)
-    content_md: str = Field(min_length=1, max_length=30_000)
-
-
 class MindMapNode(BaseModel):
     id: str = Field(min_length=1, max_length=80)
     parentId: str | None = None
@@ -68,11 +62,33 @@ class GenerationJobResponse(BaseModel):
 
 
 class LatestMindMapResponse(BaseModel):
+    id: str = ""
     knowledge_base_id: str
     version_no: int
     mind_map: MindMapData
     markdown: str = ""
     updated_at: str | None = None
+
+
+class MindMapVersionItem(BaseModel):
+    id: str
+    version_no: int
+    updated_at: str | None = None
+
+
+class MindMapVersionsResponse(BaseModel):
+    knowledge_base_id: str
+    versions: list[MindMapVersionItem] = []
+
+
+class NodeUpdate(BaseModel):
+    id: str = Field(min_length=1, max_length=80)
+    text: str = Field(min_length=1, max_length=120)
+
+
+class PatchMindMapRequest(BaseModel):
+    title: str | None = Field(default=None, max_length=120)
+    update_node: NodeUpdate | None = None
 
 
 class SupabaseRow(BaseModel):
