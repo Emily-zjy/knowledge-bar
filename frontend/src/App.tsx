@@ -23,7 +23,7 @@ import {
   listGuestKnowledgeBases,
   saveGuestKnowledgeBase,
 } from "./lib/guestStore";
-import { hasSupabaseConfig } from "./lib/supabase";
+import { hasSupabaseConfig, supabase } from "./lib/supabase";
 import MindMapPage from "./pages/MindMapPage";
 import FloatingLines from "./components/FloatingLines";
 import GlareHover from "./components/GlareHover";
@@ -285,6 +285,8 @@ function AppShell() {
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const lastEditorContentRef = useRef("");
   const imageCaretRef = useRef<{ figure: HTMLElement; side: ImageCaretSide } | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
@@ -321,6 +323,7 @@ function AppShell() {
       const savedSession = await getCloudSession();
       setSession(savedSession);
       await refreshKnowledgeBases(savedSession?.user.id);
+      if (savedSession?.user.id) loadAvatar(savedSession.user.id);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "云端会话读取失败，已切换游客模式。");
       await refreshKnowledgeBases();
@@ -399,6 +402,35 @@ function AppShell() {
     } else {
       await saveGuestKnowledgeBase(kb);
     }
+  }
+
+  async function loadAvatar(userId: string) {
+    if (!supabase) return;
+    const { data } = await supabase.from("profiles").select("avatar_path").eq("id", userId).single();
+    if (!data?.avatar_path) return;
+    const { data: signed } = await supabase.storage
+      .from("knowledge-bar-assets")
+      .createSignedUrl(data.avatar_path, 3600);
+    if (signed?.signedUrl) setAvatarUrl(signed.signedUrl);
+  }
+
+  async function handleAvatarUpload(file: File) {
+    if (!supabase || !activeUserId) return;
+    const ext = file.name.split(".").pop() || "png";
+    const storagePath = `${activeUserId}/avatar/avatar.${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("knowledge-bar-assets")
+      .upload(storagePath, file, { upsert: true });
+    if (uploadErr) { setMessage("头像上传失败：" + uploadErr.message); return; }
+    const { error: profileErr } = await supabase
+      .from("profiles")
+      .upsert({ id: activeUserId, avatar_path: storagePath, updated_at: new Date().toISOString() }, { onConflict: "id" });
+    if (profileErr) { setMessage("保存头像路径失败：" + profileErr.message); return; }
+    const { data: signed } = await supabase.storage
+      .from("knowledge-bar-assets")
+      .createSignedUrl(storagePath, 3600);
+    if (signed?.signedUrl) setAvatarUrl(signed.signedUrl);
+    setMessage("头像已更新");
   }
 
 
@@ -1136,6 +1168,7 @@ function AppShell() {
                 onShowPage={showPage}
                 email={session?.user.email}
                 onSignOut={handleSignOut}
+                avatarUrl={avatarUrl}
               />
               <section className="workspace dashboard-workspace">
                 <div className="dashboard-hero">
@@ -1340,6 +1373,7 @@ function AppShell() {
                 email={session?.user.email}
                 onSignOut={handleSignOut}
                 settingsMode
+                avatarUrl={avatarUrl}
               />
               <section className="workspace settings-workspace">
                 <div className="settings-hero">
@@ -1379,7 +1413,14 @@ function AppShell() {
                     <button type="button" className="primary">
                       保存设置
                     </button>
-                    <button type="button" className="secondary avatar-upload-btn">上传头像</button>
+                    <button type="button" className="secondary avatar-upload-btn" onClick={() => avatarInputRef.current?.click()}>上传头像</button>
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.target.value = ""; }}
+                    />
                     <button type="button" onClick={() => showPage("register")}>
                       游客注册/登录保存
                     </button>
@@ -1483,7 +1524,15 @@ function AppShell() {
                   <button type="button" onClick={exportWord}>
                     导出 Word
                   </button>
-                  <button type="button">重命名</button>
+                  <button type="button" onClick={() => {
+                    if (!currentKb) return;
+                    const newName = window.prompt("重命名知识库", currentKb.name);
+                    if (!newName || !newName.trim() || newName.trim() === currentKb.name) return;
+                    const updated = { ...currentKb, name: newName.trim(), updated_at: now() };
+                    persistKnowledgeBase(updated);
+                    setKnowledgeBases((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+                    setMessage("已重命名");
+                  }}>重命名</button>
                 </div>
                 <p className="muted">
                   像空白 Word 文档一样直接写。选中文字后点击“添加标签”。图片可以通过“添加图片”上传，后续实现时也支持复制图片后粘贴。
@@ -1532,6 +1581,7 @@ function AccountSidebar({
   email,
   onSignOut,
   settingsMode = false,
+  avatarUrl,
 }: {
   collapsed: boolean;
   onCollapse: () => void;
@@ -1539,12 +1589,15 @@ function AccountSidebar({
   email?: string;
   onSignOut: () => void;
   settingsMode?: boolean;
+  avatarUrl?: string | null;
 }) {
   const nickname = email ? email.split("@")[0] : "昵称 / 游客";
   return (
     <aside className="sidebar">
       <div className="sidebar-content" hidden={collapsed}>
-        <div className="avatar">头像</div>
+        <div className="avatar">
+          {avatarUrl ? <img src={avatarUrl} alt="头像" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} /> : "头像"}
+        </div>
         <h3>{nickname}</h3>
         {!settingsMode && (
           <p>{email ? "已登录：知识库会保存到云端。" : "游客模式提示：登录后可云端保存知识库。"}</p>

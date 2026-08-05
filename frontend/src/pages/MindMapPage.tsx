@@ -24,6 +24,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
 import { getCloudSession } from "../lib/cloudStore";
+import { supabase } from "../lib/supabase";
 import {
   generateMindMap,
   regenerateMindMap,
@@ -355,9 +356,27 @@ export default function MindMapPage({
       return;
     }
 
-    if (!effectiveKbId) {
-      setErrorMsg("请先保存知识库再生成导图");
-      return;
+    let kbId = effectiveKbId;
+    if (!kbId) {
+      if (!supabase) {
+        setErrorMsg("请先保存知识库再生成导图");
+        return;
+      }
+      const newId = crypto.randomUUID();
+      const { error } = await supabase.from("knowledge_bases").insert({
+        id: newId,
+        user_id: session.user.id,
+        name: inputTitle.trim() || "知识导图",
+        description: "",
+        color: "#ff6d29",
+        content_md: text,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) {
+        setErrorMsg("创建知识库失败：" + error.message);
+        return;
+      }
+      kbId = newId;
     }
 
     setGenerating(true);
@@ -370,7 +389,7 @@ export default function MindMapPage({
 
     try {
       const result = await generateMindMap({
-        knowledge_base_id: effectiveKbId,
+        knowledge_base_id: kbId,
         title: inputTitle.trim() || "知识导图",
         description: "",
         content_md: text,
@@ -382,7 +401,7 @@ export default function MindMapPage({
       clearTimeout(stepTimer3);
 
       setStep("done");
-      const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+      const latest = await getLatestMindMap({ knowledge_base_id: kbId, token: session.access_token });
       applyResponse(latest);
       loadVersions(session.access_token);
     } catch (e) {
