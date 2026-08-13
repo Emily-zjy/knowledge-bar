@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.api.ai import router as ai_router
+from app.api.analytics import router as analytics_router
 from app.core.config import settings
 from app.models.ai import ApiError, ApiResponse
 
@@ -91,6 +92,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 
 
 app.include_router(ai_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
 
 # NOTE: V0 mindmap_router (/api/mindmaps/*) is intentionally NOT registered.
 # The legacy SQLite-backed implementation is preserved in app/api/mindmap.py

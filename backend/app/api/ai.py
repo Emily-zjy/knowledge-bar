@@ -184,7 +184,20 @@ def generate_mindmap(
             mind_map=result.mind_map,
             markdown=markdown,
         )
-        supabase_store.update_generation_job(job_id, user_id, status="succeeded")
+        meta = result.metadata
+        supabase_store.update_generation_job(
+            job_id, user_id, status="succeeded",
+            input_length=meta.input_length if meta else None,
+            input_tokens=meta.input_tokens if meta else None,
+            output_tokens=meta.output_tokens if meta else None,
+            retry_count=meta.retry_count if meta else None,
+            schema_repair_count=meta.schema_repair_count if meta else None,
+            latency_ms=meta.latency_ms if meta else None,
+            node_count=meta.node_count if meta else None,
+            tree_depth=meta.tree_depth if meta else None,
+            prompt_version=meta.prompt_version if meta else None,
+        )
+        result.metadata = None
         return ApiResponse(success=True, data=result)
     except AuthError as exc:
         return _handle_auth_error(exc)
@@ -239,7 +252,20 @@ def regenerate_mindmap(
             mind_map=result.mind_map,
             markdown=markdown,
         )
-        supabase_store.update_generation_job(job_id, user_id, status="succeeded")
+        meta = result.metadata
+        supabase_store.update_generation_job(
+            job_id, user_id, status="succeeded",
+            input_length=meta.input_length if meta else None,
+            input_tokens=meta.input_tokens if meta else None,
+            output_tokens=meta.output_tokens if meta else None,
+            retry_count=meta.retry_count if meta else None,
+            schema_repair_count=meta.schema_repair_count if meta else None,
+            latency_ms=meta.latency_ms if meta else None,
+            node_count=meta.node_count if meta else None,
+            tree_depth=meta.tree_depth if meta else None,
+            prompt_version=meta.prompt_version if meta else None,
+        )
+        result.metadata = None
         return ApiResponse(success=True, data=result)
     except AuthError as exc:
         return _handle_auth_error(exc)

@@ -144,6 +144,15 @@ class SupabaseStore:
         status: str,
         error_code: str | None = None,
         error_message: str | None = None,
+        input_length: int | None = None,
+        input_tokens: int | None = None,
+        output_tokens: int | None = None,
+        retry_count: int | None = None,
+        schema_repair_count: int | None = None,
+        latency_ms: int | None = None,
+        node_count: int | None = None,
+        tree_depth: int | None = None,
+        prompt_version: str | None = None,
     ) -> None:
         payload: dict[str, Any] = {
             "status": status,
@@ -152,6 +161,24 @@ class SupabaseStore:
             "finished_at": _now_iso() if status in {"succeeded", "failed"} else None,
             "updated_at": _now_iso(),
         }
+        if input_length is not None:
+            payload["input_length"] = input_length
+        if input_tokens is not None:
+            payload["input_tokens"] = input_tokens
+        if output_tokens is not None:
+            payload["output_tokens"] = output_tokens
+        if retry_count is not None:
+            payload["retry_count"] = retry_count
+        if schema_repair_count is not None:
+            payload["schema_repair_count"] = schema_repair_count
+        if latency_ms is not None:
+            payload["latency_ms"] = latency_ms
+        if node_count is not None:
+            payload["node_count"] = node_count
+        if tree_depth is not None:
+            payload["tree_depth"] = tree_depth
+        if prompt_version is not None:
+            payload["prompt_version"] = prompt_version
         self._request(
             "PATCH",
             "ai_generation_jobs",
@@ -308,6 +335,15 @@ class SupabaseStore:
                 raise
 
         raise SupabaseStoreError(409, "VERSION_CONFLICT", "Failed to save mind map after retries.")
+
+    def insert_analytics_event(self, row: dict[str, Any]) -> None:
+        self._request(
+            "POST",
+            "analytics_events",
+            json_body=row,
+            prefer="return=minimal",
+            expected=(201,),
+        )
 
 
 supabase_store = SupabaseStore()

@@ -15,7 +15,7 @@ from uuid import uuid4
 from pydantic import ValidationError
 
 from app.core.config import settings
-from app.models.ai import GenerateMindMapRequest, GenerateMindMapResult, MindMapData, MindMapNode
+from app.models.ai import GenerateMindMapRequest, GenerateMindMapResult, GenerationMetadata, MindMapData, MindMapNode
 from app.prompts.mindmap_prompts import get_mindmap_prompt
 from app.prompts.rollout import resolve_prompt_version
 from app.services.llm_client import LLMError, LLMResponse, generate as llm_generate
@@ -161,6 +161,20 @@ def _normalize_with_repair(raw: dict, fallback_title: str) -> tuple[MindMapData,
         ) from exc
 
 
+def _compute_tree_depth(nodes: list[MindMapNode]) -> int:
+    children: dict[str | None, list[str]] = {}
+    for n in nodes:
+        children.setdefault(n.parentId, []).append(n.id)
+
+    def _depth(node_id: str | None) -> int:
+        kids = children.get(node_id, [])
+        if not kids:
+            return 0
+        return 1 + max(_depth(k) for k in kids)
+
+    return _depth(None)
+
+
 def _save_trace(
     run_id: str,
     payload: GenerateMindMapRequest,
@@ -271,7 +285,22 @@ def generate_mind_map(
     elapsed_ms = int((time.perf_counter() - started) * 1000)
     logger.info("ai_generation_succeeded", extra={"elapsed_ms": elapsed_ms, "repaired": repaired, "retries": retry_count, "prompt_version": version})
 
-    result = GenerateMindMapResult(generation_id=str(uuid4()), status="succeeded", mind_map=mind_map)
+    nodes = mind_map.nodes
+    depth = _compute_tree_depth(nodes)
+    token_usage = llm_response.usage or {}
+    metadata = GenerationMetadata(
+        input_length=len(payload.content_md),
+        input_tokens=token_usage.get("prompt_tokens"),
+        output_tokens=token_usage.get("completion_tokens"),
+        retry_count=retry_count,
+        schema_repair_count=len(repair_actions) if repair_actions else 0,
+        latency_ms=elapsed_ms,
+        node_count=len(nodes),
+        tree_depth=depth,
+        prompt_version=version,
+    )
+
+    result = GenerateMindMapResult(generation_id=str(uuid4()), status="succeeded", mind_map=mind_map, metadata=metadata)
     _save_trace(
         run_id, payload, result, None, elapsed_ms,
         retry_count=retry_count,

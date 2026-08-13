@@ -25,6 +25,7 @@ import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
 import { getCloudSession } from "../lib/cloudStore";
 import { supabase } from "../lib/supabase";
+import { trackEvent, setAnalyticsToken } from "../lib/analytics";
 import {
   generateMindMap,
   regenerateMindMap,
@@ -289,6 +290,8 @@ export default function MindMapPage({
 
   const [versions, setVersions] = useState<MindMapVersionItem[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null);
+  const [feedbackGiven, setFeedbackGiven] = useState(false);
 
   const flowCanvasRef = useRef<FlowCanvasHandle>(null);
   const autoTriggered = useRef(false);
@@ -382,6 +385,14 @@ export default function MindMapPage({
     setGenerating(true);
     setErrorMsg("");
     setStep("preparing");
+    setFeedbackGiven(false);
+    setAnalyticsToken(session.access_token);
+
+    trackEvent({
+      event_name: "mindmap_generate_clicked",
+      knowledge_base_id: kbId,
+      properties: { input_length: text.length },
+    });
 
     const stepTimer = setTimeout(() => setStep("extracting"), 800);
     const stepTimer2 = setTimeout(() => setStep("validating"), 2500);
@@ -401,6 +412,7 @@ export default function MindMapPage({
       clearTimeout(stepTimer3);
 
       setStep("done");
+      setActiveGenerationId(result.generation_id);
       const latest = await getLatestMindMap({ knowledge_base_id: kbId, token: session.access_token });
       applyResponse(latest);
       loadVersions(session.access_token);
@@ -436,9 +448,21 @@ export default function MindMapPage({
     setGenerating(true);
     setStep("preparing");
     setErrorMsg("");
+    setFeedbackGiven(false);
+    setAnalyticsToken(session.access_token);
+
+    const previousGenId = activeGenerationId;
+    trackEvent({
+      event_name: "mindmap_regenerated",
+      knowledge_base_id: effectiveKbId,
+      generation_id: previousGenId,
+      properties: { previous_generation_id: previousGenId },
+    });
+
     try {
-      await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+      const result = await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
       setStep("done");
+      setActiveGenerationId(result.generation_id);
       const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
       applyResponse(latest);
       loadVersions(session.access_token);
@@ -448,7 +472,7 @@ export default function MindMapPage({
     } finally {
       setGenerating(false);
     }
-  }, [effectiveKbId, applyResponse, loadVersions]);
+  }, [effectiveKbId, applyResponse, loadVersions, activeGenerationId]);
 
   const resetToNew = useCallback(() => {
     setCurrentData(null);
@@ -478,11 +502,18 @@ export default function MindMapPage({
           update_node: { id: nodeId, text: newText },
         });
         applyResponse(result);
+        trackEvent({
+          event_name: "mindmap_node_edited",
+          knowledge_base_id: effectiveKbId,
+          generation_id: activeGenerationId,
+          mind_map_id: currentData.id,
+          properties: { node_id: nodeId, before_length: node.text.length, after_length: newText.length },
+        });
       } catch {
         setErrorMsg("修改节点失败");
       }
     },
-    [currentData, applyResponse]
+    [currentData, applyResponse, effectiveKbId, activeGenerationId]
   );
 
   // Delete current mind map version
@@ -519,10 +550,17 @@ export default function MindMapPage({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      trackEvent({
+        event_name: "mindmap_exported",
+        knowledge_base_id: effectiveKbId,
+        generation_id: activeGenerationId,
+        mind_map_id: currentData?.id,
+        properties: { format: "png" },
+      });
     } catch {
       setErrorMsg("PNG导出失败，请重试");
     }
-  }, [currentData]);
+  }, [currentData, effectiveKbId, activeGenerationId]);
 
   // Copy JSON
   const handleCopyJson = useCallback(() => {
@@ -530,8 +568,27 @@ export default function MindMapPage({
     const json = JSON.stringify(currentData.mind_map, null, 2);
     navigator.clipboard.writeText(json).then(() => {
       setErrorMsg("");
+      trackEvent({
+        event_name: "mindmap_exported",
+        knowledge_base_id: effectiveKbId,
+        generation_id: activeGenerationId,
+        mind_map_id: currentData.id,
+        properties: { format: "json" },
+      });
     });
-  }, [currentData]);
+  }, [currentData, effectiveKbId, activeGenerationId]);
+
+  // Feedback handler
+  const handleFeedback = useCallback((rating: "positive" | "negative", reason?: string) => {
+    setFeedbackGiven(true);
+    trackEvent({
+      event_name: "mindmap_feedback_submitted",
+      knowledge_base_id: effectiveKbId,
+      generation_id: activeGenerationId,
+      mind_map_id: currentData?.id,
+      properties: { rating, reason: reason || null, node_count: currentData?.mind_map.nodes.length },
+    });
+  }, [effectiveKbId, activeGenerationId, currentData]);
 
   return (
     <div className="mm-page">
@@ -734,6 +791,33 @@ export default function MindMapPage({
                 />
               </ReactFlowProvider>
             </div>
+
+            {/* Feedback UI */}
+            {step === "done" && !feedbackGiven && (
+              <div className="mm-feedback" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 16px" }}>
+                <span style={{ fontSize: "13px", color: "#77716c" }}>这个导图对你有帮助吗？</span>
+                <button
+                  className="mm-feedback-btn"
+                  style={{ border: "none", background: "none", cursor: "pointer", fontSize: "20px" }}
+                  onClick={() => handleFeedback("positive")}
+                  aria-label="有帮助"
+                >👍</button>
+                <button
+                  className="mm-feedback-btn"
+                  style={{ border: "none", background: "none", cursor: "pointer", fontSize: "20px" }}
+                  onClick={() => {
+                    const reasons = ["missing_content", "wrong_hierarchy", "redundant_content", "unclear_expression", "poor_structure", "other"];
+                    const labels = ["内容缺失", "层级错误", "内容冗余", "表达不清", "结构不佳", "其他"];
+                    const idx = reasons.findIndex((_, i) => window.confirm(`是否因为「${labels[i]}」？\n（取消可选下一个原因）`));
+                    handleFeedback("negative", idx >= 0 ? reasons[idx] : undefined);
+                  }}
+                  aria-label="没帮助"
+                >👎</button>
+              </div>
+            )}
+            {feedbackGiven && (
+              <div style={{ padding: "8px 16px", fontSize: "13px", color: "#77716c" }}>感谢反馈！</div>
+            )}
 
             <p className="mm-hint">双击节点可编辑内容 · 版本 {currentData.version_no}</p>
           </div>

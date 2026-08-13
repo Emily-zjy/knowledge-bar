@@ -37,10 +37,23 @@ class MindMapData(BaseModel):
     nodes: list[MindMapNode] = Field(min_length=1, max_length=25)
 
 
+class GenerationMetadata(BaseModel):
+    input_length: int = 0
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    retry_count: int = 0
+    schema_repair_count: int = 0
+    latency_ms: int = 0
+    node_count: int = 0
+    tree_depth: int = 0
+    prompt_version: str | None = None
+
+
 class GenerateMindMapResult(BaseModel):
     generation_id: str
     status: Literal["succeeded"]
     mind_map: MindMapData
+    metadata: GenerationMetadata | None = None
 
 
 class ExportWordRequest(BaseModel):
