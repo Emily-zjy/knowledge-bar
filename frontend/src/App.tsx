@@ -1512,19 +1512,20 @@ function AppShell() {
                       event.currentTarget.value = "";
                     }}
                   />
-                  <button type="button" onClick={() => imageInputRef.current?.click()}>
+                  <button type="button" className="btn-image" onClick={() => imageInputRef.current?.click()}>
                     添加图片
                   </button>
-                  <button type="button" onClick={() => void addSelectedTextAsTag()}>
+                  <button type="button" className="btn-tag" onClick={() => void addSelectedTextAsTag()}>
                     添加标签
                   </button>
                   <button
                     type="button"
+                    className="btn-save"
                     onClick={() => setMessage(currentKb ? "已保存" : "请先创建知识库")}
                   >
                     保存
                   </button>
-                  <button type="button" className="primary" onClick={() => {
+                  <button type="button" className="primary btn-generate" onClick={() => {
                     const text = docEditorRef.current?.innerText?.trim() || "";
                     navigate("/mindmap/new", {
                       state: {
@@ -1536,13 +1537,13 @@ function AppShell() {
                   }}>
                     生成思维导图
                   </button>
-                  <button type="button" onClick={exportMarkdown}>
+                  <button type="button" className="btn-export" onClick={exportMarkdown}>
                     导出 MD
                   </button>
-                  <button type="button" onClick={exportWord}>
+                  <button type="button" className="btn-export" onClick={exportWord}>
                     导出 Word
                   </button>
-                  <button type="button" onClick={() => {
+                  <button type="button" className="btn-rename" onClick={() => {
                     if (!currentKb) return;
                     const newName = window.prompt("重命名知识库", currentKb.name);
                     if (!newName || !newName.trim() || newName.trim() === currentKb.name) return;
@@ -1583,6 +1584,32 @@ function AppShell() {
                   contentEditable
                   suppressContentEditableWarning
                 />
+                <div className="editor-bottom-toolbar">
+                  <button type="button" aria-label="添加图片" onClick={() => imageInputRef.current?.click()}>
+                    <span className="toolbar-icon">🖼</span>
+                    <span className="toolbar-label">图片</span>
+                  </button>
+                  <button type="button" aria-label="添加标签" onClick={() => void addSelectedTextAsTag()}>
+                    <span className="toolbar-icon">🏷</span>
+                    <span className="toolbar-label">标签</span>
+                  </button>
+                  <button type="button" aria-label="导出" onClick={exportMarkdown}>
+                    <span className="toolbar-icon">↗</span>
+                    <span className="toolbar-label">导出</span>
+                  </button>
+                  <button type="button" aria-label="重命名" onClick={() => {
+                    if (!currentKb) return;
+                    const newName = window.prompt("重命名知识库", currentKb.name);
+                    if (!newName || !newName.trim() || newName.trim() === currentKb.name) return;
+                    const updated = { ...currentKb, name: newName.trim(), updated_at: now() };
+                    persistKnowledgeBase(updated);
+                    setKnowledgeBases((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+                    setMessage("已重命名");
+                  }}>
+                    <span className="toolbar-icon">✎</span>
+                    <span className="toolbar-label">重命名</span>
+                  </button>
+                </div>
               </section>
             </div>
           </section>

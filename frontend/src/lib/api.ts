@@ -51,13 +51,18 @@ export async function regenerateMindMap(input: {
   knowledge_base_id: string;
   token: string;
   requested_max_depth?: number;
+  content_md?: string;
 }): Promise<GenerateMindMapResponse> {
+  const body: Record<string, unknown> = {
+    requested_max_depth: input.requested_max_depth ?? 5,
+  };
+  if (input.content_md) {
+    body.content_md = input.content_md;
+  }
   const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/${input.knowledge_base_id}/regenerate`, {
     method: "POST",
     headers: authHeaders(input.token, true),
-    body: JSON.stringify({
-      requested_max_depth: input.requested_max_depth ?? 5,
-    }),
+    body: JSON.stringify(body),
   });
 
   const payload = await response.json();

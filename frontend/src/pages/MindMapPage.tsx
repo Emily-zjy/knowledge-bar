@@ -462,27 +462,53 @@ export default function MindMapPage({
     setAnalyticsToken(session.access_token);
 
     const previousGenId = activeGenerationId;
+    const startTime = Date.now();
+
+    trackEvent({
+      event_name: "mindmap_regenerate_clicked",
+      knowledge_base_id: effectiveKbId,
+      properties: { requested_max_depth: requestedMaxDepth },
+    });
 
     try {
-      const result = await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token, requested_max_depth: requestedMaxDepth });
+      const result = await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token, requested_max_depth: requestedMaxDepth, content_md: inputText.trim() || undefined });
       setStep("done");
       setActiveGenerationId(result.generation_id);
       trackEvent({
-        event_name: "mindmap_regenerated",
+        event_name: "mindmap_regenerate_succeeded",
         knowledge_base_id: effectiveKbId,
         generation_id: result.generation_id,
-        properties: { previous_generation_id: previousGenId, requested_max_depth: requestedMaxDepth },
+        properties: { previous_generation_id: previousGenId, requested_max_depth: requestedMaxDepth, latency_ms: Date.now() - startTime },
       });
       const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
       applyResponse(latest);
       loadVersions(session.access_token);
     } catch (e) {
       setStep("failed");
-      setErrorMsg(e instanceof Error ? e.message : "重新生成失败");
+      const msg = e instanceof Error ? e.message : "";
+      const latencyMs = Date.now() - startTime;
+      let errorStage = "unknown";
+      let userMsg = "重新生成失败，请稍后重试";
+      if (msg.includes("content") || msg.includes("empty") || msg.includes("save")) {
+        errorStage = "request_validation";
+        userMsg = "重新生成失败，请刷新页面后重试";
+      } else if (msg.includes("服务") || msg.includes("unavailable") || msg.includes("502")) {
+        errorStage = "ai_provider";
+        userMsg = "AI 服务暂时不可用，请稍后重试";
+      } else if (msg.includes("timeout") || msg.includes("超时")) {
+        errorStage = "ai_timeout";
+        userMsg = "生成时间较长，请稍后重新尝试";
+      }
+      setErrorMsg(userMsg);
+      trackEvent({
+        event_name: "mindmap_regenerate_failed",
+        knowledge_base_id: effectiveKbId,
+        properties: { error_stage: errorStage, error_message: msg, requested_max_depth: requestedMaxDepth, latency_ms: latencyMs },
+      });
     } finally {
       setGenerating(false);
     }
-  }, [effectiveKbId, applyResponse, loadVersions, activeGenerationId, requestedMaxDepth]);
+  }, [effectiveKbId, applyResponse, loadVersions, activeGenerationId, requestedMaxDepth, inputText]);
 
   const resetToNew = useCallback(() => {
     setCurrentData(null);

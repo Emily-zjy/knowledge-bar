@@ -115,6 +115,18 @@ class SupabaseStore:
             raise SupabaseStoreError(404, "KNOWLEDGE_BASE_NOT_FOUND", "Knowledge base was not found.")
         return rows[0]
 
+    def update_knowledge_base_content(self, knowledge_base_id: str, user_id: str, content_md: str) -> None:
+        self._request(
+            "PATCH",
+            "knowledge_bases",
+            params={
+                "id": f"eq.{knowledge_base_id}",
+                "user_id": f"eq.{user_id}",
+            },
+            json_body={"content_md": content_md, "updated_at": _now_iso()},
+            expected=(200, 204),
+        )
+
     def create_generation_job(self, user_id: str, knowledge_base_id: str, status: str = "running") -> dict[str, Any]:
         job = {
             "id": str(uuid4()),

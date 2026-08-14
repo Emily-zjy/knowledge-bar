@@ -167,6 +167,10 @@ def generate_mindmap(
         if len(content_md) > settings.max_content_length:
             return _api_error(422, "CONTENT_TOO_LONG", "Content exceeds the maximum allowed length.")
 
+        db_content = str(kb.get("content_md") or "").strip()
+        if not db_content:
+            supabase_store.update_knowledge_base_content(str(payload.knowledge_base_id), user_id, content_md)
+
         job = supabase_store.create_generation_job(user_id, str(payload.knowledge_base_id), "running")
         job_id = str(job["id"])
         generation_payload = payload.model_copy(
@@ -238,8 +242,17 @@ def regenerate_mindmap(
         user_id = verify_required_supabase_jwt(authorization)
         kb = supabase_store.get_knowledge_base_for_user(knowledge_base_id, user_id)
         content_md = str(kb.get("content_md") or "").strip()
+        if not content_md and body and body.content_md:
+            content_md = body.content_md.strip()
+            if content_md:
+                supabase_store.update_knowledge_base_content(knowledge_base_id, user_id, content_md)
         if not content_md:
-            return _api_error(422, "EMPTY_CONTENT", "Knowledge content cannot be empty.")
+            logger.warning(
+                "mindmap_regenerate_failed",
+                extra={"error_stage": "request_validation", "reason": "empty_content_md",
+                       "knowledge_base_id": knowledge_base_id, "status_code": 422},
+            )
+            return _api_error(422, "EMPTY_CONTENT", "Knowledge content cannot be empty. Please save your content before regenerating.")
 
         requested_depth = body.requested_max_depth if body else 5
         job = supabase_store.create_generation_job(user_id, knowledge_base_id, "running")
@@ -273,13 +286,25 @@ def regenerate_mindmap(
             tree_depth=meta.tree_depth if meta else None,
             prompt_version=meta.prompt_version if meta else None,
         )
+        logger.info("mindmap_regenerate_succeeded", extra={"knowledge_base_id": knowledge_base_id, "job_id": job_id})
         result.metadata = None
         return ApiResponse(success=True, data=result)
     except AuthError as exc:
+        logger.warning("mindmap_regenerate_failed", extra={"error_stage": "auth", "knowledge_base_id": knowledge_base_id})
         return _handle_auth_error(exc)
     except SupabaseStoreError as exc:
+        logger.warning(
+            "mindmap_regenerate_failed",
+            extra={"error_stage": "knowledge_base", "knowledge_base_id": knowledge_base_id,
+                   "status_code": exc.status_code, "code": exc.code},
+        )
         return _api_error(exc.status_code, exc.code, exc.message)
     except MindMapGenerationError as exc:
+        logger.warning(
+            "mindmap_regenerate_failed",
+            extra={"error_stage": "ai_provider", "knowledge_base_id": knowledge_base_id,
+                   "code": exc.code, "latency_ms": exc.latency_ms},
+        )
         if job_id and user_id:
             try:
                 supabase_store.update_generation_job(

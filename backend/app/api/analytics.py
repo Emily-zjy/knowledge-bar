@@ -18,6 +18,9 @@ router = APIRouter(prefix="/analytics", tags=["analytics"])
 ALLOWED_EVENTS = frozenset([
     "mindmap_generate_clicked",
     "mindmap_regenerated",
+    "mindmap_regenerate_clicked",
+    "mindmap_regenerate_succeeded",
+    "mindmap_regenerate_failed",
     "mindmap_node_edited",
     "mindmap_node_added",
     "mindmap_node_deleted",

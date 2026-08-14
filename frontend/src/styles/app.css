@@ -426,7 +426,7 @@ textarea {
 
 .panel-desc {
   margin: 0 0 26px;
-  color: rgba(255, 250, 243, 0.68);
+  color: rgba(255, 250, 243, 0.82);
   line-height: 1.6;
 }
 
@@ -445,7 +445,7 @@ textarea {
 .login-panel .field label,
 .login-panel .hint-link,
 .login-panel .ghost {
-  color: rgba(255, 250, 243, 0.7);
+  color: rgba(255, 250, 243, 0.85);
 }
 
 .login-panel .ghost:hover {
@@ -463,12 +463,12 @@ textarea {
 
 .login-panel input {
   color: #fffaf3;
-  border-color: rgba(255, 250, 243, 0.22);
-  background: rgba(255, 250, 243, 0.08);
+  border-color: rgba(255, 250, 243, 0.35);
+  background: rgba(255, 250, 243, 0.1);
 }
 
 .login-panel input::placeholder {
-  color: rgba(255, 250, 243, 0.44);
+  color: rgba(255, 250, 243, 0.52);
 }
 
 .shell:not(.app-theme) {

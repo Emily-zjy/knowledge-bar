@@ -107,6 +107,7 @@ class PatchMindMapRequest(BaseModel):
 
 class RegenerateMindMapRequest(BaseModel):
     requested_max_depth: int = Field(default=5, ge=3, le=6)
+    content_md: str | None = Field(default=None, max_length=120_000)
 
 
 class SupabaseRow(BaseModel):
