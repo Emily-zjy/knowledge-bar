@@ -294,6 +294,7 @@ export default function MindMapPage({
   const [errorMsg, setErrorMsg] = useState("");
   const [generating, setGenerating] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
 
   const [versions, setVersions] = useState<MindMapVersionItem[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -352,6 +353,7 @@ export default function MindMapPage({
 
   // Generate
   const handleGenerate = useCallback(async () => {
+    if (generating) return;
     const text = inputText.trim();
     if (!text) {
       setErrorMsg("请输入文本内容");
@@ -368,10 +370,17 @@ export default function MindMapPage({
       return;
     }
 
+    setGenerating(true);
+    setErrorMsg("");
+    setStep("preparing");
+    setFeedbackGiven(false);
+    setAnalyticsToken(session.access_token);
+
     let kbId = effectiveKbId;
     if (!kbId) {
       if (!supabase) {
         setErrorMsg("请先保存知识库再生成导图");
+        setGenerating(false);
         return;
       }
       const newId = crypto.randomUUID();
@@ -386,16 +395,11 @@ export default function MindMapPage({
       });
       if (error) {
         setErrorMsg("创建知识库失败：" + error.message);
+        setGenerating(false);
         return;
       }
       kbId = newId;
     }
-
-    setGenerating(true);
-    setErrorMsg("");
-    setStep("preparing");
-    setFeedbackGiven(false);
-    setAnalyticsToken(session.access_token);
 
     trackEvent({
       event_name: "mindmap_generate_clicked",
@@ -435,19 +439,19 @@ export default function MindMapPage({
     } finally {
       setGenerating(false);
     }
-  }, [inputText, inputTitle, effectiveKbId, applyResponse, loadVersions, requestedMaxDepth]);
+  }, [generating, inputText, inputTitle, effectiveKbId, applyResponse, loadVersions, requestedMaxDepth]);
 
-  // Auto-trigger generation when initialText is provided
+  // Auto-trigger: show generate confirmation when initialText is provided
   useEffect(() => {
     if (initialText && initialText.trim().length >= 20 && !autoTriggered.current && effectiveKbId) {
       autoTriggered.current = true;
-      handleGenerate();
+      setShowGenerateConfirm(true);
     }
-  }, [initialText, handleGenerate, effectiveKbId]);
+  }, [initialText, effectiveKbId]);
 
   // Regenerate
   const handleRegenerate = useCallback(async () => {
-    if (!effectiveKbId) return;
+    if (!effectiveKbId || generating) return;
 
     const session = await getCloudSession();
     if (!session?.access_token) {
@@ -508,7 +512,7 @@ export default function MindMapPage({
     } finally {
       setGenerating(false);
     }
-  }, [effectiveKbId, applyResponse, loadVersions, activeGenerationId, requestedMaxDepth, inputText]);
+  }, [generating, effectiveKbId, applyResponse, loadVersions, activeGenerationId, requestedMaxDepth, inputText]);
 
   const resetToNew = useCallback(() => {
     setCurrentData(null);
@@ -796,36 +800,57 @@ export default function MindMapPage({
             )}
             {errorMsg && <div className="mm-status mm-status-error">{errorMsg}</div>}
 
-            <div className="mm-depth-selector" style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
-              <label style={{ fontSize: "13px", color: "#4A4541", whiteSpace: "nowrap" }}>最大层数</label>
-              <select
-                value={requestedMaxDepth}
-                onChange={(e) => setRequestedMaxDepth(Number(e.target.value))}
-                style={{
-                  padding: "6px 12px",
-                  fontSize: "13px",
-                  borderRadius: "8px",
-                  border: "1px solid #E0D6CF",
-                  background: "#FFFCF9",
-                  color: "#171513",
-                  cursor: "pointer",
-                  minHeight: "40px",
-                }}
-              >
-                <option value={3}>3 层</option>
-                <option value={4}>4 层</option>
-                <option value={5}>5 层</option>
-                <option value={6}>6 层</option>
-              </select>
-            </div>
-
             <button
               className="mm-btn-generate"
-              onClick={handleGenerate}
+              onClick={() => {
+                const text = inputText.trim();
+                if (!text) { setErrorMsg("请输入文本内容"); return; }
+                if (text.length < 20) { setErrorMsg("文本内容过短，请输入至少20字"); return; }
+                setErrorMsg("");
+                setShowGenerateConfirm(true);
+                trackEvent({ event_name: "mindmap_generate_settings_opened", knowledge_base_id: effectiveKbId || "", properties: {} });
+              }}
               disabled={generating || !inputText.trim()}
             >
               {generating ? "生成中..." : "生成思维导图"}
             </button>
+          </div>
+        )}
+
+        {/* Generate Confirmation Modal */}
+        {showGenerateConfirm && (
+          <div className="mm-confirm-overlay" onClick={(e) => { if (e.target === e.currentTarget) setShowGenerateConfirm(false); }}>
+            <div className="mm-confirm-sheet">
+              <h3 className="mm-confirm-title">生成设置</h3>
+              <p className="mm-confirm-label">思维导图层级</p>
+              <div className="mm-depth-grid">
+                {[3, 4, 5, 6].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`mm-depth-option ${requestedMaxDepth === d ? "mm-depth-option--active" : ""}`}
+                    onClick={() => setRequestedMaxDepth(d)}
+                  >
+                    {d} 层
+                    {d === 3 && <span className="mm-depth-hint">简洁</span>}
+                    {d === 6 && <span className="mm-depth-hint">详细</span>}
+                  </button>
+                ))}
+              </div>
+              <div className="mm-confirm-actions">
+                <button type="button" className="mm-confirm-cancel" onClick={() => setShowGenerateConfirm(false)}>
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="mm-confirm-submit"
+                  onClick={() => { setShowGenerateConfirm(false); handleGenerate(); }}
+                  disabled={generating}
+                >
+                  确认生成
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

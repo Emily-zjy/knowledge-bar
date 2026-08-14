@@ -303,6 +303,8 @@ function AppShell() {
     description: "",
     tags: "",
   });
+  const [isCreating, setIsCreating] = useState(false);
+  const createIntentIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     bootstrapSession();
@@ -489,21 +491,35 @@ function AppShell() {
   }
 
   async function submitCreate() {
+    if (createIntentIdRef.current) return;
     if (!createForm.name.trim()) {
       setMessage("请输入 bar 名称。");
       return;
     }
+    createIntentIdRef.current = crypto.randomUUID();
+    setIsCreating(true);
+    setMessage("");
+    const intentId = createIntentIdRef.current;
     const kb = createKnowledgeBase({
       name: createForm.name.trim(),
       description: createForm.description.trim(),
       tags: createForm.tags,
     });
-    await persistKnowledgeBase(kb);
-    setCurrentId(kb.id);
-    sessionStorage.setItem("kb_current_id", kb.id);
-    setKnowledgeBases((items) => [kb, ...items]);
-    setCreateForm({ name: "", description: "", tags: "" });
-    showPage("detail");
+    try {
+      await persistKnowledgeBase(kb);
+      if (createIntentIdRef.current !== intentId) return;
+      setCurrentId(kb.id);
+      sessionStorage.setItem("kb_current_id", kb.id);
+      setKnowledgeBases((items) => [kb, ...items]);
+      setCreateForm({ name: "", description: "", tags: "" });
+      showPage("detail");
+    } catch (error) {
+      if (createIntentIdRef.current !== intentId) return;
+      setMessage(error instanceof Error ? error.message : "创建失败，请重试。");
+    } finally {
+      createIntentIdRef.current = null;
+      setIsCreating(false);
+    }
   }
 
   async function saveCurrentContent(content: string) {
@@ -1130,8 +1146,22 @@ function AppShell() {
                 </div>
               </aside>
               <section className="create-form-panel form-card">
-                <span className="section-kicker">New Bar</span>
-                <h2>创建 Knowledge Bar</h2>
+                <header className="create-mobile-header">
+                  <button type="button" className="create-mobile-back" onClick={() => showPage("dashboard")} aria-label="返回">
+                    ‹
+                  </button>
+                  <span className="create-mobile-title">新建 Bar</span>
+                  <button
+                    type="button"
+                    className="create-mobile-submit"
+                    onClick={submitCreate}
+                    disabled={isCreating || !createForm.name.trim()}
+                  >
+                    {isCreating ? "创建中…" : "创建"}
+                  </button>
+                </header>
+                <span className="section-kicker create-desktop-kicker">New Bar</span>
+                <h2 className="create-desktop-title">创建 Knowledge Bar</h2>
                 <div className="two-col-field">
                   <label htmlFor="kb-name">bar 名称</label>
                   <input
@@ -1139,6 +1169,7 @@ function AppShell() {
                     value={createForm.name}
                     placeholder="例如：考研政治强化复习"
                     onChange={(event) => setCreateForm({ ...createForm, name: event.target.value })}
+                    onKeyDown={(event) => { if (event.key === "Enter") submitCreate(); }}
                   />
                 </div>
                 <div className="two-col-field">
@@ -1162,9 +1193,9 @@ function AppShell() {
                   />
                 </div>
                 {message && <div className="status">{message}</div>}
-                <div className="button-row">
-                  <button type="button" className="primary" onClick={submitCreate}>
-                    创建并进入详情页
+                <div className="button-row create-desktop-buttons">
+                  <button type="button" className="primary" onClick={submitCreate} disabled={isCreating}>
+                    {isCreating ? "创建中…" : "创建并进入详情页"}
                   </button>
                   <button type="button" className="secondary" onClick={() => showPage("dashboard")}>
                     取消

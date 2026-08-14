@@ -44,21 +44,26 @@
   }
 
   .brand-mark {
-    width: 34px;
-    height: 34px;
+    width: 28px;
+    height: 28px;
   }
 
   .brand-mark img {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
 
   .brand-title {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .brand {
     gap: 8px;
+  }
+
+  /* Hide completely on MindMap full-screen and inner app pages */
+  .shell--fullscreen .global-header {
+    display: none;
   }
 }
 
@@ -342,59 +347,120 @@
    DASHBOARD MOBILE
    ============================================================ */
 @media (max-width: 640px) {
-  .dashboard-hero,
-  .detail-hero,
-  .settings-hero {
-    padding: 18px;
-    border-radius: 18px;
+  /* Hide brand header on inner pages */
+  .app-theme .global-header {
+    display: none;
   }
 
-  .dashboard-hero h1,
+  .dashboard-hero,
+  .settings-hero {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .detail-hero {
+    padding: 14px 16px;
+    border-radius: 0;
+  }
+
+  .dashboard-hero h1 {
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+
   .detail-hero h1,
   .settings-hero h1 {
-    font-size: clamp(24px, 7vw, 32px);
+    font-size: clamp(20px, 5vw, 24px);
+  }
+
+  .dashboard-hero .section-kicker {
+    display: none;
+  }
+
+  .dashboard-hero p {
+    display: none;
+  }
+
+  .dashboard-actions {
+    gap: 8px;
+  }
+
+  .dashboard-actions .primary {
+    font-size: 14px;
+    padding: 8px 14px;
+    min-height: 38px;
+    border-radius: 10px;
+  }
+
+  .ai-map-entry {
+    font-size: 13px;
+    padding: 8px 12px !important;
+    min-height: 38px !important;
+    border-radius: 10px !important;
   }
 
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
 
   .summary-card {
-    min-height: 90px;
-    padding: 14px;
-    border-radius: 14px;
+    min-height: 70px;
+    padding: 10px 12px;
+    border-radius: 10px;
   }
 
   .summary-card strong {
-    font-size: clamp(22px, 6vw, 30px);
+    font-size: 20px;
+  }
+
+  .summary-card span {
+    font-size: 12px;
+  }
+
+  .summary-card small {
+    font-size: 11px;
   }
 
   .app-theme .card-grid {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .app-theme .kb-card,
   .app-theme .new-card {
-    min-height: 140px;
-    border-radius: 16px;
+    min-height: 100px;
+    border-radius: 12px;
+    padding: 14px;
   }
 
   .app-theme .kb-card h4,
   .app-theme .new-card h4 {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .app-theme .new-card-visual {
+    display: none;
+  }
+
+  .app-theme .new-card-copy .new-card-kicker {
+    display: none;
+  }
+
+  .app-theme .new-card-copy p {
+    font-size: 13px;
   }
 
   .guest-ribbon {
     font-size: 13px;
     padding: 10px 14px;
-    border-radius: 12px;
+    border-radius: 10px;
   }
 
   .search-row input {
-    height: 46px;
-    font-size: 15px;
+    height: 40px;
+    font-size: 14px;
+    border-radius: 10px;
   }
 }
 
@@ -604,34 +670,157 @@
   }
 }
 
-/* === Create Page Mobile === */
+/* === Create Page Mobile — Notes-App Style === */
+.create-mobile-header {
+  display: none;
+}
+.create-desktop-kicker,
+.create-desktop-title,
+.create-desktop-buttons {
+  display: block;
+}
+.create-desktop-buttons {
+  display: flex;
+}
+
 @media (max-width: 640px) {
-  .create-studio {
-    width: calc(100% - 12px);
-    margin: 8px auto;
-    border-radius: 16px;
+  .page--create {
+    padding: 0 !important;
   }
 
+  .create-studio {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  /* Hide the decorative brand panel entirely on mobile */
   .create-brand-panel {
-    min-height: 280px;
-    padding: 20px 16px;
+    display: none;
   }
 
   .node-orbit {
     display: none;
   }
 
+  /* Mobile header: ‹ 返回   新建 Bar   创建 */
+  .create-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(68, 64, 60, 0.4);
+    background: rgba(28, 25, 23, 0.97);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .create-mobile-back {
+    font-size: 28px;
+    line-height: 1;
+    color: rgba(255, 250, 243, 0.85);
+    background: none !important;
+    border: none !important;
+    padding: 0 8px !important;
+    min-height: 36px !important;
+    min-width: 36px !important;
+  }
+
+  .create-mobile-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 250, 243, 0.9);
+  }
+
+  .create-mobile-submit {
+    font-size: 15px;
+    font-weight: 600;
+    color: #F97316;
+    background: none !important;
+    border: none !important;
+    padding: 0 8px !important;
+    min-height: 36px !important;
+    min-width: auto !important;
+  }
+
+  .create-mobile-submit:disabled {
+    color: rgba(255, 250, 243, 0.3);
+  }
+
+  /* Hide desktop-only elements */
+  .create-desktop-kicker,
+  .create-desktop-title,
+  .create-desktop-buttons {
+    display: none !important;
+  }
+
+  /* Form panel — lightweight, content-first */
   .create-form-panel {
-    padding: 20px 16px;
+    padding: 24px 20px;
+    flex: 1;
+    background: transparent;
+    border: none;
+    box-shadow: none;
   }
 
-  .form-card {
-    padding: 20px 16px;
-    border-radius: 16px;
+  .create-form-panel.form-card {
+    padding: 24px 20px;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
   }
 
-  .form-card h2 {
-    font-size: clamp(24px, 7vw, 32px);
+  .create-form-panel .two-col-field {
+    margin-bottom: 20px;
+  }
+
+  .create-form-panel .two-col-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 250, 243, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .create-form-panel .two-col-field input,
+  .create-form-panel .two-col-field textarea {
+    border: none;
+    border-bottom: 1px solid rgba(255, 250, 243, 0.15);
+    border-radius: 0;
+    background: transparent;
+    padding: 10px 0;
+    font-size: 16px;
+    color: #fffaf3;
+  }
+
+  .create-form-panel .two-col-field input:focus,
+  .create-form-panel .two-col-field textarea:focus {
+    border-bottom-color: #F97316;
+    box-shadow: none;
+    outline: none;
+  }
+
+  .create-form-panel .two-col-field input::placeholder,
+  .create-form-panel .two-col-field textarea::placeholder {
+    color: rgba(255, 250, 243, 0.35);
+  }
+
+  .create-form-panel .two-col-field textarea {
+    min-height: 60px;
+    resize: vertical;
+  }
+
+  .create-form-panel .status {
+    font-size: 14px;
+    padding: 10px 0;
+    color: #fb923c;
   }
 }
 
@@ -741,20 +930,20 @@
 @media (max-width: 640px) {
   .mm-input-panel {
     width: 100%;
-    padding: 20px 16px;
+    padding: 16px;
     margin: 0;
     border-radius: 0;
   }
 
   .mm-heading {
-    font-size: 26px;
-    margin-bottom: 4px;
+    font-size: 20px;
+    margin-bottom: 2px;
   }
 
   .mm-desc {
-    font-size: 14px;
-    margin-bottom: 16px;
-    color: rgba(255, 250, 243, 0.75);
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: rgba(255, 250, 243, 0.65);
   }
 
   .mm-field {
@@ -765,12 +954,12 @@
   }
 
   .mm-field textarea {
-    min-height: 200px;
+    min-height: 180px;
     font-size: 16px;
-    padding: 16px;
-    border-radius: 14px;
-    border: 1.5px solid rgba(255, 250, 243, 0.2);
-    background: rgba(255, 250, 243, 0.05);
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 250, 243, 0.15);
+    background: rgba(255, 250, 243, 0.04);
     line-height: 1.7;
   }
 
@@ -780,10 +969,10 @@
   }
 
   .mm-options {
-    padding: 14px;
-    border-radius: 14px;
-    background: rgba(255, 250, 243, 0.04);
-    border: 1px solid rgba(255, 250, 243, 0.1);
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 250, 243, 0.03);
+    border: 1px solid rgba(255, 250, 243, 0.08);
   }
 
   .mm-depth-selector {
@@ -793,30 +982,30 @@
   }
 
   .mm-depth-selector label {
-    font-size: 14px;
+    font-size: 13px;
     white-space: nowrap;
-    color: rgba(255, 250, 243, 0.85);
+    color: rgba(255, 250, 243, 0.75);
   }
 
   .mm-depth-selector select {
-    min-height: 44px;
+    min-height: 40px;
     font-size: 15px;
     flex: 1;
     border-radius: 10px;
   }
 
   .mm-btn-generate {
-    min-height: 52px;
-    font-size: 17px;
+    min-height: 48px;
+    font-size: 16px;
     font-weight: 700;
-    border-radius: 14px;
+    border-radius: 12px;
     margin-top: 8px;
   }
 
   .mm-btn-back-top {
     font-size: 13px;
     padding: 8px 14px;
-    min-height: 40px;
+    min-height: 36px;
   }
 
   /* Status overlay */
@@ -825,7 +1014,7 @@
     right: 16px;
     transform: none;
     text-align: center;
-    border-radius: 14px;
+    border-radius: 12px;
   }
 }
 
