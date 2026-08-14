@@ -645,7 +645,6 @@ function AppShell() {
     });
     trackEvent({
       event_name: "knowledge_base_create_clicked",
-      knowledge_base_id: kb.id,
       properties: { mode: scope.mode, name_length: kb.name.length },
     });
     try {
@@ -666,7 +665,6 @@ function AppShell() {
       if (createIntentIdRef.current !== intentId) return;
       trackEvent({
         event_name: "knowledge_base_create_failed",
-        knowledge_base_id: kb.id,
         properties: { mode: scope.mode, error_type: error instanceof Error ? error.name : "unknown" },
       });
       setMessage(error instanceof Error ? error.message : "创建失败，请重试。");
