@@ -39,6 +39,7 @@ input,
 textarea,
 select {
   font: inherit;
+  color: var(--ink, #fafaf9);
 }
 
 button {
@@ -46,8 +47,8 @@ button {
   border: 1px solid #44403c;
   border-radius: var(--radius);
   padding: 0 14px;
-  color: var(--ink);
-  background: var(--panel);
+  color: var(--ink, #fafaf9);
+  background: var(--panel, #292524);
   cursor: pointer;
   transition:
     transform 160ms ease,
@@ -67,7 +68,7 @@ select {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 12px 14px;
-  color: var(--ink);
+  color: var(--ink, #fafaf9);
   background: #1c1917;
   outline: none;
 }

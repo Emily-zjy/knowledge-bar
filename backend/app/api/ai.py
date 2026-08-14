@@ -224,9 +224,11 @@ def generate_mindmap(
                 )
             except SupabaseStoreError:
                 logger.exception("failed_to_update_generation_job")
+        logger.warning("mindmap_generate_failed", extra={
+            "error_stage": exc.error_stage, "code": exc.code,
+            "latency_ms": exc.latency_ms, "retry_count": exc.retry_count,
+        })
         return _api_error(502, exc.code, exc.message)
-
-
 # === Regenerate ===
 
 

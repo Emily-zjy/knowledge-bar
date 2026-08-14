@@ -3,7 +3,9 @@ import pytest
 from app.core.config import settings
 from app.models.ai import GenerateMindMapRequest, MindMapData, MindMapNode
 from app.services import ai_mindmap
+from app.services import llm_client
 from app.services.ai_mindmap import MindMapGenerationError
+from app.services.llm_client import LLMError, LLMResponse
 
 
 def request_payload() -> GenerateMindMapRequest:
@@ -37,42 +39,78 @@ def test_normalize_rejects_duplicate_ids():
     assert exc.value.code == "AI_INVALID_SCHEMA"
 
 
-def test_generate_retries_temporary_error(monkeypatch):
-    calls = {"count": 0}
+def test_generate_llm_error_propagates_with_stage(monkeypatch):
     monkeypatch.setattr(settings, "ai_provider", "openai_compatible")
-    monkeypatch.setattr(settings, "ai_max_retries", 1)
+    monkeypatch.setattr(settings, "ai_api_key", "test-key")
     monkeypatch.setattr(settings, "ai_mock_fallback", False)
 
-    def fake_request(payload):
-        calls["count"] += 1
-        if calls["count"] == 1:
-            raise MindMapGenerationError("AI_TIMEOUT", "timeout", retryable=True)
-        return MindMapData(
-            title=payload.title,
-            nodes=[
-                MindMapNode(id="node-root", parentId=None, text=payload.title, order=0),
-                MindMapNode(id="node-1", parentId="node-root", text="Branch", order=1),
-            ],
-        )
+    def fake_generate(messages, **kwargs):
+        raise LLMError("LLM_TIMEOUT", "Request timed out.", retryable=False)
 
-    monkeypatch.setattr(ai_mindmap, "_request_openai_compatible", fake_request)
+    monkeypatch.setattr(ai_mindmap, "llm_generate", fake_generate)
+    with pytest.raises(MindMapGenerationError) as exc:
+        ai_mindmap.generate_mind_map(request_payload(), authorization="Bearer test", guest_session_id=None)
+    assert exc.value.code == "LLM_TIMEOUT"
+    assert exc.value.error_stage == "llm_call"
+
+
+def test_generate_success_with_valid_json(monkeypatch):
+    monkeypatch.setattr(settings, "ai_provider", "openai_compatible")
+    monkeypatch.setattr(settings, "ai_api_key", "test-key")
+    monkeypatch.setattr(settings, "ai_mock_fallback", False)
+
+    valid_json = '{"title":"Knowledge","nodes":[{"id":"node-root","parentId":null,"text":"Knowledge","order":0},{"id":"node-1","parentId":"node-root","text":"Branch","order":1}]}'
+
+    def fake_generate(messages, **kwargs):
+        return LLMResponse(text=valid_json, model="test", latency_ms=100, usage={}, attempts=1)
+
+    monkeypatch.setattr(ai_mindmap, "llm_generate", fake_generate)
     result = ai_mindmap.generate_mind_map(request_payload(), authorization="Bearer test", guest_session_id=None)
     assert result.status == "succeeded"
-    assert calls["count"] == 2
+    assert len(result.mind_map.nodes) == 2
 
 
 def test_generate_does_not_retry_schema_error(monkeypatch):
-    calls = {"count": 0}
     monkeypatch.setattr(settings, "ai_provider", "openai_compatible")
+    monkeypatch.setattr(settings, "ai_api_key", "test-key")
     monkeypatch.setattr(settings, "ai_max_retries", 2)
     monkeypatch.setattr(settings, "ai_mock_fallback", False)
 
-    def fake_request(payload):
-        _ = payload
-        calls["count"] += 1
-        raise MindMapGenerationError("AI_INVALID_SCHEMA", "bad schema", retryable=False)
+    invalid_json = '{"title":"Knowledge","nodes":[]}'
 
-    monkeypatch.setattr(ai_mindmap, "_request_openai_compatible", fake_request)
-    with pytest.raises(MindMapGenerationError):
+    def fake_generate(messages, **kwargs):
+        return LLMResponse(text=invalid_json, model="test", latency_ms=100, usage={}, attempts=1)
+
+    monkeypatch.setattr(ai_mindmap, "llm_generate", fake_generate)
+    with pytest.raises(MindMapGenerationError) as exc:
         ai_mindmap.generate_mind_map(request_payload(), authorization="Bearer test", guest_session_id=None)
-    assert calls["count"] == 1
+    assert exc.value.error_stage == "schema_validation"
+
+
+def test_extract_json_trailing_comma():
+    raw = '{"title":"Test","nodes":[{"id":"root","parentId":null,"text":"Root","order":0},]}'
+    result = ai_mindmap._extract_json(raw)
+    assert result["title"] == "Test"
+
+
+def test_extract_json_control_chars():
+    raw = '{"title":"Test\x01\x02","nodes":[{"id":"root","parentId":null,"text":"Root","order":0}]}'
+    result = ai_mindmap._extract_json(raw)
+    assert result["title"] == "Test  "
+
+
+def test_extract_json_with_prose_prefix():
+    raw = 'Here is the mind map:\n\n{"title":"Test","nodes":[{"id":"root","parentId":null,"text":"Root","order":0}]}\n\nHope this helps!'
+    result = ai_mindmap._extract_json(raw)
+    assert result["title"] == "Test"
+
+
+def test_extract_json_rejects_non_json():
+    with pytest.raises(MindMapGenerationError) as exc:
+        ai_mindmap._extract_json("This is not JSON at all")
+    assert exc.value.code == "AI_INVALID_JSON"
+
+
+def test_sanitize_json_string():
+    assert ai_mindmap._sanitize_json_string('{"a":1,}') == '{"a":1}'
+    assert ai_mindmap._sanitize_json_string('[1,2,]') == '[1,2]'

@@ -50,6 +50,26 @@ type AppLocationState = {
 const now = () => new Date().toISOString();
 const defaultColor = "#ff6d29";
 
+function translateAuthError(msg: string): string {
+  if (!msg) return "操作失败，请稍后重试。";
+  const lower = msg.toLowerCase();
+  if (lower.includes("invalid login credentials") || lower.includes("invalid_credentials"))
+    return "邮箱或密码错误，请重新输入。";
+  if (lower.includes("email not confirmed"))
+    return "邮箱尚未确认，请检查收件箱。";
+  if (lower.includes("user already registered") || lower.includes("already been registered"))
+    return "该邮箱已注册，请直接登录。";
+  if (lower.includes("password") && lower.includes("short"))
+    return "密码太短，至少需要6个字符。";
+  if (lower.includes("rate limit") || lower.includes("too many"))
+    return "请求过于频繁，请稍后再试。";
+  if (lower.includes("network") || lower.includes("fetch"))
+    return "网络连接失败，请检查网络后重试。";
+  if (lower.includes("signup") && lower.includes("disabled"))
+    return "当前未开放注册，请联系管理员。";
+  return msg;
+}
+
 
 const imageMarkdownPattern = /!\[([^\]]*)\]\(([^)]+)\)(?:\{width=(\d+)\})?/g;
 
@@ -450,13 +470,18 @@ function AppShell() {
       await refreshKnowledgeBases(nextSession.user.id);
       showPage("dashboard");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "登录失败，请稍后重试。");
+      const raw = error instanceof Error ? error.message : "";
+      setMessage(translateAuthError(raw));
     }
   }
 
   async function handleRegister() {
     if (registerForm.password !== registerForm.confirmPassword) {
       setMessage("两次输入的密码不一致。");
+      return;
+    }
+    if (registerForm.password.length < 6) {
+      setMessage("密码至少需要6个字符。");
       return;
     }
     if (!hasSupabaseConfig) {
@@ -466,7 +491,7 @@ function AppShell() {
     try {
       const nextSession = await signUpWithEmail(registerForm.email.trim(), registerForm.password);
       if (!nextSession) {
-        setMessage("注册已提交，请确认邮箱后再登录；若要第一版免验证，请在 Supabase 关闭邮箱确认。");
+        setMessage("注册成功！请检查邮箱确认后登录。");
         setPage("login");
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
@@ -475,7 +500,8 @@ function AppShell() {
       await refreshKnowledgeBases(nextSession.user.id);
       showPage("dashboard");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "注册失败，请稍后重试。");
+      const raw = error instanceof Error ? error.message : "";
+      setMessage(translateAuthError(raw));
     }
   }
 
@@ -1616,6 +1642,19 @@ function AppShell() {
                   suppressContentEditableWarning
                 />
                 <div className="editor-bottom-toolbar">
+                  <button type="button" className="toolbar-cta-generate" aria-label="AI生成思维导图" onClick={() => {
+                    const text = docEditorRef.current?.innerText?.trim() || "";
+                    navigate("/mindmap/new", {
+                      state: {
+                        initialText: text,
+                        from: "detail",
+                        knowledgeBaseId: currentKb?.id ?? currentId ?? undefined,
+                      } satisfies MindMapLocationState,
+                    });
+                  }}>
+                    <span className="toolbar-icon">✨</span>
+                    <span className="toolbar-label">AI生成</span>
+                  </button>
                   <button type="button" aria-label="添加图片" onClick={() => imageInputRef.current?.click()}>
                     <span className="toolbar-icon">🖼</span>
                     <span className="toolbar-label">图片</span>

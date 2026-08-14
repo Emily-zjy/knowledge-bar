@@ -27,11 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 class MindMapGenerationError(RuntimeError):
-    def __init__(self, code: str, message: str, *, retryable: bool = False) -> None:
+    def __init__(self, code: str, message: str, *, retryable: bool = False, error_stage: str = "unknown") -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.retryable = retryable
+        self.error_stage = error_stage
         self.latency_ms: int | None = None
         self.retry_count: int | None = None
         self.input_length: int | None = None
@@ -70,16 +71,26 @@ def _fallback_mind_map(payload: GenerateMindMapRequest) -> GenerateMindMapResult
 def _build_prompt(payload: GenerateMindMapRequest, version: str | None = None) -> list[dict[str, str]]:
     system = get_mindmap_prompt(version or settings.ai_prompt_version)
     max_depth = payload.requested_max_depth
-    depth_instruction = (
-        f"\n\nDepth constraint: the mind map must have at most {max_depth} levels, "
-        f"where the root node counts as level 1. "
-        f"Organize knowledge using the real semantic relationships in the source text. "
-        f"You may produce fewer than {max_depth} levels if the content is simple. "
-        f"When the content contains genuine containment, classification, causal chains, "
-        f"sub-concepts, or compositional relationships, expand deeper levels naturally. "
-        f"Do NOT create meaningless nodes just to reach the maximum depth. "
-        f"Final tree depth must not exceed {max_depth}."
-    )
+    if max_depth <= 3:
+        depth_instruction = (
+            f"\n\nDepth constraint: produce a mind map with exactly {max_depth} levels "
+            f"(root = level 1). Do not go deeper than level {max_depth}."
+        )
+    else:
+        depth_instruction = (
+            f"\n\nDepth requirement: the mind map MUST use {max_depth} levels "
+            f"(root = level 1, deepest leaf = level {max_depth}). "
+            f"The tree MUST have at least one path from root to a level-{max_depth} leaf. "
+            f"Break down broad categories into sub-topics, then into specifics or examples. "
+            f"For instance: Main Topic → Category → Sub-category → Detail/Example. "
+            f"Use the natural hierarchy in the source: chapters→sections→points→details, "
+            f"systems→components→sub-components→properties, "
+            f"concepts→aspects→specifics→evidence. "
+            f"Do NOT flatten the tree to 2-3 levels. "
+            f"Do NOT exceed {max_depth} levels. "
+            f"Every branch should aim for depth {max_depth} unless the content genuinely "
+            f"has no further decomposition at that point."
+        )
     system = system + depth_instruction
     user = (
         f"Knowledge base title: {payload.title}\n"
@@ -89,27 +100,46 @@ def _build_prompt(payload: GenerateMindMapRequest, version: str | None = None) -
     return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
+def _sanitize_json_string(text: str) -> str:
+    """Fix common LLM JSON issues: trailing commas, control chars, single quotes."""
+    result = text
+    result = re.sub(r",\s*([}\]])", r"\1", result)
+    result = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", " ", result)
+    return result
+
+
 def _extract_json(text: str) -> dict:
     stripped = text.strip()
     if stripped.startswith("```"):
         stripped = re.sub(r"^```(?:json)?", "", stripped, flags=re.IGNORECASE).strip()
         stripped = re.sub(r"```\s*$", "", stripped).strip()
 
-    try:
-        payload = json.loads(stripped)
-    except json.JSONDecodeError:
-        start = stripped.find("{")
-        end = stripped.rfind("}")
-        if start == -1 or end == -1 or end <= start:
-            raise MindMapGenerationError("AI_INVALID_JSON", "AI response did not contain parseable JSON.")
+    def _try_parse(s: str) -> dict | None:
         try:
-            payload = json.loads(stripped[start : end + 1])
-        except json.JSONDecodeError as exc:
-            raise MindMapGenerationError("AI_INVALID_JSON", "AI response JSON is invalid.") from exc
+            obj = json.loads(s)
+            return obj if isinstance(obj, dict) else None
+        except json.JSONDecodeError:
+            return None
 
-    if not isinstance(payload, dict):
-        raise MindMapGenerationError("AI_INVALID_JSON", "AI response JSON must be an object.")
-    return payload
+    payload = _try_parse(stripped)
+    if payload is not None:
+        return payload
+
+    sanitized = _sanitize_json_string(stripped)
+    payload = _try_parse(sanitized)
+    if payload is not None:
+        return payload
+
+    start = sanitized.find("{")
+    end = sanitized.rfind("}")
+    if start == -1 or end == -1 or end <= start:
+        raise MindMapGenerationError("AI_INVALID_JSON", "AI response did not contain parseable JSON.")
+
+    payload = _try_parse(sanitized[start : end + 1])
+    if payload is not None:
+        return payload
+
+    raise MindMapGenerationError("AI_INVALID_JSON", "AI response JSON is invalid.")
 
 
 def _assert_depth(data: MindMapData, max_depth: int = 6) -> None:
@@ -269,7 +299,7 @@ def generate_mind_map(
         llm_response: LLMResponse = llm_generate(messages, max_retries=2)
     except LLMError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
-        gen_error = MindMapGenerationError(exc.code, exc.message, retryable=exc.retryable)
+        gen_error = MindMapGenerationError(exc.code, exc.message, retryable=exc.retryable, error_stage="llm_call")
         gen_error.latency_ms = elapsed_ms
         gen_error.retry_count = 0
         gen_error.input_length = len(payload.content_md)
@@ -288,6 +318,7 @@ def generate_mind_map(
         raw = _extract_json(llm_response.text)
     except MindMapGenerationError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
+        exc.error_stage = "json_parse"
         exc.latency_ms = elapsed_ms
         exc.retry_count = retry_count
         exc.input_length = len(payload.content_md)
@@ -301,6 +332,7 @@ def generate_mind_map(
         mind_map, repaired, repair_actions = _normalize_with_repair(raw, payload.title, payload.requested_max_depth)
     except MindMapGenerationError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
+        exc.error_stage = "schema_validation"
         exc.latency_ms = elapsed_ms
         exc.retry_count = retry_count
         exc.input_length = len(payload.content_md)

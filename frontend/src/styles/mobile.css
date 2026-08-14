@@ -668,6 +668,27 @@
     font-weight: 500;
     white-space: nowrap;
   }
+
+  .editor-bottom-toolbar .toolbar-cta-generate {
+    background: linear-gradient(135deg, #FF6A1A 0%, #E9510E 100%);
+    color: #fff;
+    border-radius: 12px;
+    flex: 1.5;
+    min-width: 72px;
+  }
+
+  .editor-bottom-toolbar .toolbar-cta-generate .toolbar-icon {
+    font-size: 20px;
+  }
+
+  .editor-bottom-toolbar .toolbar-cta-generate .toolbar-label {
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .editor-bottom-toolbar .toolbar-cta-generate:active {
+    background: linear-gradient(135deg, #E9510E 0%, #c7400a 100%);
+  }
 }
 
 /* === Create Page Mobile — Notes-App Style === */
