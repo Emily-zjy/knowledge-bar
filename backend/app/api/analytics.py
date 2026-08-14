@@ -16,6 +16,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 ALLOWED_EVENTS = frozenset([
+    "knowledge_base_create_clicked",
+    "knowledge_base_create_succeeded",
+    "knowledge_base_create_failed",
+    "guest_drafts_detected",
+    "guest_drafts_imported",
+    "guest_drafts_import_skipped",
+    "stale_local_cache_discarded",
     "mindmap_generate_settings_opened",
     "mindmap_generate_clicked",
     "mindmap_generate_succeeded",

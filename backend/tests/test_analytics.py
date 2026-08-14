@@ -1,4 +1,5 @@
 """Tests for analytics API endpoint."""
+
 from __future__ import annotations
 
 import uuid
@@ -6,6 +7,20 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+
+from app.api.analytics import ALLOWED_EVENTS
+
+
+def test_data_consistency_events_are_allowed():
+    assert {
+        "knowledge_base_create_clicked",
+        "knowledge_base_create_succeeded",
+        "knowledge_base_create_failed",
+        "guest_drafts_detected",
+        "guest_drafts_imported",
+        "guest_drafts_import_skipped",
+        "stale_local_cache_discarded",
+    }.issubset(ALLOWED_EVENTS)
 
 
 @pytest.fixture
