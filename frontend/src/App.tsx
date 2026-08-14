@@ -30,6 +30,7 @@ import GlareHover from "./components/GlareHover";
 import RotatingText from "./components/RotatingText";
 import SplitText from "./components/SplitText";
 import "./styles/mindmap.css";
+import "./styles/mobile.css";
 import type { KnowledgeBase } from "./types";
 
 type PageId = "login" | "register" | "create" | "dashboard" | "settings" | "detail" | "mindmap";
@@ -276,6 +277,7 @@ function AppShell() {
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [guestDraftContent, setGuestDraftContent] = useState("");
   const [guestDraftTags, setGuestDraftTags] = useState<string[]>([]);
   const [selectedDocText, setSelectedDocText] = useState("");
@@ -857,7 +859,21 @@ function AppShell() {
             <div className="brand-subtitle">AI knowledge base and mind map studio</div>
           </div>
         </button>
+        {(page === "dashboard" || page === "settings" || page === "detail") && (
+          <button
+            type="button"
+            className="mobile-menu-toggle"
+            aria-label="打开菜单"
+            onClick={() => setMobileSidebarOpen((v) => !v)}
+          >
+            ☰
+          </button>
+        )}
       </header>
+
+      {mobileSidebarOpen && (
+        <div className="mobile-sidebar-backdrop visible" onClick={() => setMobileSidebarOpen(false)} />
+      )}
 
       <main>
         {page === "login" && (
@@ -1165,10 +1181,11 @@ function AppShell() {
               <AccountSidebar
                 collapsed={sidebarCollapsed}
                 onCollapse={() => setSidebarCollapsed((value) => !value)}
-                onShowPage={showPage}
+                onShowPage={(p) => { showPage(p); setMobileSidebarOpen(false); }}
                 email={session?.user.email}
                 onSignOut={handleSignOut}
                 avatarUrl={avatarUrl}
+                mobileOpen={mobileSidebarOpen}
               />
               <section className="workspace dashboard-workspace">
                 <div className="dashboard-hero">
@@ -1369,11 +1386,12 @@ function AppShell() {
               <AccountSidebar
                 collapsed={sidebarCollapsed}
                 onCollapse={() => setSidebarCollapsed((value) => !value)}
-                onShowPage={showPage}
+                onShowPage={(p) => { showPage(p); setMobileSidebarOpen(false); }}
                 email={session?.user.email}
                 onSignOut={handleSignOut}
                 settingsMode
                 avatarUrl={avatarUrl}
+                mobileOpen={mobileSidebarOpen}
               />
               <section className="workspace settings-workspace">
                 <div className="settings-hero">
@@ -1434,10 +1452,10 @@ function AppShell() {
         {page === "detail" && (
           <section className="page active">
             <div className={`surface app-layout detail-layout ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
-              <aside className="sidebar detail-sidebar">
+              <aside className={`sidebar detail-sidebar ${mobileSidebarOpen ? "mobile-open" : ""}`}>
                 <div className="sidebar-content">
                   <div className="side-menu side-menu--top">
-                    <button type="button" onClick={() => showPage("dashboard")}>
+                    <button type="button" onClick={() => { showPage("dashboard"); setMobileSidebarOpen(false); }}>
                       返回知识库
                     </button>
                   </div>
@@ -1582,6 +1600,7 @@ function AccountSidebar({
   onSignOut,
   settingsMode = false,
   avatarUrl,
+  mobileOpen = false,
 }: {
   collapsed: boolean;
   onCollapse: () => void;
@@ -1590,10 +1609,11 @@ function AccountSidebar({
   onSignOut: () => void;
   settingsMode?: boolean;
   avatarUrl?: string | null;
+  mobileOpen?: boolean;
 }) {
   const nickname = email ? email.split("@")[0] : "昵称 / 游客";
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${mobileOpen ? "mobile-open" : ""}`}>
       <div className="sidebar-content" hidden={collapsed}>
         <div className="avatar">
           {avatarUrl ? <img src={avatarUrl} alt="头像" style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} /> : "头像"}

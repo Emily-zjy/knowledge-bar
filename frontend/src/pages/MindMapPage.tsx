@@ -214,6 +214,12 @@ const FlowCanvas = forwardRef<FlowCanvasHandle, {
         fitView
         minZoom={0.15}
         maxZoom={2}
+        panOnDrag
+        zoomOnPinch
+        zoomOnScroll
+        zoomOnDoubleClick={false}
+        nodesDraggable={false}
+        elementsSelectable
         proOptions={{ hideAttribution: true }}
       >
       <Background gap={22} color="#F0D8C8" />
@@ -233,6 +239,7 @@ const FlowCanvas = forwardRef<FlowCanvasHandle, {
         justifyContent: "center",
         background: "rgba(255, 248, 243, 0.72)",
         zIndex: 10,
+        padding: "16px",
       }} onClick={commitEdit}>
         <input
           autoFocus
@@ -244,7 +251,7 @@ const FlowCanvas = forwardRef<FlowCanvasHandle, {
           }}
           onClick={(e) => e.stopPropagation()}
           style={{
-            width: "300px",
+            width: "min(300px, calc(100vw - 48px))",
             padding: "12px 16px",
             fontSize: "15px",
             background: "#FFFFFF",
@@ -290,6 +297,7 @@ export default function MindMapPage({
 
   const [versions, setVersions] = useState<MindMapVersionItem[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
   const [requestedMaxDepth, setRequestedMaxDepth] = useState(5);
@@ -643,10 +651,15 @@ export default function MindMapPage({
         </div>
       )}
 
+      {/* Mobile sidebar backdrop */}
+      {mobileSidebarOpen && (
+        <div className="mm-mobile-backdrop visible" onClick={() => setMobileSidebarOpen(false)} />
+      )}
+
       {/* Sidebar - Versions */}
-      <aside className={`mm-sidebar ${sidebarOpen ? "" : "mm-sidebar-collapsed"}`}>
+      <aside className={`mm-sidebar ${sidebarOpen ? "" : "mm-sidebar-collapsed"} ${mobileSidebarOpen ? "mm-sidebar-mobile-open" : ""}`}>
         <div className="mm-sidebar-header">
-          <button className="mm-btn-icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <button className="mm-btn-icon" onClick={() => { setSidebarOpen(!sidebarOpen); setMobileSidebarOpen(false); }}>
             {sidebarOpen ? "◁" : "▷"}
           </button>
           {sidebarOpen && <span className="mm-sidebar-title">版本记录</span>}
@@ -701,6 +714,16 @@ export default function MindMapPage({
 
       {/* Main content */}
       <main className="mm-main">
+        {/* Mobile toggle for sidebar */}
+        <button
+          className="mm-mobile-toggle mm-btn-icon"
+          style={{ position: "absolute", top: "8px", left: "8px", zIndex: 5 }}
+          onClick={() => setMobileSidebarOpen(true)}
+          aria-label="打开版本记录"
+        >
+          ☰
+        </button>
+
         {/* Input panel - show when no result */}
         {!currentData && (
           <div className="mm-input-panel">
@@ -747,7 +770,7 @@ export default function MindMapPage({
             )}
             {errorMsg && <div className="mm-status mm-status-error">{errorMsg}</div>}
 
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+            <div className="mm-depth-selector" style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
               <label style={{ fontSize: "13px", color: "#4A4541", whiteSpace: "nowrap" }}>最大层数</label>
               <select
                 value={requestedMaxDepth}
@@ -760,6 +783,7 @@ export default function MindMapPage({
                   background: "#FFFCF9",
                   color: "#171513",
                   cursor: "pointer",
+                  minHeight: "40px",
                 }}
               >
                 <option value={3}>3 层</option>

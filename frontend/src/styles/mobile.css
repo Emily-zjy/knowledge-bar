@@ -1,0 +1,649 @@
+/* Mobile Responsive Overrides - Knowledge Bar */
+
+/* === Touch Targets === */
+@media (max-width: 640px) {
+  button,
+  .side-menu button,
+  .mm-btn-icon,
+  .mm-toolbar-actions button,
+  .editor-nav button,
+  .delete-confirm-btn,
+  .delete-cancel-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mm-feedback-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 8px !important;
+  }
+}
+
+/* === Safe Area === */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mm-feedback,
+  .mm-hint,
+  .button-row,
+  .mm-btn-generate {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+}
+
+/* === Global Header Mobile === */
+@media (max-width: 640px) {
+  .global-header {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .brand-mark img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .brand-title {
+    font-size: 15px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+}
+
+/* === Mobile Menu Toggle === */
+.mobile-menu-toggle {
+  display: none;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border: 1px solid var(--kb-line, #ded9d4);
+  border-radius: 10px;
+  background: var(--kb-white, #fff);
+  color: var(--kb-ink, #171513);
+  font-size: 20px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+  }
+}
+
+/* === Sidebar Mobile Overlay === */
+@media (max-width: 768px) {
+  .app-theme .app-layout,
+  .app-theme .app-layout.sidebar-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .app-theme .sidebar,
+  .app-layout .sidebar {
+    position: fixed;
+    top: 48px;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 260px;
+    max-width: 80vw;
+    border-right: 1px solid var(--kb-line, #ded9d4);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .app-theme .sidebar.mobile-open,
+  .app-layout .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar .collapse-btn {
+    display: none;
+  }
+
+  .mobile-sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 48px;
+    z-index: 49;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .mobile-sidebar-backdrop.visible {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-sidebar-backdrop {
+    display: none !important;
+  }
+}
+
+/* === Login / Register Page Mobile === */
+@media (max-width: 640px) {
+  .hero-slab {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .hero-blue {
+    min-height: auto;
+    padding: 24px 16px;
+  }
+
+  .hero-blue h1 {
+    font-size: clamp(32px, 10vw, 44px);
+  }
+
+  .shell:not(.app-theme) .hero-blue h1.register-title {
+    font-size: clamp(26px, 8vw, 36px);
+    white-space: normal !important;
+  }
+
+  .hero-copy {
+    font-size: 15px;
+  }
+
+  .login-panel {
+    margin: 0;
+    padding: 24px 16px;
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .panel-title {
+    font-size: 24px;
+  }
+
+  .login-panel-title__brand {
+    font-size: clamp(24px, 7vw, 32px);
+    white-space: normal;
+  }
+
+  .kicker {
+    margin-top: 8px;
+    margin-bottom: 16px;
+    font-size: 11px;
+  }
+}
+
+/* === Dashboard Mobile === */
+@media (max-width: 640px) {
+  .dashboard-hero,
+  .detail-hero,
+  .settings-hero {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .dashboard-hero h1,
+  .detail-hero h1,
+  .settings-hero h1 {
+    font-size: clamp(28px, 8vw, 38px);
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .summary-card {
+    min-height: 90px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .summary-card strong {
+    font-size: clamp(22px, 6vw, 30px);
+  }
+
+  .app-theme .card-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .app-theme .kb-card,
+  .app-theme .new-card {
+    min-height: 160px;
+    border-radius: 16px;
+  }
+
+  .app-theme .kb-card h4,
+  .app-theme .new-card h4 {
+    font-size: 20px;
+  }
+
+  .guest-ribbon {
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 12px;
+  }
+
+  .search-row input {
+    height: 46px;
+    font-size: 15px;
+  }
+}
+
+/* === Editor Page Mobile === */
+@media (max-width: 640px) {
+  .workspace {
+    padding: 14px;
+  }
+
+  .dashboard-workspace,
+  .settings-workspace,
+  .detail-workspace {
+    padding: 12px;
+  }
+
+  .app-theme .editor-nav {
+    padding: 10px;
+    border-radius: 14px;
+    gap: 6px;
+  }
+
+  .app-theme .editor-nav .nav-title {
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .app-theme .editor-nav .spacer {
+    display: none;
+  }
+
+  .app-theme .editor-nav button {
+    flex: 1 1 calc(50% - 6px);
+    font-size: 12px;
+    padding: 0 8px;
+    min-height: 40px;
+  }
+
+  .doc {
+    min-height: 300px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .doc-editor {
+    min-height: 300px;
+    font-size: 15px;
+  }
+
+  .doc-image-block {
+    max-width: 100%;
+  }
+}
+
+/* === Create Page Mobile === */
+@media (max-width: 640px) {
+  .create-studio {
+    width: calc(100% - 12px);
+    margin: 8px auto;
+    border-radius: 16px;
+  }
+
+  .create-brand-panel {
+    min-height: 280px;
+    padding: 20px 16px;
+  }
+
+  .node-orbit {
+    display: none;
+  }
+
+  .create-form-panel {
+    padding: 20px 16px;
+  }
+
+  .form-card {
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
+  .form-card h2 {
+    font-size: clamp(24px, 7vw, 32px);
+  }
+}
+
+/* === Settings Page Mobile === */
+@media (max-width: 640px) {
+  .settings-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .settings-hero-map {
+    display: none;
+  }
+
+  .app-theme .settings-hero h1 {
+    font-size: clamp(30px, 9vw, 40px);
+    white-space: normal;
+  }
+}
+
+/* === Modal / Dialog Mobile === */
+@media (max-width: 640px) {
+  .delete-dialog {
+    max-width: calc(100vw - 24px);
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .delete-dialog-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .delete-confirm-btn,
+  .delete-cancel-btn {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+/* === Legacy Mindmap Canvas Overflow Fix === */
+@media (max-width: 1024px) {
+  .mindmap-canvas .react-flow {
+    min-width: 0;
+  }
+
+  .mindmap {
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 24px;
+  }
+}
+
+/* === Mind Map Page Mobile === */
+@media (max-width: 768px) {
+  .mm-page {
+    flex-direction: column;
+  }
+
+  .mm-sidebar {
+    display: none;
+  }
+
+  .mm-sidebar.mm-sidebar-mobile-open {
+    display: flex;
+    position: fixed;
+    top: 48px;
+    left: 0;
+    bottom: 0;
+    z-index: 60;
+    width: 260px;
+    max-width: 80vw;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .mm-mobile-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 48px;
+    z-index: 59;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .mm-mobile-backdrop.visible {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .mm-mobile-backdrop,
+  .mm-mobile-toggle {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .mm-mobile-toggle {
+    display: flex !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .mm-input-panel {
+    width: calc(100% - 12px);
+    padding: 16px 12px;
+  }
+
+  .mm-heading {
+    font-size: clamp(28px, 8vw, 38px);
+  }
+
+  .mm-desc {
+    font-size: 14px;
+  }
+
+  .mm-field,
+  .mm-options {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .mm-field textarea {
+    min-height: 180px;
+  }
+
+  .mm-btn-generate {
+    min-height: 50px;
+    font-size: 16px;
+    border-radius: 14px;
+  }
+
+  .mm-btn-back-top {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  /* Canvas Panel Mobile */
+  .mm-canvas-panel {
+    margin: 8px;
+    border-radius: 16px;
+    min-height: calc(100dvh - 120px);
+  }
+
+  .mm-canvas {
+    min-height: 60dvh;
+  }
+
+  .mm-toolbar {
+    padding: 10px 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .mm-canvas-title {
+    font-size: 14px;
+  }
+
+  .mm-toolbar-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+
+  .mm-toolbar-actions button {
+    min-height: 40px;
+    font-size: 12px;
+    padding: 6px 8px;
+    flex: none;
+  }
+
+  .mm-toolbar-actions .mm-btn-regen {
+    grid-column: 1 / -1;
+  }
+
+  /* Feedback section */
+  .mm-feedback {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .mm-hint {
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  /* Status overlay mobile */
+  .mm-status-overlay {
+    left: 12px;
+    right: 12px;
+    transform: none;
+    text-align: center;
+  }
+}
+
+/* === ReactFlow Mobile Overrides === */
+@media (max-width: 640px) {
+  .mm-canvas .react-flow__controls {
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .mm-canvas .react-flow__controls button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mm-canvas .react-flow__minimap {
+    display: none;
+  }
+}
+
+/* === Node Edit Overlay Mobile === */
+@media (max-width: 640px) {
+  .mm-node-edit-overlay input {
+    width: calc(100vw - 48px) !important;
+    max-width: 300px;
+  }
+}
+
+/* === Depth Selector Mobile === */
+@media (max-width: 640px) {
+  .mm-depth-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .mm-depth-selector select {
+    min-height: 44px;
+    font-size: 15px;
+    width: 100%;
+  }
+}
+
+/* === Page Level Overflow Prevention === */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.page,
+.surface,
+.mm-page,
+.mm-main {
+  max-width: 100vw;
+}
+
+/* === Ensure no fixed-width elements overflow on mobile === */
+@media (max-width: 640px) {
+  .page {
+    padding: 8px;
+  }
+
+  .surface {
+    border-radius: 16px;
+  }
+
+  .hero-slab {
+    border-radius: 16px;
+    overflow: hidden;
+  }
+}
+
+/* === Tablet (640-1023px) === */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .app-theme .card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .mm-canvas-panel {
+    margin: 12px;
+  }
+}
+
+/* === Prevent 100vh issues on mobile browsers === */
+@supports (height: 100dvh) {
+  @media (max-width: 768px) {
+    .shell {
+      height: 100dvh;
+    }
+
+    .shell--fullscreen {
+      height: 100dvh;
+    }
+  }
+}
+
+/* === Hover-only controls fix for touch === */
+@media (hover: none), (pointer: coarse) {
+  .doc-image-toolbar {
+    display: flex;
+    pointer-events: auto;
+    opacity: 0.9;
+  }
+
+  .kb-card-delete {
+    opacity: 1;
+  }
+
+  button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .app-theme button:hover {
+    transform: none;
+  }
+
+  .app-theme .kb-card:hover,
+  .app-theme .new-card:hover {
+    transform: none;
+  }
+
+  .app-theme .kb-card:nth-child(even):hover {
+    transform: none;
+  }
+}
