@@ -32,6 +32,7 @@ import {
   knowledgeBaseScope,
   listKnowledgeBases,
   selectionStorageKey,
+  shouldReturnToDashboardAfterLoad,
   updateKnowledgeBaseRecord,
   type KnowledgeBaseRepositories,
 } from "./lib/knowledgeBaseRepository";
@@ -411,6 +412,10 @@ function AppShell() {
     setKnowledgeBases(items);
     const storageKey = selectionStorageKey(scope);
     const savedCurrentId = sessionStorage.getItem(storageKey);
+    if (shouldReturnToDashboardAfterLoad(page, savedCurrentId, items)) {
+      setPage("dashboard");
+      sessionStorage.setItem("kb_page", "dashboard");
+    }
     const nextCurrentId = items.find((item) => item.id === savedCurrentId)?.id ?? items[0]?.id ?? null;
     setCurrentId(nextCurrentId);
     if (nextCurrentId) {

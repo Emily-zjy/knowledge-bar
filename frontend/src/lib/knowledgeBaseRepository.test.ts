@@ -6,6 +6,7 @@ import {
   knowledgeBaseScope,
   listKnowledgeBases,
   selectionStorageKey,
+  shouldReturnToDashboardAfterLoad,
   updateKnowledgeBaseRecord,
   type KnowledgeBaseRepositories,
 } from "./knowledgeBaseRepository";
@@ -94,5 +95,13 @@ describe("local/cloud source-of-truth policy", () => {
     expect(selectionStorageKey(knowledgeBaseScope(null))).toBe("kb_current_id:guest");
     expect(selectionStorageKey(knowledgeBaseScope("user-a"))).toBe("kb_current_id:authenticated:user-a");
     expect(selectionStorageKey(knowledgeBaseScope("user-b"))).toBe("kb_current_id:authenticated:user-b");
+  });
+
+  it("returns a deleted cross-device selection to the dashboard", () => {
+    const cloudItems = [kb("still-present", "Cloud KB", "cloud")];
+
+    expect(shouldReturnToDashboardAfterLoad("detail", "deleted-on-device-b", cloudItems)).toBe(true);
+    expect(shouldReturnToDashboardAfterLoad("detail", "still-present", cloudItems)).toBe(false);
+    expect(shouldReturnToDashboardAfterLoad("dashboard", "deleted-on-device-b", cloudItems)).toBe(false);
   });
 });

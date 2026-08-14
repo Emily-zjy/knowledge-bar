@@ -24,6 +24,16 @@ export function selectionStorageKey(scope: KnowledgeBaseScope): string {
     : "kb_current_id:guest";
 }
 
+export function shouldReturnToDashboardAfterLoad(
+  currentPage: string,
+  savedCurrentId: string | null,
+  items: KnowledgeBase[],
+): boolean {
+  return currentPage === "detail" && (
+    !savedCurrentId || !items.some((item) => item.id === savedCurrentId)
+  );
+}
+
 function assertOrigin(scope: KnowledgeBaseScope, kb: KnowledgeBase): void {
   const expectedOrigin = scope.mode === "authenticated" ? "cloud" : "guest";
   if (kb.origin !== expectedOrigin) {

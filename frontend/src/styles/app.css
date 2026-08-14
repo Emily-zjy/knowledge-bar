@@ -535,16 +535,24 @@ textarea {
   justify-content: flex-start;
   padding: 44px 32px 22px;
   color: #fffaf3;
+  isolation: isolate;
+  background: linear-gradient(
+    90deg,
+    rgba(23, 17, 14, 0.88) 0%,
+    rgba(23, 17, 14, 0.72) 72%,
+    rgba(23, 17, 14, 0.3) 100%
+  );
 }
 
 .shell:not(.app-theme) .kicker {
-  color: rgba(255, 250, 243, 0.82);
+  color: #fffaf3;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.72);
 }
 
 .shell:not(.app-theme) .hero-blue h1 {
   position: relative;
   color: #fffaf3;
-  text-shadow: 0 0 0 rgba(255, 106, 26, 0);
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.78);
   animation: hero-title-breathe 5.8s ease-in-out 2.1s infinite;
 }
 
@@ -555,17 +563,24 @@ textarea {
 }
 
 .shell:not(.app-theme) .hero-copy {
-  color: rgba(255, 250, 243, 0.82);
+  box-sizing: border-box;
+  padding: 14px 16px;
+  color: #fffaf3;
+  border: 1px solid rgba(255, 250, 243, 0.18);
+  border-radius: 12px;
+  background: rgba(23, 17, 14, 0.72);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.72);
 }
 
 @keyframes hero-title-breathe {
   0%,
   100% {
-    text-shadow: 0 0 0 rgba(255, 106, 26, 0);
+    text-shadow: 0 3px 18px rgba(0, 0, 0, 0.78);
     filter: drop-shadow(0 0 0 rgba(255, 106, 26, 0));
   }
   45% {
-    text-shadow: 0 10px 32px rgba(255, 106, 26, 0.18);
+    text-shadow: 0 3px 18px rgba(0, 0, 0, 0.78), 0 10px 32px rgba(255, 106, 26, 0.18);
     filter: drop-shadow(0 10px 24px rgba(255, 106, 26, 0.12));
   }
 }
