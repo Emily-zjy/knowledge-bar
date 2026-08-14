@@ -212,6 +212,10 @@ def generate_mindmap(
                     status="failed",
                     error_code=exc.code,
                     error_message=exc.message,
+                    latency_ms=exc.latency_ms,
+                    retry_count=exc.retry_count,
+                    input_length=exc.input_length,
+                    prompt_version=exc.prompt_version,
                 )
             except SupabaseStoreError:
                 logger.exception("failed_to_update_generation_job")
@@ -275,7 +279,15 @@ def regenerate_mindmap(
         if job_id and user_id:
             try:
                 supabase_store.update_generation_job(
-                    job_id, user_id, status="failed", error_code=exc.code, error_message=exc.message,
+                    job_id,
+                    user_id,
+                    status="failed",
+                    error_code=exc.code,
+                    error_message=exc.message,
+                    latency_ms=exc.latency_ms,
+                    retry_count=exc.retry_count,
+                    input_length=exc.input_length,
+                    prompt_version=exc.prompt_version,
                 )
             except SupabaseStoreError:
                 logger.exception("failed_to_update_generation_job")

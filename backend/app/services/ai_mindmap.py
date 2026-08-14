@@ -32,6 +32,10 @@ class MindMapGenerationError(RuntimeError):
         self.code = code
         self.message = message
         self.retryable = retryable
+        self.latency_ms: int | None = None
+        self.retry_count: int | None = None
+        self.input_length: int | None = None
+        self.prompt_version: str | None = None
 
 
 def _extract_topics(content: str) -> list[str]:
@@ -254,6 +258,10 @@ def generate_mind_map(
     except LLMError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         gen_error = MindMapGenerationError(exc.code, exc.message, retryable=exc.retryable)
+        gen_error.latency_ms = elapsed_ms
+        gen_error.retry_count = 0
+        gen_error.input_length = len(payload.content_md)
+        gen_error.prompt_version = version
         _save_trace(run_id, payload, None, gen_error, elapsed_ms, retry_count=0, rollout_meta=rollout_meta, prompt_version=version)
 
         if settings.ai_mock_fallback:
@@ -268,6 +276,10 @@ def generate_mind_map(
         raw = _extract_json(llm_response.text)
     except MindMapGenerationError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
+        exc.latency_ms = elapsed_ms
+        exc.retry_count = retry_count
+        exc.input_length = len(payload.content_md)
+        exc.prompt_version = version
         _save_trace(run_id, payload, None, exc, elapsed_ms, retry_count=retry_count, llm_latency_ms=llm_latency, token_usage=llm_response.usage, rollout_meta=rollout_meta, prompt_version=version)
         if settings.ai_mock_fallback:
             return _fallback_mind_map(payload)
@@ -277,6 +289,10 @@ def generate_mind_map(
         mind_map, repaired, repair_actions = _normalize_with_repair(raw, payload.title)
     except MindMapGenerationError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
+        exc.latency_ms = elapsed_ms
+        exc.retry_count = retry_count
+        exc.input_length = len(payload.content_md)
+        exc.prompt_version = version
         _save_trace(run_id, payload, None, exc, elapsed_ms, retry_count=retry_count, repair_attempted=True, repair_success=False, llm_latency_ms=llm_latency, token_usage=llm_response.usage, rollout_meta=rollout_meta, prompt_version=version)
         if settings.ai_mock_fallback:
             return _fallback_mind_map(payload)

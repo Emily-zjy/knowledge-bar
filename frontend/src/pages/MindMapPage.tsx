@@ -452,17 +452,17 @@ export default function MindMapPage({
     setAnalyticsToken(session.access_token);
 
     const previousGenId = activeGenerationId;
-    trackEvent({
-      event_name: "mindmap_regenerated",
-      knowledge_base_id: effectiveKbId,
-      generation_id: previousGenId,
-      properties: { previous_generation_id: previousGenId },
-    });
 
     try {
       const result = await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
       setStep("done");
       setActiveGenerationId(result.generation_id);
+      trackEvent({
+        event_name: "mindmap_regenerated",
+        knowledge_base_id: effectiveKbId,
+        generation_id: result.generation_id,
+        properties: { previous_generation_id: previousGenId },
+      });
       const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
       applyResponse(latest);
       loadVersions(session.access_token);

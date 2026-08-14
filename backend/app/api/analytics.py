@@ -34,7 +34,7 @@ class AnalyticsEvent(BaseModel):
     knowledge_base_id: UUID | None = None
     generation_id: UUID | None = None
     mind_map_id: UUID | None = None
-    client_event_id: UUID | None = None
+    client_event_id: UUID
     properties: dict | None = None
 
 
@@ -69,7 +69,7 @@ def ingest_events(
 
     for event in body.events:
         if event.event_name not in ALLOWED_EVENTS:
-            continue
+            return _api_error(422, "INVALID_EVENT_NAME", f"Event name '{event.event_name}' is not allowed.")
 
         if event.generation_id:
             try:
@@ -92,7 +92,7 @@ def ingest_events(
             "knowledge_base_id": str(event.knowledge_base_id) if event.knowledge_base_id else None,
             "generation_id": str(event.generation_id) if event.generation_id else None,
             "mind_map_id": str(event.mind_map_id) if event.mind_map_id else None,
-            "client_event_id": str(event.client_event_id) if event.client_event_id else None,
+            "client_event_id": str(event.client_event_id),
             "properties": safe_props,
         }
 

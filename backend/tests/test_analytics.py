@@ -33,7 +33,7 @@ def mock_store():
 class TestAnalyticsAuth:
     def test_missing_auth_returns_401(self, client):
         resp = client.post("/api/analytics/events", json={"events": [
-            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_generate_clicked"}
+            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_generate_clicked", "client_event_id": str(uuid.uuid4())}
         ]})
         assert resp.status_code == 401
 
@@ -43,7 +43,7 @@ class TestAnalyticsAuth:
             mock.side_effect = AuthError("UNAUTHORIZED", "Invalid token")
             resp = client.post(
                 "/api/analytics/events",
-                json={"events": [{"session_id": str(uuid.uuid4()), "event_name": "mindmap_generate_clicked"}]},
+                json={"events": [{"session_id": str(uuid.uuid4()), "event_name": "mindmap_generate_clicked", "client_event_id": str(uuid.uuid4())}]},
                 headers={"Authorization": "Bearer bad-token"},
             )
             assert resp.status_code == 401
@@ -58,17 +58,17 @@ class TestAnalyticsValidation:
         )
         assert resp.status_code == 422
 
-    def test_invalid_event_name_skipped(self, client, mock_auth, mock_store):
+    def test_invalid_event_name_rejected(self, client, mock_auth, mock_store):
         resp = client.post(
             "/api/analytics/events",
             json={"events": [
-                {"session_id": str(uuid.uuid4()), "event_name": "invalid_event_name"}
+                {"session_id": str(uuid.uuid4()), "event_name": "invalid_event_name", "client_event_id": str(uuid.uuid4())}
             ]},
             headers={"Authorization": "Bearer valid"},
         )
-        assert resp.status_code == 200
+        assert resp.status_code == 422
         data = resp.json()
-        assert data["data"]["accepted"] == 0
+        assert data["error"]["code"] == "INVALID_EVENT_NAME"
         mock_store.insert_analytics_event.assert_not_called()
 
 
@@ -83,6 +83,7 @@ class TestAnalyticsOwnership:
                     "session_id": str(uuid.uuid4()),
                     "event_name": "mindmap_generate_clicked",
                     "generation_id": str(uuid.uuid4()),
+                    "client_event_id": str(uuid.uuid4()),
                 }
             ]},
             headers={"Authorization": "Bearer valid"},
@@ -100,6 +101,7 @@ class TestAnalyticsOwnership:
                     "session_id": str(uuid.uuid4()),
                     "event_name": "mindmap_generate_clicked",
                     "knowledge_base_id": str(uuid.uuid4()),
+                    "client_event_id": str(uuid.uuid4()),
                 }
             ]},
             headers={"Authorization": "Bearer valid"},
@@ -111,12 +113,14 @@ class TestAnalyticsOwnership:
 class TestAnalyticsInsert:
     def test_valid_event_accepted(self, client, mock_auth, mock_store):
         session_id = str(uuid.uuid4())
+        client_event_id = str(uuid.uuid4())
         resp = client.post(
             "/api/analytics/events",
             json={"events": [
                 {
                     "session_id": session_id,
                     "event_name": "mindmap_generate_clicked",
+                    "client_event_id": client_event_id,
                     "properties": {"input_length": 500},
                 }
             ]},
@@ -131,6 +135,7 @@ class TestAnalyticsInsert:
         assert call_args["user_id"] == "user-123"
         assert call_args["session_id"] == session_id
         assert call_args["event_name"] == "mindmap_generate_clicked"
+        assert call_args["client_event_id"] == client_event_id
 
     def test_duplicate_client_event_id_counted(self, client, mock_auth, mock_store):
         from app.services.supabase_store import SupabaseStoreError
@@ -151,9 +156,9 @@ class TestAnalyticsInsert:
 
     def test_batch_events(self, client, mock_auth, mock_store):
         events = [
-            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_generate_clicked"},
-            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_exported", "properties": {"format": "png"}},
-            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_feedback_submitted", "properties": {"rating": "positive"}},
+            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_generate_clicked", "client_event_id": str(uuid.uuid4())},
+            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_exported", "client_event_id": str(uuid.uuid4()), "properties": {"format": "png"}},
+            {"session_id": str(uuid.uuid4()), "event_name": "mindmap_feedback_submitted", "client_event_id": str(uuid.uuid4()), "properties": {"rating": "positive"}},
         ]
         resp = client.post(
             "/api/analytics/events",
