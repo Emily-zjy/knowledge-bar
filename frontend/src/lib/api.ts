@@ -24,6 +24,7 @@ export async function generateMindMap(input: {
   description: string;
   content_md: string;
   token: string;
+  requested_max_depth?: number;
 }): Promise<GenerateMindMapResponse> {
   const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/generate`, {
     method: "POST",
@@ -33,6 +34,7 @@ export async function generateMindMap(input: {
       title: input.title,
       description: input.description,
       content_md: input.content_md,
+      requested_max_depth: input.requested_max_depth ?? 5,
     }),
   });
 
@@ -48,10 +50,14 @@ export async function generateMindMap(input: {
 export async function regenerateMindMap(input: {
   knowledge_base_id: string;
   token: string;
+  requested_max_depth?: number;
 }): Promise<GenerateMindMapResponse> {
   const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/${input.knowledge_base_id}/regenerate`, {
     method: "POST",
     headers: authHeaders(input.token, true),
+    body: JSON.stringify({
+      requested_max_depth: input.requested_max_depth ?? 5,
+    }),
   });
 
   const payload = await response.json();

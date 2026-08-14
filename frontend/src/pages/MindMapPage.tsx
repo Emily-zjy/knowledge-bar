@@ -292,6 +292,7 @@ export default function MindMapPage({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const [requestedMaxDepth, setRequestedMaxDepth] = useState(5);
 
   const flowCanvasRef = useRef<FlowCanvasHandle>(null);
   const autoTriggered = useRef(false);
@@ -391,7 +392,7 @@ export default function MindMapPage({
     trackEvent({
       event_name: "mindmap_generate_clicked",
       knowledge_base_id: kbId,
-      properties: { input_length: text.length },
+      properties: { input_length: text.length, requested_max_depth: requestedMaxDepth },
     });
 
     const stepTimer = setTimeout(() => setStep("extracting"), 800);
@@ -405,6 +406,7 @@ export default function MindMapPage({
         description: "",
         content_md: text,
         token: session.access_token,
+        requested_max_depth: requestedMaxDepth,
       });
 
       clearTimeout(stepTimer);
@@ -425,7 +427,7 @@ export default function MindMapPage({
     } finally {
       setGenerating(false);
     }
-  }, [inputText, inputTitle, effectiveKbId, applyResponse, loadVersions]);
+  }, [inputText, inputTitle, effectiveKbId, applyResponse, loadVersions, requestedMaxDepth]);
 
   // Auto-trigger generation when initialText is provided
   useEffect(() => {
@@ -454,14 +456,14 @@ export default function MindMapPage({
     const previousGenId = activeGenerationId;
 
     try {
-      const result = await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+      const result = await regenerateMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token, requested_max_depth: requestedMaxDepth });
       setStep("done");
       setActiveGenerationId(result.generation_id);
       trackEvent({
         event_name: "mindmap_regenerated",
         knowledge_base_id: effectiveKbId,
         generation_id: result.generation_id,
-        properties: { previous_generation_id: previousGenId },
+        properties: { previous_generation_id: previousGenId, requested_max_depth: requestedMaxDepth },
       });
       const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
       applyResponse(latest);
@@ -472,7 +474,7 @@ export default function MindMapPage({
     } finally {
       setGenerating(false);
     }
-  }, [effectiveKbId, applyResponse, loadVersions, activeGenerationId]);
+  }, [effectiveKbId, applyResponse, loadVersions, activeGenerationId, requestedMaxDepth]);
 
   const resetToNew = useCallback(() => {
     setCurrentData(null);
@@ -744,6 +746,28 @@ export default function MindMapPage({
               </div>
             )}
             {errorMsg && <div className="mm-status mm-status-error">{errorMsg}</div>}
+
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <label style={{ fontSize: "13px", color: "#4A4541", whiteSpace: "nowrap" }}>最大层数</label>
+              <select
+                value={requestedMaxDepth}
+                onChange={(e) => setRequestedMaxDepth(Number(e.target.value))}
+                style={{
+                  padding: "6px 12px",
+                  fontSize: "13px",
+                  borderRadius: "8px",
+                  border: "1px solid #E0D6CF",
+                  background: "#FFFCF9",
+                  color: "#171513",
+                  cursor: "pointer",
+                }}
+              >
+                <option value={3}>3 层</option>
+                <option value={4}>4 层</option>
+                <option value={5}>5 层</option>
+                <option value={6}>6 层</option>
+              </select>
+            </div>
 
             <button
               className="mm-btn-generate"

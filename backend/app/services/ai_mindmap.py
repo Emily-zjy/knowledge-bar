@@ -69,6 +69,18 @@ def _fallback_mind_map(payload: GenerateMindMapRequest) -> GenerateMindMapResult
 
 def _build_prompt(payload: GenerateMindMapRequest, version: str | None = None) -> list[dict[str, str]]:
     system = get_mindmap_prompt(version or settings.ai_prompt_version)
+    max_depth = payload.requested_max_depth
+    depth_instruction = (
+        f"\n\nDepth constraint: the mind map must have at most {max_depth} levels, "
+        f"where the root node counts as level 1. "
+        f"Organize knowledge using the real semantic relationships in the source text. "
+        f"You may produce fewer than {max_depth} levels if the content is simple. "
+        f"When the content contains genuine containment, classification, causal chains, "
+        f"sub-concepts, or compositional relationships, expand deeper levels naturally. "
+        f"Do NOT create meaningless nodes just to reach the maximum depth. "
+        f"Final tree depth must not exceed {max_depth}."
+    )
+    system = system + depth_instruction
     user = (
         f"Knowledge base title: {payload.title}\n"
         f"Description: {payload.description or 'None'}\n"
@@ -117,7 +129,7 @@ def _assert_depth(data: MindMapData, max_depth: int = 6) -> None:
     walk(root.id, 1, set())
 
 
-def _normalize_mind_map(raw: dict, fallback_title: str) -> MindMapData:
+def _normalize_mind_map(raw: dict, fallback_title: str, max_depth: int = 6) -> MindMapData:
     try:
         data = MindMapData.model_validate({"title": raw.get("title") or fallback_title, "nodes": raw.get("nodes") or []})
     except ValidationError as exc:
@@ -139,14 +151,14 @@ def _normalize_mind_map(raw: dict, fallback_title: str) -> MindMapData:
         if node.parentId is not None and node.parentId not in known_ids:
             raise MindMapGenerationError("AI_INVALID_SCHEMA", "AI mind map contains an invalid parentId.")
 
-    _assert_depth(data)
+    _assert_depth(data, max_depth)
     return data
 
 
-def _normalize_with_repair(raw: dict, fallback_title: str) -> tuple[MindMapData, bool, list[str]]:
+def _normalize_with_repair(raw: dict, fallback_title: str, max_depth: int = 6) -> tuple[MindMapData, bool, list[str]]:
     """Try normal validation first; on failure, attempt schema repair."""
     try:
-        data = _normalize_mind_map(raw, fallback_title)
+        data = _normalize_mind_map(raw, fallback_title, max_depth)
         return data, False, []
     except MindMapGenerationError:
         pass
@@ -156,7 +168,7 @@ def _normalize_with_repair(raw: dict, fallback_title: str) -> tuple[MindMapData,
         raise MindMapGenerationError("SCHEMA_REPAIR_FAILED", "Schema repair could not fix the output.")
 
     try:
-        data = _normalize_mind_map(repair_result.data, fallback_title)
+        data = _normalize_mind_map(repair_result.data, fallback_title, max_depth)
         return data, True, repair_result.repairs
     except MindMapGenerationError as exc:
         raise MindMapGenerationError(
@@ -286,7 +298,7 @@ def generate_mind_map(
         raise
 
     try:
-        mind_map, repaired, repair_actions = _normalize_with_repair(raw, payload.title)
+        mind_map, repaired, repair_actions = _normalize_with_repair(raw, payload.title, payload.requested_max_depth)
     except MindMapGenerationError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
         exc.latency_ms = elapsed_ms

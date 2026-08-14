@@ -25,6 +25,7 @@ from app.models.ai import (
     MindMapVersionItem,
     MindMapVersionsResponse,
     PatchMindMapRequest,
+    RegenerateMindMapRequest,
 )
 from app.services.ai_mindmap import MindMapGenerationError, generate_mind_map
 from app.services.auth import AuthError, verify_required_supabase_jwt
@@ -228,6 +229,7 @@ def generate_mindmap(
 @router.post("/mindmap/{knowledge_base_id}/regenerate", response_model=None)
 def regenerate_mindmap(
     knowledge_base_id: str,
+    body: RegenerateMindMapRequest | None = None,
     authorization: str | None = Header(default=None),
 ) -> ApiResponse[GenerateMindMapResult] | JSONResponse:
     job_id: str | None = None
@@ -239,6 +241,7 @@ def regenerate_mindmap(
         if not content_md:
             return _api_error(422, "EMPTY_CONTENT", "Knowledge content cannot be empty.")
 
+        requested_depth = body.requested_max_depth if body else 5
         job = supabase_store.create_generation_job(user_id, knowledge_base_id, "running")
         job_id = str(job["id"])
         generation_payload = GenerateMindMapRequest(
@@ -246,6 +249,7 @@ def regenerate_mindmap(
             title=str(kb.get("name") or "Untitled"),
             description=str(kb.get("description") or ""),
             content_md=content_md,
+            requested_max_depth=requested_depth,
         )
         result = generate_mind_map(payload=generation_payload, authorization=authorization, guest_session_id=None)
         result.generation_id = job_id

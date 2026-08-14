@@ -23,6 +23,7 @@ class GenerateMindMapRequest(BaseModel):
     title: str = Field(min_length=1, max_length=120)
     description: str = Field(default="", max_length=500)
     content_md: str = Field(min_length=1, max_length=120_000)
+    requested_max_depth: int = Field(default=5, ge=3, le=6)
 
 
 class MindMapNode(BaseModel):
@@ -102,6 +103,10 @@ class NodeUpdate(BaseModel):
 class PatchMindMapRequest(BaseModel):
     title: str | None = Field(default=None, max_length=120)
     update_node: NodeUpdate | None = None
+
+
+class RegenerateMindMapRequest(BaseModel):
+    requested_max_depth: int = Field(default=5, ge=3, le=6)
 
 
 class SupabaseRow(BaseModel):
