@@ -19,7 +19,7 @@ type AnalyticsEvent = {
   properties?: Record<string, unknown>;
 };
 
-let buffer: Array<{
+const buffer: Array<{
   session_id: string;
   event_name: string;
   knowledge_base_id: string | null;

@@ -1,8 +1,11 @@
 export type UserMode = "guest" | "authenticated";
 
+export type KnowledgeBaseOrigin = "guest" | "cloud";
+
 export type KnowledgeBase = {
   id: string;
   user_id?: string;
+  origin: KnowledgeBaseOrigin;
   name: string;
   description: string;
   color: string;

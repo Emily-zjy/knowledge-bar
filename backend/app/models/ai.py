@@ -40,10 +40,13 @@ class MindMapData(BaseModel):
 
 class GenerationMetadata(BaseModel):
     input_length: int = 0
+    requested_depth: int = 0
     input_tokens: int | None = None
     output_tokens: int | None = None
     retry_count: int = 0
     schema_repair_count: int = 0
+    repair_attempted: bool = False
+    repair_success: bool = False
     latency_ms: int = 0
     node_count: int = 0
     tree_depth: int = 0
@@ -69,8 +72,13 @@ class GenerationJobResponse(BaseModel):
     status: str
     error_code: str | None = None
     error_message: str | None = None
+    error_stage: str | None = None
     model_name: str | None = None
     prompt_version: str | None = None
+    requested_depth: int | None = None
+    tree_depth: int | None = None
+    repair_attempted: bool | None = None
+    repair_success: bool | None = None
     created_at: str | None = None
     updated_at: str | None = None
 

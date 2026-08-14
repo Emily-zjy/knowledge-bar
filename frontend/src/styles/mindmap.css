@@ -996,7 +996,8 @@
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(23, 21, 19, 0.34);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1004,36 +1005,34 @@
 }
 
 .mm-confirm-sheet {
-  background: #292524;
-  border: 1px solid #44403c;
-  border-radius: 16px;
-  padding: 24px;
+  background: #fffcf9;
+  border: 1px solid #e7dfd8;
+  border-radius: 20px;
+  padding: 22px;
   width: 100%;
   max-width: 360px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 24px 70px rgba(23, 21, 19, 0.2);
 }
 
 .mm-confirm-title {
   font-size: 18px;
   font-weight: 700;
-  color: #fffaf3;
-  margin: 0 0 16px;
+  color: #171513;
+  margin: 0 0 6px;
 }
 
 .mm-confirm-label {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 250, 243, 0.6);
-  margin: 0 0 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: #77716c;
+  margin: 0 0 14px;
 }
 
 .mm-depth-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .mm-depth-option {
@@ -1041,11 +1040,13 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 12px 8px;
-  border: 1.5px solid rgba(255, 250, 243, 0.15);
-  border-radius: 10px;
-  background: transparent;
-  color: rgba(255, 250, 243, 0.8);
+  min-width: 0;
+  min-height: 66px;
+  padding: 10px 6px;
+  border: 1px solid #ded9d4;
+  border-radius: 12px;
+  background: #fff;
+  color: #4a4541;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -1053,24 +1054,25 @@
 }
 
 .mm-depth-option:hover {
-  border-color: rgba(255, 250, 243, 0.3);
-  background: rgba(255, 250, 243, 0.04);
+  border-color: #ff9a60;
+  background: #fff8f3;
 }
 
 .mm-depth-option--active {
-  border-color: #F97316;
-  background: rgba(249, 115, 22, 0.1);
-  color: #F97316;
+  border-color: #ff6a1a;
+  background: #fff3ea;
+  color: #e9510e;
+  box-shadow: 0 0 0 2px rgba(255, 106, 26, 0.1);
 }
 
 .mm-depth-hint {
   font-size: 11px;
   font-weight: 400;
-  color: rgba(255, 250, 243, 0.5);
+  color: #8f8882;
 }
 
 .mm-depth-option--active .mm-depth-hint {
-  color: rgba(249, 115, 22, 0.7);
+  color: #e9510e;
 }
 
 .mm-confirm-actions {
@@ -1081,17 +1083,17 @@
 .mm-confirm-cancel {
   flex: 1;
   padding: 12px;
-  border: 1px solid rgba(255, 250, 243, 0.15);
+  border: 1px solid #ded9d4;
   border-radius: 10px;
-  background: transparent;
-  color: rgba(255, 250, 243, 0.75);
+  background: #fff;
+  color: #4a4541;
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .mm-confirm-cancel:hover {
-  background: rgba(255, 250, 243, 0.04);
+  background: #f8f7f5;
 }
 
 .mm-confirm-submit {
@@ -1112,8 +1114,50 @@
 }
 
 .mm-confirm-submit:disabled {
-  opacity: 0.5;
+  background: #e7dfd8;
+  color: #9b948e;
+  opacity: 1;
   cursor: not-allowed;
+}
+
+.mm-toolbar-actions {
+  position: relative;
+  align-items: center;
+}
+
+.mm-edit-hint {
+  color: #77716c;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.mm-toolbar-actions .mm-btn-more {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+  font-size: 20px;
+}
+
+.mm-more-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 30;
+  display: grid;
+  width: 172px;
+  padding: 6px;
+  border: 1px solid #ded9d4;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 44px rgba(23, 21, 19, 0.16);
+}
+
+.mm-toolbar-actions .mm-more-menu button {
+  width: 100%;
+  justify-content: flex-start;
+  border: 0;
+  background: transparent;
+  text-align: left;
 }
 
 /* Mobile bottom-sheet style for generate confirm */
@@ -1125,7 +1169,11 @@
 
   .mm-confirm-sheet {
     max-width: 100%;
-    border-radius: 16px 16px 0 0;
+    border-radius: 22px 22px 0 0;
     padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mm-depth-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

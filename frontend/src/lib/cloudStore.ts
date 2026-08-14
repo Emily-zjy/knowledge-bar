@@ -71,6 +71,7 @@ export async function listCloudKnowledgeBases(userId: string): Promise<Knowledge
   return (bases || []).map((item) => ({
     id: item.id,
     user_id: item.user_id,
+    origin: "cloud" as const,
     name: item.name,
     description: item.description || "",
     color: item.color || "#ff6d29",
@@ -81,28 +82,74 @@ export async function listCloudKnowledgeBases(userId: string): Promise<Knowledge
   }));
 }
 
-export async function saveCloudKnowledgeBase(kb: KnowledgeBase, userId: string): Promise<void> {
+function cloudKnowledgeBasePayload(kb: KnowledgeBase, userId: string) {
+  return {
+    id: kb.id,
+    user_id: userId,
+    name: kb.name,
+    description: kb.description,
+    color: kb.color,
+    content_md: kb.content_md,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export async function createCloudKnowledgeBase(kb: KnowledgeBase, userId: string): Promise<void> {
   const client = assertClient();
-  const timestamp = new Date().toISOString();
-  const { error } = await client.from("knowledge_bases").upsert(
-    {
-      id: kb.id,
-      user_id: userId,
-      name: kb.name,
-      description: kb.description,
-      color: kb.color,
-      content_md: kb.content_md,
-      updated_at: timestamp,
-    },
-    { onConflict: "id" },
-  );
+  let createdNow = true;
+  const { error } = await client.from("knowledge_bases").insert(cloudKnowledgeBasePayload(kb, userId));
+  if (error) {
+    if (error.code !== "23505") throw error;
+    createdNow = false;
+
+    const { data: existing, error: readError } = await client
+      .from("knowledge_bases")
+      .select("id")
+      .eq("id", kb.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (readError || !existing) throw error;
+  }
+
+  try {
+    await replaceCloudTags(kb.id, userId, kb.tags || []);
+  } catch (tagError) {
+    if (createdNow) {
+      await client.from("knowledge_bases").delete().eq("id", kb.id).eq("user_id", userId);
+    }
+    throw tagError;
+  }
+}
+
+export async function updateCloudKnowledgeBase(kb: KnowledgeBase, userId: string): Promise<void> {
+  const client = assertClient();
+  const changes = {
+    name: kb.name,
+    description: kb.description,
+    color: kb.color,
+    content_md: kb.content_md,
+    updated_at: new Date().toISOString(),
+  };
+  const { data, error } = await client
+    .from("knowledge_bases")
+    .update(changes)
+    .eq("id", kb.id)
+    .eq("user_id", userId)
+    .select("id");
   if (error) throw error;
+  if (!data?.length) {
+    throw new Error("该知识库已在其他设备删除，请刷新列表。未重新创建旧数据。");
+  }
   await replaceCloudTags(kb.id, userId, kb.tags || []);
 }
 
-export async function deleteCloudKnowledgeBase(id: string): Promise<void> {
+export async function deleteCloudKnowledgeBase(id: string, userId: string): Promise<void> {
   const client = assertClient();
-  const { error } = await client.from("knowledge_bases").delete().eq("id", id);
+  const { error } = await client
+    .from("knowledge_bases")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw error;
 }
 

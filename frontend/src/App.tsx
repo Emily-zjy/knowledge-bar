@@ -11,19 +11,32 @@ import { Routes, Route, useNavigate, useParams, useLocation } from "react-router
 import type { Session } from "@supabase/supabase-js";
 import { exportWordDocument } from "./lib/api";
 import {
+  createCloudKnowledgeBase,
+  deleteCloudKnowledgeBase,
   getCloudSession,
   listCloudKnowledgeBases,
-  saveCloudKnowledgeBase,
   signInWithEmail,
   signOutCloud,
   signUpWithEmail,
+  updateCloudKnowledgeBase,
   uploadCloudAttachment,
 } from "./lib/cloudStore";
 import {
+  deleteGuestKnowledgeBase,
   listGuestKnowledgeBases,
   saveGuestKnowledgeBase,
 } from "./lib/guestStore";
+import {
+  createKnowledgeBaseRecord,
+  deleteKnowledgeBaseRecord,
+  knowledgeBaseScope,
+  listKnowledgeBases,
+  selectionStorageKey,
+  updateKnowledgeBaseRecord,
+  type KnowledgeBaseRepositories,
+} from "./lib/knowledgeBaseRepository";
 import { hasSupabaseConfig, supabase } from "./lib/supabase";
+import { setAnalyticsToken, trackEvent } from "./lib/analytics";
 import MindMapPage from "./pages/MindMapPage";
 import FloatingLines from "./components/FloatingLines";
 import GlareHover from "./components/GlareHover";
@@ -49,12 +62,21 @@ type AppLocationState = {
 
 const now = () => new Date().toISOString();
 const defaultColor = "#ff6d29";
+const knowledgeBaseRepositories: KnowledgeBaseRepositories = {
+  listGuest: listGuestKnowledgeBases,
+  listCloud: listCloudKnowledgeBases,
+  saveGuest: saveGuestKnowledgeBase,
+  deleteGuest: deleteGuestKnowledgeBase,
+  createCloud: createCloudKnowledgeBase,
+  updateCloud: updateCloudKnowledgeBase,
+  deleteCloud: deleteCloudKnowledgeBase,
+};
 
 function translateAuthError(msg: string): string {
   if (!msg) return "操作失败，请稍后重试。";
   const lower = msg.toLowerCase();
   if (lower.includes("invalid login credentials") || lower.includes("invalid_credentials"))
-    return "邮箱或密码错误，请重新输入。";
+    return "邮箱或密码不正确。";
   if (lower.includes("email not confirmed"))
     return "邮箱尚未确认，请检查收件箱。";
   if (lower.includes("user already registered") || lower.includes("already been registered"))
@@ -64,7 +86,7 @@ function translateAuthError(msg: string): string {
   if (lower.includes("rate limit") || lower.includes("too many"))
     return "请求过于频繁，请稍后再试。";
   if (lower.includes("network") || lower.includes("fetch"))
-    return "网络连接失败，请检查网络后重试。";
+    return "网络异常，请重试。";
   if (lower.includes("signup") && lower.includes("disabled"))
     return "当前未开放注册，请联系管理员。";
   return msg;
@@ -192,10 +214,17 @@ function splitTags(value: string): string[] {
     .filter(Boolean);
 }
 
-function createKnowledgeBase(input: { name: string; description: string; tags: string }): KnowledgeBase {
+function createKnowledgeBase(input: {
+  id: string;
+  origin: KnowledgeBase["origin"];
+  name: string;
+  description: string;
+  tags: string;
+}): KnowledgeBase {
   const timestamp = now();
   return {
-    id: crypto.randomUUID(),
+    id: input.id,
+    origin: input.origin,
     name: input.name,
     description: input.description,
     color: defaultColor,
@@ -229,9 +258,6 @@ function MindMapRoute() {
   const handleBack = () => {
     if (routeState.from === "detail") {
       sessionStorage.setItem("kb_page", "detail");
-      if (routeState.knowledgeBaseId) {
-        sessionStorage.setItem("kb_current_id", routeState.knowledgeBaseId);
-      }
       navigate("/", {
         replace: true,
         state: { page: "detail", currentId: routeState.knowledgeBaseId } satisfies AppLocationState,
@@ -293,15 +319,17 @@ function AppShell() {
     return saved && saved !== "login" && saved !== "register" ? saved : "login";
   });
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
-  const [currentId, setCurrentId] = useState<string | null>(() => sessionStorage.getItem("kb_current_id"));
+  const [currentId, setCurrentId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileEditorMenuOpen, setMobileEditorMenuOpen] = useState(false);
   const [guestDraftContent, setGuestDraftContent] = useState("");
   const [guestDraftTags, setGuestDraftTags] = useState<string[]>([]);
   const [selectedDocText, setSelectedDocText] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const docEditorRef = useRef<HTMLDivElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
@@ -316,7 +344,6 @@ function AppShell() {
   const [registerForm, setRegisterForm] = useState({
     email: "",
     password: "",
-    confirmPassword: "",
   });
   const [createForm, setCreateForm] = useState({
     name: "",
@@ -325,9 +352,12 @@ function AppShell() {
   });
   const [isCreating, setIsCreating] = useState(false);
   const createIntentIdRef = useRef<string | null>(null);
+  const pendingCreateRef = useRef<{ fingerprint: string; id: string } | null>(null);
+  const deleteIntentIdRef = useRef<string | null>(null);
+  const knowledgeBaseLoadEpochRef = useRef(0);
 
   useEffect(() => {
-    bootstrapSession();
+    void bootstrapSession();
   }, []);
 
   useEffect(() => {
@@ -338,37 +368,62 @@ function AppShell() {
     sessionStorage.setItem("kb_page", navState.page);
     if (navState.currentId) {
       setCurrentId(navState.currentId);
-      sessionStorage.setItem("kb_current_id", navState.currentId);
     }
   }, [location.state]);
 
   async function bootstrapSession() {
+    let savedSession: Session | null = null;
     try {
-      const savedSession = await getCloudSession();
-      setSession(savedSession);
-      await refreshKnowledgeBases(savedSession?.user.id);
-      if (savedSession?.user.id) loadAvatar(savedSession.user.id);
+      savedSession = await getCloudSession();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "云端会话读取失败，已切换游客模式。");
-      await refreshKnowledgeBases();
+      setSession(null);
+      setAnalyticsToken(null);
+      setMessage(error instanceof Error ? error.message : "云端会话读取失败，已进入游客模式。");
+      await refreshKnowledgeBases(null);
+      return;
+    }
+
+    setSession(savedSession);
+    setAnalyticsToken(savedSession?.access_token || null);
+    if (!savedSession) {
+      await refreshKnowledgeBases(null);
+      return;
+    }
+
+    setKnowledgeBases([]);
+    setCurrentId(null);
+    try {
+      await refreshKnowledgeBases(savedSession.user.id);
+      void loadAvatar(savedSession.user.id);
+    } catch (error) {
+      setKnowledgeBases([]);
+      setCurrentId(null);
+      setMessage(error instanceof Error ? error.message : "云端知识库读取失败，请重试。");
     }
   }
 
-  async function refreshKnowledgeBases(targetUserId: string | null | undefined = session?.user.id) {
-    const items =
-      hasSupabaseConfig && targetUserId
-        ? await listCloudKnowledgeBases(targetUserId)
-        : await listGuestKnowledgeBases();
+  async function refreshKnowledgeBases(targetUserId: string | null) {
+    const loadEpoch = ++knowledgeBaseLoadEpochRef.current;
+    const scope = knowledgeBaseScope(hasSupabaseConfig ? targetUserId : null);
+    const items = await listKnowledgeBases(scope, knowledgeBaseRepositories);
+    if (loadEpoch !== knowledgeBaseLoadEpochRef.current) return;
+
     setKnowledgeBases(items);
-    if (!currentId && items[0]) {
-      const savedCurrentId = sessionStorage.getItem("kb_current_id");
-      const restoredItem = items.find((item) => item.id === savedCurrentId);
-      setCurrentId(restoredItem?.id ?? items[0].id);
+    const storageKey = selectionStorageKey(scope);
+    const savedCurrentId = sessionStorage.getItem(storageKey);
+    const nextCurrentId = items.find((item) => item.id === savedCurrentId)?.id ?? items[0]?.id ?? null;
+    setCurrentId(nextCurrentId);
+    if (nextCurrentId) {
+      sessionStorage.setItem(storageKey, nextCurrentId);
+    } else {
+      sessionStorage.removeItem(storageKey);
     }
   }
 
   function showPage(next: PageId) {
     setMessage("");
+    setMobileSidebarOpen(false);
+    setMobileEditorMenuOpen(false);
     setPage(next);
     sessionStorage.setItem("kb_page", next);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -421,10 +476,40 @@ function AppShell() {
   }, [currentId, docContent, page]);
 
   async function persistKnowledgeBase(kb: KnowledgeBase) {
-    if (isCloudMode && activeUserId) {
-      await saveCloudKnowledgeBase(kb, activeUserId);
-    } else {
-      await saveGuestKnowledgeBase(kb);
+    await updateKnowledgeBaseRecord(
+      knowledgeBaseScope(isCloudMode ? activeUserId : null),
+      kb,
+      knowledgeBaseRepositories,
+    );
+  }
+
+  async function handlePersistenceFailure(error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "保存失败，请重试。";
+    setMessage(errorMessage);
+    if (!isCloudMode || !activeUserId || !errorMessage.includes("已在其他设备删除")) return;
+
+    const scope = knowledgeBaseScope(activeUserId);
+    setCurrentId(null);
+    sessionStorage.removeItem(selectionStorageKey(scope));
+    try {
+      await refreshKnowledgeBases(activeUserId);
+      showPage("dashboard");
+    } catch {
+      setKnowledgeBases([]);
+    }
+  }
+
+  async function renameCurrentKnowledgeBase() {
+    if (!currentKb) return;
+    const newName = window.prompt("重命名知识库", currentKb.name);
+    if (!newName || !newName.trim() || newName.trim() === currentKb.name) return;
+    const updated = { ...currentKb, name: newName.trim(), updated_at: now() };
+    try {
+      await persistKnowledgeBase(updated);
+      setKnowledgeBases((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+      setMessage("已重命名");
+    } catch (error) {
+      await handlePersistenceFailure(error);
     }
   }
 
@@ -459,6 +544,10 @@ function AppShell() {
 
 
   async function handleLogin() {
+    if (!/^\S+@\S+\.\S+$/.test(loginForm.email.trim())) {
+      setMessage("请输入正确邮箱。");
+      return;
+    }
     if (!hasSupabaseConfig) {
       setMessage("当前未配置 Supabase，已使用游客模式体验。");
       showPage("dashboard");
@@ -466,7 +555,10 @@ function AppShell() {
     }
     try {
       const nextSession = await signInWithEmail(loginForm.email.trim(), loginForm.password);
+      setKnowledgeBases([]);
+      setCurrentId(null);
       setSession(nextSession);
+      setAnalyticsToken(nextSession.access_token);
       await refreshKnowledgeBases(nextSession.user.id);
       showPage("dashboard");
     } catch (error) {
@@ -476,8 +568,8 @@ function AppShell() {
   }
 
   async function handleRegister() {
-    if (registerForm.password !== registerForm.confirmPassword) {
-      setMessage("两次输入的密码不一致。");
+    if (!/^\S+@\S+\.\S+$/.test(registerForm.email.trim())) {
+      setMessage("请输入正确邮箱。");
       return;
     }
     if (registerForm.password.length < 6) {
@@ -491,12 +583,15 @@ function AppShell() {
     try {
       const nextSession = await signUpWithEmail(registerForm.email.trim(), registerForm.password);
       if (!nextSession) {
-        setMessage("注册成功！请检查邮箱确认后登录。");
+        setMessage("账号已创建，但当前 Supabase 项目仍要求邮箱确认。请检查邮箱后登录。");
         setPage("login");
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
+      setKnowledgeBases([]);
+      setCurrentId(null);
       setSession(nextSession);
+      setAnalyticsToken(nextSession.access_token);
       await refreshKnowledgeBases(nextSession.user.id);
       showPage("dashboard");
     } catch (error) {
@@ -507,8 +602,12 @@ function AppShell() {
 
   async function handleSignOut() {
     try {
+      ++knowledgeBaseLoadEpochRef.current;
       await signOutCloud();
       setSession(null);
+      setAnalyticsToken(null);
+      setKnowledgeBases([]);
+      setCurrentId(null);
       await refreshKnowledgeBases(null);
       showPage("login");
     } catch (error) {
@@ -526,25 +625,86 @@ function AppShell() {
     setIsCreating(true);
     setMessage("");
     const intentId = createIntentIdRef.current;
+    const scope = knowledgeBaseScope(isCloudMode ? activeUserId : null);
+    const fingerprint = JSON.stringify({
+      mode: scope.mode,
+      userId: scope.mode === "authenticated" ? scope.userId : null,
+      name: createForm.name.trim(),
+      description: createForm.description.trim(),
+      tags: splitTags(createForm.tags),
+    });
+    if (!pendingCreateRef.current || pendingCreateRef.current.fingerprint !== fingerprint) {
+      pendingCreateRef.current = { fingerprint, id: crypto.randomUUID() };
+    }
     const kb = createKnowledgeBase({
+      id: pendingCreateRef.current.id,
+      origin: scope.mode === "authenticated" ? "cloud" : "guest",
       name: createForm.name.trim(),
       description: createForm.description.trim(),
       tags: createForm.tags,
     });
+    trackEvent({
+      event_name: "knowledge_base_create_clicked",
+      knowledge_base_id: kb.id,
+      properties: { mode: scope.mode, name_length: kb.name.length },
+    });
     try {
-      await persistKnowledgeBase(kb);
+      await createKnowledgeBaseRecord(scope, kb, knowledgeBaseRepositories);
       if (createIntentIdRef.current !== intentId) return;
       setCurrentId(kb.id);
-      sessionStorage.setItem("kb_current_id", kb.id);
+      sessionStorage.setItem(selectionStorageKey(scope), kb.id);
       setKnowledgeBases((items) => [kb, ...items]);
       setCreateForm({ name: "", description: "", tags: "" });
+      pendingCreateRef.current = null;
+      trackEvent({
+        event_name: "knowledge_base_create_succeeded",
+        knowledge_base_id: kb.id,
+        properties: { mode: scope.mode },
+      });
       showPage("detail");
     } catch (error) {
       if (createIntentIdRef.current !== intentId) return;
+      trackEvent({
+        event_name: "knowledge_base_create_failed",
+        knowledge_base_id: kb.id,
+        properties: { mode: scope.mode, error_type: error instanceof Error ? error.name : "unknown" },
+      });
       setMessage(error instanceof Error ? error.message : "创建失败，请重试。");
     } finally {
       createIntentIdRef.current = null;
       setIsCreating(false);
+    }
+  }
+
+  async function confirmDeleteKnowledgeBase() {
+    const id = deleteConfirmId;
+    if (!id || deleteIntentIdRef.current) return;
+    deleteIntentIdRef.current = id;
+    setIsDeleting(true);
+    setMessage("");
+    const scope = knowledgeBaseScope(isCloudMode ? activeUserId : null);
+
+    try {
+      const result = await deleteKnowledgeBaseRecord(scope, id, knowledgeBaseRepositories);
+      setKnowledgeBases((items) => items.filter((kb) => kb.id !== id));
+      if (currentId === id) {
+        setCurrentId(null);
+        sessionStorage.removeItem(selectionStorageKey(scope));
+      }
+      setDeleteConfirmId(null);
+      setMessage(result.localCleanupFailed ? "云端已删除；本地缓存清理失败，但不会重新上传。" : "知识库已删除。");
+      if (result.staleLocalCacheDiscarded && scope.mode === "authenticated") {
+        trackEvent({
+          event_name: "stale_local_cache_discarded",
+          knowledge_base_id: id,
+          properties: { reason: "cloud_delete" },
+        });
+      }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "删除失败，请重试。");
+    } finally {
+      deleteIntentIdRef.current = null;
+      setIsDeleting(false);
     }
   }
 
@@ -602,14 +762,18 @@ function AppShell() {
     }
     const tag = selected.slice(0, 18);
     const nextTags = Array.from(new Set([...currentTags, tag]));
-    if (currentKb) {
-      const updated = { ...currentKb, tags: nextTags, updated_at: now() };
-      await persistKnowledgeBase(updated);
-      setKnowledgeBases((items) => items.map((item) => (item.id === updated.id ? updated : item)));
-    } else {
-      setGuestDraftTags(nextTags);
+    try {
+      if (currentKb) {
+        const updated = { ...currentKb, tags: nextTags, updated_at: now() };
+        await persistKnowledgeBase(updated);
+        setKnowledgeBases((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+      } else {
+        setGuestDraftTags(nextTags);
+      }
+      setMessage("标签已添加到当前知识库。");
+    } catch (error) {
+      await handlePersistenceFailure(error);
     }
-    setMessage("标签已添加到当前知识库。");
   }
 
 
@@ -629,7 +793,7 @@ function AppShell() {
     if (!editor) return;
     const nextContent = editorElementToMarkdown(editor);
     lastEditorContentRef.current = nextContent;
-    void saveCurrentContent(nextContent);
+    void saveCurrentContent(nextContent).catch((error) => void handlePersistenceFailure(error));
   }
 
   function getImageFigure(target: EventTarget | null) {
@@ -890,7 +1054,7 @@ function AppShell() {
   }
 
   return (
-    <div className={`shell ${page === "login" || page === "register" ? "" : "app-theme"}`}>
+    <div className={`shell ${page === "login" || page === "register" ? "" : "app-theme"} ${page === "detail" ? "shell--editor" : ""}`}>
       <header className="global-header">
         <button type="button" className="brand reset-button" onClick={() => showPage("dashboard")}>
           <div className="brand-mark">
@@ -981,10 +1145,9 @@ function AppShell() {
               </section>
               <section className="login-panel login-panel--entry">
                 <h2 className="panel-title login-panel-title">
-                  <span className="login-panel-title__lead">进入</span>
                   <span className="login-panel-title__brand">Knowledge Bar</span>
                 </h2>
-                <p className="panel-desc">邮箱密码登录。也可以先跳过体验，登录后再保存到云端。</p>
+                <p className="panel-desc">使用邮箱和密码登录。</p>
                 <div className="field">
                   <label htmlFor="login-email">邮箱</label>
                   <input
@@ -1005,6 +1168,7 @@ function AppShell() {
                     onChange={(event) =>
                       setLoginForm({ ...loginForm, password: event.target.value })
                     }
+                    onKeyDown={(event) => { if (event.key === "Enter") void handleLogin(); }}
                   />
                 </div>
                 {message && <div className="status">{message}</div>}
@@ -1013,7 +1177,7 @@ function AppShell() {
                     登录
                   </button>
                   <button type="button" className="ghost" onClick={() => showPage("dashboard")}>
-                    跳过体验
+                    游客体验
                   </button>
                 </div>
                 <div className="hint-link">
@@ -1102,9 +1266,9 @@ function AppShell() {
                   transitionDuration={800}
                   className="panel-title-glare"
                 >
-                  <h2 className="panel-title">创建账号</h2>
+                  <h2 className="panel-title">Knowledge Bar</h2>
                 </GlareHover>
-                <p className="panel-desc">只需要邮箱和密码。</p>
+                <p className="panel-desc">创建账号</p>
                 <div className="field">
                   <label htmlFor="register-email">邮箱</label>
                   <input
@@ -1129,22 +1293,10 @@ function AppShell() {
                     }
                   />
                 </div>
-                <div className="field">
-                  <label htmlFor="register-confirm">确认密码</label>
-                  <input
-                    id="register-confirm"
-                    type="password"
-                    value={registerForm.confirmPassword}
-                    placeholder="再次输入密码"
-                    onChange={(event) =>
-                      setRegisterForm({ ...registerForm, confirmPassword: event.target.value })
-                    }
-                  />
-                </div>
                 {message && <div className="status">{message}</div>}
                 <div className="button-row">
                   <button type="button" className="primary" onClick={handleRegister}>
-                    注册并登录
+                    创建账号
                   </button>
                   <button type="button" onClick={() => showPage("login")}>
                     返回登录
@@ -1336,7 +1488,10 @@ function AppShell() {
                           style={{ ["--card-color" as string]: item.color }}
                           onClick={() => {
                             setCurrentId(item.id);
-                            sessionStorage.setItem("kb_current_id", item.id);
+                            sessionStorage.setItem(
+                              selectionStorageKey(knowledgeBaseScope(isCloudMode ? activeUserId : null)),
+                              item.id,
+                            );
                             showPage("detail");
                           }}
                         >
@@ -1364,7 +1519,7 @@ function AppShell() {
                             <span>{item.content_md.trim().length > 0 ? "已写入内容" : "待补充内容"}</span>
                           </div>
                           <div className="tag-list">
-                            {(item.tags?.length ? item.tags : ["本地草稿"]).map((tag) => (
+                            {(item.tags?.length ? item.tags : [item.origin === "guest" ? "本地草稿" : "云端知识库"]).map((tag) => (
                               <span className="tag" key={tag}>
                                 {tag}
                               </span>
@@ -1412,21 +1567,16 @@ function AppShell() {
                     <button
                       type="button"
                       className="delete-confirm-btn"
-                      onClick={() => {
-                        setKnowledgeBases((items) => items.filter((kb) => kb.id !== deleteConfirmId));
-                        if (currentId === deleteConfirmId) {
-                          setCurrentId(null);
-                          sessionStorage.removeItem("kb_current_id");
-                        }
-                        setDeleteConfirmId(null);
-                      }}
+                      onClick={() => void confirmDeleteKnowledgeBase()}
+                      disabled={isDeleting}
                     >
-                      确认删除
+                      {isDeleting ? "删除中…" : "确认删除"}
                     </button>
                     <button
                       type="button"
                       className="delete-cancel-btn"
                       onClick={() => setDeleteConfirmId(null)}
+                      disabled={isDeleting}
                     >
                       取消
                     </button>
@@ -1544,6 +1694,26 @@ function AppShell() {
                 </button>
               </aside>
               <section className="workspace detail-workspace">
+                <div className="mobile-editor-header">
+                  <button type="button" aria-label="返回知识库" onClick={() => showPage("dashboard")}>←</button>
+                  <strong>{currentKb?.name || "未命名 Knowledge Bar"}</strong>
+                  <button
+                    type="button"
+                    aria-label="更多编辑操作"
+                    aria-expanded={mobileEditorMenuOpen}
+                    onClick={() => setMobileEditorMenuOpen((value) => !value)}
+                  >
+                    ⋯
+                  </button>
+                  {mobileEditorMenuOpen && (
+                    <div className="mobile-editor-menu">
+                      <button type="button" onClick={() => { setMessage(currentKb ? "已保存" : "请先创建知识库"); setMobileEditorMenuOpen(false); }}>保存</button>
+                      <button type="button" onClick={() => { setMobileEditorMenuOpen(false); void renameCurrentKnowledgeBase(); }}>重命名</button>
+                      <button type="button" onClick={() => { setMobileEditorMenuOpen(false); exportMarkdown(); }}>导出 MD</button>
+                      <button type="button" onClick={() => { setMobileEditorMenuOpen(false); exportWord(); }}>导出 Word</button>
+                    </div>
+                  )}
+                </div>
                 <div className="detail-hero">
                   <div>
                     <span className="section-kicker">Knowledge Desk</span>
@@ -1600,15 +1770,7 @@ function AppShell() {
                   <button type="button" className="btn-export" onClick={exportWord}>
                     导出 Word
                   </button>
-                  <button type="button" className="btn-rename" onClick={() => {
-                    if (!currentKb) return;
-                    const newName = window.prompt("重命名知识库", currentKb.name);
-                    if (!newName || !newName.trim() || newName.trim() === currentKb.name) return;
-                    const updated = { ...currentKb, name: newName.trim(), updated_at: now() };
-                    persistKnowledgeBase(updated);
-                    setKnowledgeBases((items) => items.map((item) => (item.id === updated.id ? updated : item)));
-                    setMessage("已重命名");
-                  }}>重命名</button>
+                  <button type="button" className="btn-rename" onClick={() => void renameCurrentKnowledgeBase()}>重命名</button>
                 </div>
                 <p className="muted">
                   像空白 Word 文档一样直接写。选中文字后点击“添加标签”。图片可以通过“添加图片”上传，后续实现时也支持复制图片后粘贴。
@@ -1667,15 +1829,7 @@ function AppShell() {
                     <span className="toolbar-icon">↗</span>
                     <span className="toolbar-label">导出</span>
                   </button>
-                  <button type="button" aria-label="重命名" onClick={() => {
-                    if (!currentKb) return;
-                    const newName = window.prompt("重命名知识库", currentKb.name);
-                    if (!newName || !newName.trim() || newName.trim() === currentKb.name) return;
-                    const updated = { ...currentKb, name: newName.trim(), updated_at: now() };
-                    persistKnowledgeBase(updated);
-                    setKnowledgeBases((items) => items.map((item) => (item.id === updated.id ? updated : item)));
-                    setMessage("已重命名");
-                  }}>
+                  <button type="button" aria-label="重命名" onClick={() => void renameCurrentKnowledgeBase()}>
                     <span className="toolbar-icon">✎</span>
                     <span className="toolbar-label">重命名</span>
                   </button>

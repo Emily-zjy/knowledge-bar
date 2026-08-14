@@ -111,6 +111,35 @@ def test_extract_json_rejects_non_json():
     assert exc.value.code == "AI_INVALID_JSON"
 
 
+def test_generate_retries_invalid_json_once(monkeypatch):
+    monkeypatch.setattr(settings, "ai_provider", "openai_compatible")
+    monkeypatch.setattr(settings, "ai_api_key", "test-key")
+    monkeypatch.setattr(settings, "ai_mock_fallback", False)
+    monkeypatch.setattr(settings, "ai_json_retries", 1)
+    responses = iter([
+        LLMResponse(text="truncated", model="test", latency_ms=10),
+        LLMResponse(
+            text='{"title":"Knowledge","nodes":[{"id":"node-root","parentId":null,"text":"Knowledge","order":0}]}',
+            model="test",
+            latency_ms=11,
+        ),
+    ])
+    calls = 0
+
+    def fake_generate(messages, **kwargs):
+        nonlocal calls
+        calls += 1
+        return next(responses)
+
+    monkeypatch.setattr(ai_mindmap, "llm_generate", fake_generate)
+
+    result = ai_mindmap.generate_mind_map(request_payload(), authorization="Bearer test", guest_session_id=None)
+
+    assert calls == 2
+    assert result.metadata is not None
+    assert result.metadata.retry_count == 1
+
+
 def test_sanitize_json_string():
     assert ai_mindmap._sanitize_json_string('{"a":1,}') == '{"a":1}'
     assert ai_mindmap._sanitize_json_string('[1,2,]') == '[1,2]'

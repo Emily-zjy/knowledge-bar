@@ -2,6 +2,25 @@ import type { GenerateMindMapResponse, MindMapData } from "../types";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
 
+export class ApiRequestError extends Error {
+  constructor(
+    public readonly code: string,
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
+async function readJsonResponse(response: Response): Promise<Record<string, any>> {
+  try {
+    return await response.json();
+  } catch {
+    throw new ApiRequestError("INVALID_API_RESPONSE", "AI 返回结果异常，请重新生成。", response.status);
+  }
+}
+
 async function readApiError(response: Response): Promise<string> {
   try {
     const payload = await response.json();
@@ -24,7 +43,8 @@ export async function generateMindMap(input: {
   description: string;
   content_md: string;
   token: string;
-  requested_max_depth?: number;
+  requested_max_depth: number;
+  signal?: AbortSignal;
 }): Promise<GenerateMindMapResponse> {
   const response = await fetch(`${apiBaseUrl}/api/ai/mindmap/generate`, {
     method: "POST",
@@ -34,14 +54,15 @@ export async function generateMindMap(input: {
       title: input.title,
       description: input.description,
       content_md: input.content_md,
-      requested_max_depth: input.requested_max_depth ?? 5,
+      requested_max_depth: input.requested_max_depth,
     }),
+    signal: input.signal,
   });
 
-  const payload = await response.json();
+  const payload = await readJsonResponse(response);
   if (!response.ok || !payload.success) {
     const message = payload?.error?.message || "生成失败，请稍后重试。";
-    throw new Error(message);
+    throw new ApiRequestError(payload?.error?.code || "REQUEST_FAILED", message, response.status);
   }
 
   return payload.data;
@@ -50,11 +71,12 @@ export async function generateMindMap(input: {
 export async function regenerateMindMap(input: {
   knowledge_base_id: string;
   token: string;
-  requested_max_depth?: number;
+  requested_max_depth: number;
   content_md?: string;
+  signal?: AbortSignal;
 }): Promise<GenerateMindMapResponse> {
   const body: Record<string, unknown> = {
-    requested_max_depth: input.requested_max_depth ?? 5,
+    requested_max_depth: input.requested_max_depth,
   };
   if (input.content_md) {
     body.content_md = input.content_md;
@@ -63,11 +85,16 @@ export async function regenerateMindMap(input: {
     method: "POST",
     headers: authHeaders(input.token, true),
     body: JSON.stringify(body),
+    signal: input.signal,
   });
 
-  const payload = await response.json();
+  const payload = await readJsonResponse(response);
   if (!response.ok || !payload.success) {
-    throw new Error(payload?.error?.message || "重新生成失败，请稍后重试。");
+    throw new ApiRequestError(
+      payload?.error?.code || "REQUEST_FAILED",
+      payload?.error?.message || "重新生成失败，请稍后重试。",
+      response.status,
+    );
   }
   return payload.data;
 }

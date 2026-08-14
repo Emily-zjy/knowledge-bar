@@ -146,10 +146,23 @@
    LOGIN PAGE MOBILE — Readability & Native Feel
    ============================================================ */
 @media (max-width: 640px) {
+  .shell--fullscreen > main {
+    padding-top: 0;
+  }
+
+  .shell:not(.app-theme) .global-header {
+    display: none;
+  }
+
+  .shell:not(.app-theme) > main {
+    min-height: 100dvh;
+    padding-top: 0;
+  }
+
   .hero-slab {
     grid-template-columns: 1fr;
     min-height: 100dvh;
-    align-items: stretch;
+    place-items: center;
     border-radius: 0;
     overflow: hidden;
   }
@@ -163,14 +176,11 @@
   }
 
   .hero-slab__bg {
-    opacity: 0.6;
+    display: none;
   }
 
-  .hero-blue {
-    min-height: auto;
-    padding: 32px 24px 16px;
-    text-align: center;
-    align-items: center;
+  .shell:not(.app-theme) .hero-blue {
+    display: none;
   }
 
   .hero-blue h1 {
@@ -205,13 +215,15 @@
 
   /* Login panel — high contrast, clear hierarchy */
   .login-panel {
-    margin: 0;
-    padding: 28px 24px 36px;
-    border-radius: 0;
-    border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(30, 27, 25, 0.92);
-    backdrop-filter: blur(20px);
+    width: min(100% - 32px, 420px);
+    margin: 16px;
+    padding: 28px 22px;
+    border: 1px solid #e7dfd8;
+    border-radius: 22px;
+    background: rgba(255, 252, 249, 0.96);
+    color: #171513;
+    box-shadow: 0 24px 64px rgba(23, 21, 19, 0.18);
+    backdrop-filter: blur(18px);
   }
 
   .login-panel--entry {
@@ -225,10 +237,37 @@
   .panel-title {
     font-size: 22px;
     margin-bottom: 4px;
+    color: #171513;
   }
 
   .login-panel-title {
     gap: 4px;
+  }
+
+  .login-panel .panel-desc,
+  .login-panel label,
+  .login-panel .hint-link,
+  .login-panel .hint-link span {
+    color: #625c57;
+  }
+
+  .login-panel input {
+    color: #171513;
+    border-color: #ded9d4;
+    background: #fff;
+  }
+
+  .login-panel input::placeholder {
+    color: #9b948e;
+  }
+
+  .login-panel .button-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .login-panel .button-row button {
+    width: 100%;
   }
 
   .login-panel-title__lead {
@@ -347,9 +386,23 @@
    DASHBOARD MOBILE
    ============================================================ */
 @media (max-width: 640px) {
-  /* Hide brand header on inner pages */
-  .app-theme .global-header {
+  /* Keep the navigation header visible where it is the only path to the mobile sidebar. */
+  .app-theme:not(.shell--editor):not(.shell--fullscreen) .global-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 4px 12px;
+  }
+
+  .shell.app-theme.shell--fullscreen .global-header {
     display: none;
+  }
+
+  .shell.app-theme.shell--fullscreen > main {
+    min-height: 100dvh;
+    padding: 0;
   }
 
   .dashboard-hero,
@@ -474,6 +527,31 @@
    4. Bottom toolbar (fixed, icon-based actions)
    ============================================================ */
 @media (max-width: 640px) {
+  .shell--editor .global-header {
+    display: none;
+  }
+
+  .shell.app-theme.shell--editor > main {
+    min-height: 100dvh;
+    padding: 0;
+  }
+
+  .shell.app-theme.shell--editor .page.active,
+  .shell.app-theme.shell--editor .surface.detail-layout,
+  .shell.app-theme.shell--editor .workspace.detail-workspace {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .shell.app-theme.shell--editor .surface.detail-layout {
+    min-height: 100dvh;
+  }
+
   .workspace {
     padding: 0;
   }
@@ -485,9 +563,7 @@
 
   /* Hide the large hero banner on mobile editor — not memo-like */
   .detail-workspace .detail-hero {
-    padding: 14px 16px;
-    border-radius: 0;
-    margin: 0;
+    display: none;
   }
 
   .detail-workspace .detail-hero h1 {
@@ -511,25 +587,61 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 48px);
+    height: 100dvh;
     overflow: hidden;
+  }
+
+  .app-theme .mobile-editor-header {
+    position: relative;
+    z-index: 7;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    align-items: center;
+    min-height: calc(52px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 10px 0;
+    border-bottom: 1px solid #e8e2dc;
+    background: #fffdfa;
+    color: #171513;
+  }
+
+  .mobile-editor-header strong {
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-editor-header > button {
+    border: 0;
+    background: transparent;
+    color: #171513;
+    font-size: 22px;
+  }
+
+  .mobile-editor-menu {
+    position: absolute;
+    top: calc(48px + env(safe-area-inset-top));
+    right: 10px;
+    display: grid;
+    min-width: 148px;
+    padding: 6px;
+    border: 1px solid #e8e2dc;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 44px rgba(23, 21, 19, 0.16);
+  }
+
+  .mobile-editor-menu button {
+    min-height: 40px;
+    border: 0;
+    background: transparent;
+    color: #171513;
+    text-align: left;
   }
 
   /* Editor nav → transformed into compact inline bar + bottom toolbar */
   .app-theme .editor-nav {
-    padding: 8px 16px;
-    margin: 0;
-    border-bottom: 1px solid rgba(68, 64, 60, 0.5);
-    border-radius: 0;
-    gap: 8px;
-    background: rgba(28, 25, 23, 0.95);
-    backdrop-filter: blur(12px);
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    display: none;
   }
 
   .app-theme .editor-nav .nav-title {
@@ -1044,7 +1156,7 @@
   .mm-canvas-panel {
     margin: 0;
     border-radius: 0;
-    min-height: calc(100dvh - 48px);
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
   }
@@ -1057,11 +1169,11 @@
   .mm-toolbar {
     padding: 10px 12px;
     flex-direction: row;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 6px;
     border-bottom: 1px solid rgba(68, 64, 60, 0.5);
-    background: rgba(28, 25, 23, 0.95);
+    background: rgba(255, 252, 249, 0.96);
     backdrop-filter: blur(12px);
   }
 
@@ -1076,24 +1188,28 @@
 
   .mm-toolbar-actions {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
-    width: 100%;
+    width: auto;
   }
 
   .mm-toolbar-actions button {
     min-height: 38px;
     font-size: 12px;
     padding: 6px 10px;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     border-radius: 8px;
   }
 
   .mm-toolbar-actions .mm-btn-regen {
-    flex: 1 1 100%;
+    flex: 0 0 auto;
     font-weight: 600;
     background: rgba(255, 109, 41, 0.12);
     border-color: rgba(255, 109, 41, 0.4);
+  }
+
+  .mm-edit-hint {
+    display: none;
   }
 
   /* Feedback section — compact */

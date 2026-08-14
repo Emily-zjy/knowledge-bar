@@ -49,6 +49,16 @@ def _handle_auth_error(exc: AuthError) -> JSONResponse:
     return _api_error(status, exc.code, exc.message)
 
 
+def _public_generation_error_message(exc: MindMapGenerationError) -> str:
+    if exc.error_stage in {"provider_5xx", "provider_timeout", "provider_network_error"}:
+        return "AI 服务暂时繁忙，请稍后再试。"
+    if exc.error_stage in {"json_parse", "schema_validation", "schema_repair_failed"}:
+        return "AI 返回结果异常，请重新生成。"
+    if exc.error_stage == "provider_4xx":
+        return "AI 服务请求失败，请稍后再试。"
+    return "思维导图生成失败，请重新生成。"
+
+
 def mind_map_to_markdown(mind_map: MindMapData) -> str:
     children_by_parent: dict[str | None, list] = {}
     for node in mind_map.nodes:
@@ -197,9 +207,12 @@ def generate_mindmap(
             output_tokens=meta.output_tokens if meta else None,
             retry_count=meta.retry_count if meta else None,
             schema_repair_count=meta.schema_repair_count if meta else None,
+            repair_attempted=meta.repair_attempted if meta else None,
+            repair_success=meta.repair_success if meta else None,
             latency_ms=meta.latency_ms if meta else None,
             node_count=meta.node_count if meta else None,
             tree_depth=meta.tree_depth if meta else None,
+            requested_depth=payload.requested_max_depth,
             prompt_version=meta.prompt_version if meta else None,
         )
         result.metadata = None
@@ -217,9 +230,13 @@ def generate_mindmap(
                     status="failed",
                     error_code=exc.code,
                     error_message=exc.message,
+                    error_stage=exc.error_stage,
                     latency_ms=exc.latency_ms,
                     retry_count=exc.retry_count,
                     input_length=exc.input_length,
+                    requested_depth=payload.requested_max_depth,
+                    repair_attempted=exc.repair_attempted,
+                    repair_success=exc.repair_success,
                     prompt_version=exc.prompt_version,
                 )
             except SupabaseStoreError:
@@ -228,7 +245,7 @@ def generate_mindmap(
             "error_stage": exc.error_stage, "code": exc.code,
             "latency_ms": exc.latency_ms, "retry_count": exc.retry_count,
         })
-        return _api_error(502, exc.code, exc.message)
+        return _api_error(502, exc.code, _public_generation_error_message(exc))
 # === Regenerate ===
 
 
@@ -283,9 +300,12 @@ def regenerate_mindmap(
             output_tokens=meta.output_tokens if meta else None,
             retry_count=meta.retry_count if meta else None,
             schema_repair_count=meta.schema_repair_count if meta else None,
+            repair_attempted=meta.repair_attempted if meta else None,
+            repair_success=meta.repair_success if meta else None,
             latency_ms=meta.latency_ms if meta else None,
             node_count=meta.node_count if meta else None,
             tree_depth=meta.tree_depth if meta else None,
+            requested_depth=requested_depth,
             prompt_version=meta.prompt_version if meta else None,
         )
         logger.info("mindmap_regenerate_succeeded", extra={"knowledge_base_id": knowledge_base_id, "job_id": job_id})
@@ -304,7 +324,7 @@ def regenerate_mindmap(
     except MindMapGenerationError as exc:
         logger.warning(
             "mindmap_regenerate_failed",
-            extra={"error_stage": "ai_provider", "knowledge_base_id": knowledge_base_id,
+            extra={"error_stage": exc.error_stage, "knowledge_base_id": knowledge_base_id,
                    "code": exc.code, "latency_ms": exc.latency_ms},
         )
         if job_id and user_id:
@@ -315,14 +335,18 @@ def regenerate_mindmap(
                     status="failed",
                     error_code=exc.code,
                     error_message=exc.message,
+                    error_stage=exc.error_stage,
                     latency_ms=exc.latency_ms,
                     retry_count=exc.retry_count,
                     input_length=exc.input_length,
+                    requested_depth=body.requested_max_depth if body else 5,
+                    repair_attempted=exc.repair_attempted,
+                    repair_success=exc.repair_success,
                     prompt_version=exc.prompt_version,
                 )
             except SupabaseStoreError:
                 logger.exception("failed_to_update_generation_job")
-        return _api_error(502, exc.code, exc.message)
+        return _api_error(502, exc.code, _public_generation_error_message(exc))
 
 
 # === Job Status ===

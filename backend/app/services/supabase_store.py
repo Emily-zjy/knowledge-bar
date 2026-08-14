@@ -156,6 +156,7 @@ class SupabaseStore:
         status: str,
         error_code: str | None = None,
         error_message: str | None = None,
+        error_stage: str | None = None,
         input_length: int | None = None,
         input_tokens: int | None = None,
         output_tokens: int | None = None,
@@ -164,6 +165,9 @@ class SupabaseStore:
         latency_ms: int | None = None,
         node_count: int | None = None,
         tree_depth: int | None = None,
+        requested_depth: int | None = None,
+        repair_attempted: bool | None = None,
+        repair_success: bool | None = None,
         prompt_version: str | None = None,
     ) -> None:
         payload: dict[str, Any] = {
@@ -175,6 +179,8 @@ class SupabaseStore:
         }
         if input_length is not None:
             payload["input_length"] = input_length
+        if error_stage is not None:
+            payload["error_stage"] = error_stage
         if input_tokens is not None:
             payload["input_tokens"] = input_tokens
         if output_tokens is not None:
@@ -189,16 +195,37 @@ class SupabaseStore:
             payload["node_count"] = node_count
         if tree_depth is not None:
             payload["tree_depth"] = tree_depth
+        if requested_depth is not None:
+            payload["requested_depth"] = requested_depth
+        if repair_attempted is not None:
+            payload["repair_attempted"] = repair_attempted
+        if repair_success is not None:
+            payload["repair_success"] = repair_success
         if prompt_version is not None:
             payload["prompt_version"] = prompt_version
-        self._request(
-            "PATCH",
-            "ai_generation_jobs",
-            params={"id": f"eq.{job_id}", "user_id": f"eq.{user_id}"},
-            json_body=payload,
-            prefer="return=minimal",
-            expected=(204,),
-        )
+        request_args = {
+            "params": {"id": f"eq.{job_id}", "user_id": f"eq.{user_id}"},
+            "prefer": "return=minimal",
+            "expected": (204,),
+        }
+        try:
+            self._request("PATCH", "ai_generation_jobs", json_body=payload, **request_args)
+        except SupabaseStoreError as exc:
+            reliability_fields = {
+                "error_stage",
+                "requested_depth",
+                "tree_depth",
+                "repair_attempted",
+                "repair_success",
+            }
+            if exc.code != "SUPABASE_REST_ERROR" or not reliability_fields.intersection(payload):
+                raise
+            legacy_payload = {key: value for key, value in payload.items() if key not in reliability_fields}
+            logger.warning(
+                "generation_reliability_columns_missing",
+                extra={"job_id": job_id, "status": status},
+            )
+            self._request("PATCH", "ai_generation_jobs", json_body=legacy_payload, **request_args)
 
     def get_generation_job_for_user(self, job_id: str, user_id: str) -> dict[str, Any]:
         rows = _as_list(

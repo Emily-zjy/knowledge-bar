@@ -16,7 +16,11 @@ class Settings(BaseSettings):
     ai_prompt_v2_percentage: int = 0
     ai_prompt_fallback_version: str = "v1"
     ai_timeout_seconds: int = 45
-    ai_max_retries: int = 1
+    ai_max_retries: int = 2
+    ai_json_retries: int = 1
+    ai_retry_base_seconds: float = 0.75
+    ai_retry_max_seconds: float = 8.0
+    ai_retry_jitter_seconds: float = 0.35
     ai_mock_fallback: bool = False
     supabase_url: str | None = None
     supabase_publishable_key: str | None = None

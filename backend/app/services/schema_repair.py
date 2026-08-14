@@ -20,7 +20,7 @@ class RepairResult:
         self.repairs = repairs
 
 
-def repair_mind_map(raw: dict, max_nodes: int = 25) -> RepairResult:
+def repair_mind_map(raw: dict, max_nodes: int = 25, max_depth: int = 6) -> RepairResult:
     """
     Attempt structural repairs on raw LLM output.
     Returns RepairResult with the (possibly fixed) data and a log of what was changed.
@@ -35,6 +35,7 @@ def repair_mind_map(raw: dict, max_nodes: int = 25) -> RepairResult:
     nodes = _fix_field_names(nodes, repairs)
     nodes = _fix_multiple_roots(nodes, repairs)
     nodes = _fix_invalid_parent_ids(nodes, repairs)
+    nodes = _fix_max_depth(nodes, max_depth, repairs)
     nodes = _fix_node_count(nodes, max_nodes, repairs)
     nodes = _fix_text_length(nodes, repairs)
     nodes = _fix_missing_order(nodes, repairs)
@@ -68,6 +69,50 @@ def _fix_field_names(nodes: list[dict], repairs: list[str]) -> list[dict]:
                 fixed = True
     if fixed:
         repairs.append("field_names_normalized")
+    return nodes
+
+
+def _fix_max_depth(nodes: list[dict], max_depth: int, repairs: list[str]) -> list[dict]:
+    """Re-parent over-deep nodes to the nearest valid ancestor without dropping content."""
+    if max_depth < 2:
+        return nodes
+
+    id_to_node = {n.get("id"): n for n in nodes if n.get("id")}
+    repaired_count = 0
+
+    for node in nodes:
+        node_id = node.get("id")
+        parent_id = node.get("parentId")
+        if not node_id or parent_id is None:
+            continue
+
+        chain: list[str] = []
+        cursor = node
+        visited: set[str] = set()
+        while cursor.get("parentId") is not None:
+            cursor_id = str(cursor.get("id") or "")
+            if cursor_id in visited:
+                chain = []
+                break
+            visited.add(cursor_id)
+            parent = id_to_node.get(cursor.get("parentId"))
+            if not parent:
+                chain = []
+                break
+            chain.append(str(parent.get("id")))
+            cursor = parent
+
+        current_depth = len(chain) + 1
+        if current_depth <= max_depth or len(chain) < max_depth - 1:
+            continue
+
+        valid_parent_id = chain[-(max_depth - 1)]
+        if node.get("parentId") != valid_parent_id:
+            node["parentId"] = valid_parent_id
+            repaired_count += 1
+
+    if repaired_count:
+        repairs.append(f"reparented_{repaired_count}_over_depth_nodes")
     return nodes
 
 

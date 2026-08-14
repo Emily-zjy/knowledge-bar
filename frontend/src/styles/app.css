@@ -22,8 +22,16 @@
   box-sizing: border-box;
 }
 
-html {
+html,
+body,
+#root {
+  width: 100%;
   min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
   background: var(--paper);
 }
 
@@ -1067,6 +1075,10 @@ textarea {
   padding-bottom: 18px;
   margin-bottom: 18px;
   border-bottom: 1px solid #44403c;
+}
+
+.mobile-editor-header {
+  display: none;
 }
 
 .nav-title {

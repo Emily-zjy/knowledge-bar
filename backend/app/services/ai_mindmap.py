@@ -37,6 +37,8 @@ class MindMapGenerationError(RuntimeError):
         self.retry_count: int | None = None
         self.input_length: int | None = None
         self.prompt_version: str | None = None
+        self.repair_attempted = False
+        self.repair_success = False
 
 
 def _extract_topics(content: str) -> list[str]:
@@ -190,12 +192,12 @@ def _normalize_with_repair(raw: dict, fallback_title: str, max_depth: int = 6) -
     try:
         data = _normalize_mind_map(raw, fallback_title, max_depth)
         return data, False, []
-    except MindMapGenerationError:
-        pass
+    except MindMapGenerationError as first_error:
+        initial_error = first_error
 
-    repair_result = repair_mind_map(raw)
+    repair_result = repair_mind_map(raw, max_depth=max_depth)
     if not repair_result.repaired:
-        raise MindMapGenerationError("SCHEMA_REPAIR_FAILED", "Schema repair could not fix the output.")
+        raise initial_error
 
     try:
         data = _normalize_mind_map(repair_result.data, fallback_title, max_depth)
@@ -241,7 +243,7 @@ def _save_trace(
         TRACE_DIR.mkdir(parents=True, exist_ok=True)
         trace = {
             "run_id": run_id,
-            "input_text": payload.content_md[:500],
+            "input_length": len(payload.content_md),
             "title": payload.title,
             "model": settings.ai_model,
             "provider": settings.ai_provider,
@@ -296,48 +298,105 @@ def generate_mind_map(
     started = time.perf_counter()
 
     try:
-        llm_response: LLMResponse = llm_generate(messages, max_retries=2)
+        llm_response: LLMResponse = llm_generate(messages)
     except LLMError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
-        gen_error = MindMapGenerationError(exc.code, exc.message, retryable=exc.retryable, error_stage="llm_call")
+        gen_error = MindMapGenerationError(
+            exc.code,
+            exc.message,
+            retryable=exc.retryable,
+            error_stage=exc.error_stage if exc.error_stage != "unknown" else "llm_call",
+        )
         gen_error.latency_ms = elapsed_ms
-        gen_error.retry_count = 0
+        gen_error.retry_count = max(exc.attempts - 1, 0)
         gen_error.input_length = len(payload.content_md)
         gen_error.prompt_version = version
-        _save_trace(run_id, payload, None, gen_error, elapsed_ms, retry_count=0, rollout_meta=rollout_meta, prompt_version=version)
+        _save_trace(
+            run_id,
+            payload,
+            None,
+            gen_error,
+            elapsed_ms,
+            retry_count=gen_error.retry_count,
+            rollout_meta=rollout_meta,
+            prompt_version=version,
+        )
 
         if settings.ai_mock_fallback:
             logger.warning("ai_mock_fallback_used", extra={"error_code": exc.code})
             return _fallback_mind_map(payload)
         raise gen_error from exc
 
-    llm_latency = llm_response.latency_ms
-    retry_count = llm_response.attempts - 1
+    llm_responses = [llm_response]
+    raw: dict | None = None
+    json_error: MindMapGenerationError | None = None
+    for json_attempt in range(settings.ai_json_retries + 1):
+        try:
+            raw = _extract_json(llm_response.text)
+            json_error = None
+            break
+        except MindMapGenerationError as exc:
+            json_error = exc
+            if json_attempt >= settings.ai_json_retries:
+                break
+            logger.warning(
+                "ai_json_retry",
+                extra={"attempt": json_attempt + 1, "error_stage": "json_parse"},
+            )
+            try:
+                llm_response = llm_generate(messages, max_retries=0)
+                llm_responses.append(llm_response)
+            except LLMError as retry_exc:
+                elapsed_ms = int((time.perf_counter() - started) * 1000)
+                gen_error = MindMapGenerationError(
+                    retry_exc.code,
+                    retry_exc.message,
+                    retryable=retry_exc.retryable,
+                    error_stage=retry_exc.error_stage if retry_exc.error_stage != "unknown" else "llm_call",
+                )
+                gen_error.latency_ms = elapsed_ms
+                gen_error.retry_count = sum(response.attempts for response in llm_responses) + retry_exc.attempts - 1
+                gen_error.input_length = len(payload.content_md)
+                gen_error.prompt_version = version
+                _save_trace(
+                    run_id,
+                    payload,
+                    None,
+                    gen_error,
+                    elapsed_ms,
+                    retry_count=gen_error.retry_count,
+                    llm_latency_ms=sum(response.latency_ms for response in llm_responses),
+                    rollout_meta=rollout_meta,
+                    prompt_version=version,
+                )
+                raise gen_error from retry_exc
 
-    try:
-        raw = _extract_json(llm_response.text)
-    except MindMapGenerationError as exc:
+    llm_latency = sum(response.latency_ms for response in llm_responses)
+    retry_count = sum(response.attempts for response in llm_responses) - 1
+    if raw is None and json_error is not None:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
-        exc.error_stage = "json_parse"
-        exc.latency_ms = elapsed_ms
-        exc.retry_count = retry_count
-        exc.input_length = len(payload.content_md)
-        exc.prompt_version = version
-        _save_trace(run_id, payload, None, exc, elapsed_ms, retry_count=retry_count, llm_latency_ms=llm_latency, token_usage=llm_response.usage, rollout_meta=rollout_meta, prompt_version=version)
+        json_error.error_stage = "json_parse"
+        json_error.latency_ms = elapsed_ms
+        json_error.retry_count = retry_count
+        json_error.input_length = len(payload.content_md)
+        json_error.prompt_version = version
+        _save_trace(run_id, payload, None, json_error, elapsed_ms, retry_count=retry_count, llm_latency_ms=llm_latency, token_usage=llm_response.usage, rollout_meta=rollout_meta, prompt_version=version)
         if settings.ai_mock_fallback:
             return _fallback_mind_map(payload)
-        raise
+        raise json_error
 
     try:
         mind_map, repaired, repair_actions = _normalize_with_repair(raw, payload.title, payload.requested_max_depth)
     except MindMapGenerationError as exc:
         elapsed_ms = int((time.perf_counter() - started) * 1000)
-        exc.error_stage = "schema_validation"
+        exc.error_stage = "schema_repair_failed" if exc.code == "SCHEMA_REPAIR_FAILED" else "schema_validation"
+        exc.repair_attempted = exc.code == "SCHEMA_REPAIR_FAILED"
+        exc.repair_success = False
         exc.latency_ms = elapsed_ms
         exc.retry_count = retry_count
         exc.input_length = len(payload.content_md)
         exc.prompt_version = version
-        _save_trace(run_id, payload, None, exc, elapsed_ms, retry_count=retry_count, repair_attempted=True, repair_success=False, llm_latency_ms=llm_latency, token_usage=llm_response.usage, rollout_meta=rollout_meta, prompt_version=version)
+        _save_trace(run_id, payload, None, exc, elapsed_ms, retry_count=retry_count, repair_attempted=exc.repair_attempted, repair_success=False, llm_latency_ms=llm_latency, token_usage=llm_response.usage, rollout_meta=rollout_meta, prompt_version=version)
         if settings.ai_mock_fallback:
             return _fallback_mind_map(payload)
         raise
@@ -350,10 +409,13 @@ def generate_mind_map(
     token_usage = llm_response.usage or {}
     metadata = GenerationMetadata(
         input_length=len(payload.content_md),
+        requested_depth=payload.requested_max_depth,
         input_tokens=token_usage.get("prompt_tokens"),
         output_tokens=token_usage.get("completion_tokens"),
         retry_count=retry_count,
         schema_repair_count=len(repair_actions) if repair_actions else 0,
+        repair_attempted=repaired,
+        repair_success=repaired,
         latency_ms=elapsed_ms,
         node_count=len(nodes),
         tree_depth=depth,
