@@ -6,6 +6,8 @@ import pytest
 from app.core.config import settings
 from app.services import llm_client
 from app.services.llm_client import LLMError
+from app.models.ai import GenerateMindMapRequest
+from app.services.ai_mindmap import MindMapGenerationError
 
 
 def _configure(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -126,3 +128,37 @@ def test_provider_status_classification() -> None:
         llm_client._raise_for_provider_status(httpx.Response(401))
     assert client_error.value.error_stage == "provider_4xx"
     assert client_error.value.retryable is False
+
+    with pytest.raises(LLMError) as rate_limit_error:
+        llm_client._raise_for_provider_status(httpx.Response(429, headers={"Retry-After": "3"}))
+    assert rate_limit_error.value.code == "PROVIDER_RATE_LIMITED"
+    assert rate_limit_error.value.error_stage == "provider_4xx"
+    assert rate_limit_error.value.retryable is True
+    assert rate_limit_error.value.retry_after_seconds == 3
+
+
+def test_generation_error_preserves_provider_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    _configure(monkeypatch)
+    monkeypatch.setattr(
+        "app.services.ai_mindmap.llm_generate",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            LLMError("PROVIDER_5XX", "down", retryable=True, error_stage="provider_5xx", status_code=503)
+        ),
+    )
+
+    with pytest.raises(MindMapGenerationError) as exc:
+        from app.services.ai_mindmap import generate_mind_map
+
+        generate_mind_map(
+            GenerateMindMapRequest(
+                knowledge_base_id="kb-test",
+                title="Test",
+                content_md="x" * 30,
+                requested_max_depth=4,
+            ),
+            None,
+            None,
+        )
+
+    assert exc.value.error_stage == "provider_5xx"
+    assert exc.value.provider_status == 503

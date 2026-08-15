@@ -6,6 +6,7 @@ import logging
 import re
 from io import BytesIO
 from urllib.parse import quote
+from uuid import uuid4
 
 from docx import Document
 from docx.shared import Inches
@@ -19,6 +20,7 @@ from app.models.ai import (
     ExportWordRequest,
     GenerateMindMapRequest,
     GenerateMindMapResult,
+    GenerationJobAccepted,
     GenerationJobResponse,
     LatestMindMapResponse,
     MindMapData,
@@ -37,6 +39,23 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 IMAGE_MARKDOWN_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)(?:\{width=(\d+)\})?")
 
 
+def _queue_enabled() -> bool:
+    # Keep rollout and emergency rollback explicit in every environment.
+    return settings.ai_queue_enabled
+
+
+def _accepted_job_response(job: dict, *, knowledge_base_id: str, operation: str, client_request_id: str) -> JSONResponse:
+    data = GenerationJobAccepted(
+        id=str(job.get("job_id") or job.get("id") or ""),
+        knowledge_base_id=knowledge_base_id,
+        status=str(job.get("status") or "queued"),
+        operation=operation,
+        client_request_id=client_request_id,
+        created=bool(job.get("created", True)),
+    )
+    return JSONResponse(status_code=202, content=ApiResponse(success=True, data=data).model_dump(mode="json"))
+
+
 def _api_error(status_code: int, code: str, message: str) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
@@ -50,6 +69,8 @@ def _handle_auth_error(exc: AuthError) -> JSONResponse:
 
 
 def _public_generation_error_message(exc: MindMapGenerationError) -> str:
+    if exc.code == "PROVIDER_RATE_LIMITED":
+        return "AI 服务请求过多或额度受限，请稍后再试。"
     if exc.error_stage in {"provider_5xx", "provider_timeout", "provider_network_error"}:
         return "AI 服务暂时繁忙，请稍后再试。"
     if exc.error_stage in {"json_parse", "schema_validation", "schema_repair_failed"}:
@@ -181,6 +202,39 @@ def generate_mindmap(
         if not db_content:
             supabase_store.update_knowledge_base_content(str(payload.knowledge_base_id), user_id, content_md)
 
+        if _queue_enabled():
+            client_request_id = str(payload.client_request_id or uuid4())
+            job = supabase_store.enqueue_generation_job(
+                user_id=user_id,
+                knowledge_base_id=str(payload.knowledge_base_id),
+                operation="generate",
+                client_request_id=client_request_id,
+                request_payload={
+                    "knowledge_base_id": str(payload.knowledge_base_id),
+                    "title": str(kb.get("name") or payload.title),
+                    "description": str(kb.get("description") or payload.description or ""),
+                    "content_md": content_md,
+                    "requested_max_depth": payload.requested_max_depth,
+                    "client_request_id": client_request_id,
+                },
+            )
+            logger.info(
+                "ai_job_queued",
+                extra={
+                    "job_id": job.get("job_id") or job.get("id"),
+                    "request_id": client_request_id,
+                    "knowledge_base_id": str(payload.knowledge_base_id),
+                    "operation": "generate",
+                    "status": job.get("status", "queued"),
+                },
+            )
+            return _accepted_job_response(
+                job,
+                knowledge_base_id=str(payload.knowledge_base_id),
+                operation="generate",
+                client_request_id=client_request_id,
+            )
+
         job = supabase_store.create_generation_job(user_id, str(payload.knowledge_base_id), "running")
         job_id = str(job["id"])
         generation_payload = payload.model_copy(
@@ -274,6 +328,40 @@ def regenerate_mindmap(
             return _api_error(422, "EMPTY_CONTENT", "Knowledge content cannot be empty. Please save your content before regenerating.")
 
         requested_depth = body.requested_max_depth if body else 5
+
+        if _queue_enabled():
+            client_request_id = str((body.client_request_id if body else None) or uuid4())
+            job = supabase_store.enqueue_generation_job(
+                user_id=user_id,
+                knowledge_base_id=knowledge_base_id,
+                operation="regenerate",
+                client_request_id=client_request_id,
+                request_payload={
+                    "knowledge_base_id": knowledge_base_id,
+                    "title": str(kb.get("name") or "Untitled"),
+                    "description": str(kb.get("description") or ""),
+                    "content_md": content_md,
+                    "requested_max_depth": requested_depth,
+                    "client_request_id": client_request_id,
+                },
+            )
+            logger.info(
+                "ai_job_queued",
+                extra={
+                    "job_id": job.get("job_id") or job.get("id"),
+                    "request_id": client_request_id,
+                    "knowledge_base_id": knowledge_base_id,
+                    "operation": "regenerate",
+                    "status": job.get("status", "queued"),
+                },
+            )
+            return _accepted_job_response(
+                job,
+                knowledge_base_id=knowledge_base_id,
+                operation="regenerate",
+                client_request_id=client_request_id,
+            )
+
         job = supabase_store.create_generation_job(user_id, knowledge_base_id, "running")
         job_id = str(job["id"])
         generation_payload = GenerateMindMapRequest(
@@ -360,6 +448,25 @@ def get_generation_job(
     try:
         user_id = verify_required_supabase_jwt(authorization)
         row = supabase_store.get_generation_job_for_user(job_id, user_id)
+        return ApiResponse(success=True, data=GenerationJobResponse(**row))
+    except AuthError as exc:
+        return _handle_auth_error(exc)
+    except SupabaseStoreError as exc:
+        return _api_error(exc.status_code, exc.code, exc.message)
+
+
+@router.get("/mindmap/jobs/active/{knowledge_base_id}", response_model=None)
+def get_active_generation_job(
+    knowledge_base_id: str,
+    authorization: str | None = Header(default=None),
+) -> ApiResponse[GenerationJobResponse] | JSONResponse:
+    """Recover the latest queued/running Job after refresh or mobile reopen."""
+    try:
+        user_id = verify_required_supabase_jwt(authorization)
+        supabase_store.get_knowledge_base_for_user(knowledge_base_id, user_id)
+        row = supabase_store.get_active_generation_job_for_user(knowledge_base_id, user_id)
+        if row is None:
+            return ApiResponse(success=True, data=None)
         return ApiResponse(success=True, data=GenerationJobResponse(**row))
     except AuthError as exc:
         return _handle_auth_error(exc)

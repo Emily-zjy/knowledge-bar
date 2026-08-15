@@ -36,3 +36,12 @@ export type GenerateMindMapResponse = {
   generation_id: string;
   mind_map: MindMapData;
 };
+
+export type GenerationJobAccepted = {
+  id: string;
+  knowledge_base_id: string;
+  status: "queued" | "running" | "succeeded" | "failed" | string;
+  operation: "generate" | "regenerate" | string;
+  client_request_id: string;
+  created?: boolean;
+};

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import time
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -13,11 +14,28 @@ from app.api.ai import router as ai_router
 from app.api.analytics import router as analytics_router
 from app.core.config import settings
 from app.models.ai import ApiError, ApiResponse
+from app.workers.ai_generation_worker import AIGenerationWorker, _worker_enabled
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("knowledge_bar.api")
 
-app = FastAPI(title="Knowledge Bar API", version="0.3.0")
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    worker = AIGenerationWorker() if _worker_enabled() else None
+    task = None
+    if worker is not None:
+        import asyncio
+
+        task = asyncio.create_task(worker.run())
+    try:
+        yield
+    finally:
+        if worker is not None and task is not None:
+            await worker.stop()
+            await task
+
+
+app = FastAPI(title="Knowledge Bar API", version="0.3.0", lifespan=lifespan)
 
 _origins = settings.cors_origins
 if settings.app_env == "production" and not _origins:

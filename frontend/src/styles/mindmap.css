@@ -754,6 +754,20 @@
   background: #fff1f0;
 }
 
+.mm-status-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.45;
+}
+
+.mm-status-copy strong {
+  color: currentColor;
+  font-size: 14px;
+  font-weight: 700;
+}
+
 .mm-btn-generate {
   min-height: 52px;
   border: 1px solid #ff6a1a;

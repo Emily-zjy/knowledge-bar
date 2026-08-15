@@ -90,6 +90,15 @@ def _raise_for_provider_status(response: httpx.Response) -> None:
             status_code=status,
             retry_after_seconds=retry_after,
         )
+    if status == 429:
+        raise LLMError(
+            "PROVIDER_RATE_LIMITED",
+            "AI provider rate limit or quota was reached.",
+            retryable=True,
+            error_stage="provider_4xx",
+            status_code=status,
+            retry_after_seconds=retry_after,
+        )
     if status >= 400:
         raise LLMError(
             "PROVIDER_4XX",
@@ -223,6 +232,14 @@ def generate(
     started = time.perf_counter()
 
     for attempt in range(1, attempts + 1):
+        logger.info(
+            "ai_provider_attempt provider=%s model=%s attempt=%s max_attempts=%s",
+            _provider,
+            _model,
+            attempt,
+            attempts,
+            extra={"provider": _provider, "model": _model, "attempt": attempt, "max_attempts": attempts},
+        )
         try:
             if _provider == "anthropic":
                 content, usage = _call_anthropic(messages, _model, _api_key, _base_url, _timeout)
@@ -280,11 +297,17 @@ def generate(
             retry_after if retry_after is not None else exponential_delay + jitter,
         )
         logger.warning(
-            "llm_retry",
+            "ai_provider_retry attempt=%s error_code=%s error_stage=%s status_code=%s delay_seconds=%s",
+            attempt,
+            last_error.code if last_error else "UNKNOWN",
+            last_error.error_stage if last_error else "unknown",
+            last_error.status_code if last_error else None,
+            round(delay, 3),
             extra={
                 "attempt": attempt,
                 "error_code": last_error.code if last_error else "UNKNOWN",
                 "error_stage": last_error.error_stage if last_error else "unknown",
+                "status_code": last_error.status_code if last_error else None,
                 "delay_seconds": round(delay, 3),
             },
         )
@@ -293,5 +316,15 @@ def generate(
 
     elapsed_ms = int((time.perf_counter() - started) * 1000)
     if last_error:
+        logger.error(
+            "ai_provider_failed provider=%s model=%s error_code=%s error_stage=%s status_code=%s attempts=%s latency_ms=%s",
+            _provider,
+            _model,
+            last_error.code,
+            last_error.error_stage,
+            last_error.status_code,
+            last_error.attempts,
+            elapsed_ms,
+        )
         raise last_error
     raise LLMError("LLM_UNKNOWN_ERROR", "LLM generation failed.")

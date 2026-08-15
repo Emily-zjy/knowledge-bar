@@ -38,6 +38,11 @@ def sql_003() -> str:
     return (MIGRATIONS_DIR / "003_security_hardening.sql").read_text(encoding="utf-8")
 
 
+@pytest.fixture(scope="module")
+def sql_006() -> str:
+    return (MIGRATIONS_DIR / "006_durable_ai_generation_queue.sql").read_text(encoding="utf-8")
+
+
 class TestMigrationOrder:
     def test_001_creates_tables(self, sql_001):
         for table in BUSINESS_TABLES:
@@ -225,3 +230,50 @@ class TestMultiVersionIndex:
     def test_003_has_latest_lookup_index(self, sql_003):
         assert "idx_mind_maps_kb_version_desc" in sql_003
         assert "version_no DESC" in sql_003
+
+
+class TestDurableGenerationQueueMigration:
+    def test_adds_durable_job_snapshot_and_lease_columns(self, sql_006):
+        for column in [
+            "operation",
+            "client_request_id",
+            "request_payload",
+            "queued_at",
+            "lease_expires_at",
+            "heartbeat_at",
+            "worker_id",
+            "claim_count",
+            "result_mind_map_id",
+        ]:
+            assert f"ADD COLUMN IF NOT EXISTS {column}" in sql_006
+
+    def test_queue_has_atomic_rpc_security_and_fifo_claim(self, sql_006):
+        assert "enqueue_ai_generation_job" in sql_006
+        assert "recover_stale_ai_jobs" in sql_006
+        assert "claim_ai_generation_jobs" in sql_006
+        assert "p_global_limit integer" in sql_006
+        assert "p_claim_limit integer" in sql_006
+        assert "(p_request_payload->>'requested_max_depth')::integer" in sql_006
+        assert sql_006.count("repair_attempted = coalesce") == 2
+        assert sql_006.count("repair_success = coalesce") == 2
+        assert "FOR UPDATE SKIP LOCKED" in sql_006
+        assert "pg_advisory_xact_lock" in sql_006
+        assert "SECURITY INVOKER" in sql_006
+        assert "SET search_path = public" in sql_006
+        assert "LEGACY_JOB_NOT_EXECUTED" in sql_006
+        assert "WHERE status IN ('pending', 'running')" in sql_006
+
+    def test_queue_functions_are_not_publicly_callable(self, sql_006):
+        assert "FROM PUBLIC, anon, authenticated" in sql_006
+        assert "TO service_role" in sql_006
+
+    def test_idempotency_and_single_result_indexes_exist(self, sql_006):
+        assert "ai_generation_jobs_request_id_unique" in sql_006
+        assert "mind_maps_generation_job_unique" in sql_006
+        assert sql_006.count("queue_wait_ms = coalesce") == 1
+        assert "WHERE id = p_job_id\n  FOR UPDATE;" in sql_006
+        assert "generation_job_id" in sql_006
+
+    def test_no_credentials_or_content_headers_in_snapshot(self, sql_006):
+        assert "authorization" not in sql_006.lower()
+        assert "api_key" not in sql_006.lower()

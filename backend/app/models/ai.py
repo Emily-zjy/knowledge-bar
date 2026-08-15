@@ -24,6 +24,7 @@ class GenerateMindMapRequest(BaseModel):
     description: str = Field(default="", max_length=500)
     content_md: str = Field(min_length=1, max_length=120_000)
     requested_max_depth: int = Field(default=5, ge=3, le=6)
+    client_request_id: UUID | None = None
 
 
 class MindMapNode(BaseModel):
@@ -70,6 +71,8 @@ class GenerationJobResponse(BaseModel):
     id: str
     knowledge_base_id: str
     status: str
+    operation: str | None = None
+    client_request_id: str | None = None
     error_code: str | None = None
     error_message: str | None = None
     error_stage: str | None = None
@@ -77,10 +80,30 @@ class GenerationJobResponse(BaseModel):
     prompt_version: str | None = None
     requested_depth: int | None = None
     tree_depth: int | None = None
+    actual_depth: int | None = None
+    queue_wait_ms: int | None = None
+    generation_latency_ms: int | None = None
+    total_latency_ms: int | None = None
+    retry_count: int | None = None
+    llm_call_count: int | None = None
+    provider_status: int | None = None
     repair_attempted: bool | None = None
     repair_success: bool | None = None
+    result_mind_map_id: str | None = None
+    queued_at: str | None = None
+    started_at: str | None = None
+    finished_at: str | None = None
     created_at: str | None = None
     updated_at: str | None = None
+
+
+class GenerationJobAccepted(BaseModel):
+    id: str
+    knowledge_base_id: str
+    status: str
+    operation: str
+    client_request_id: str
+    created: bool = True
 
 
 class LatestMindMapResponse(BaseModel):
@@ -116,6 +139,7 @@ class PatchMindMapRequest(BaseModel):
 class RegenerateMindMapRequest(BaseModel):
     requested_max_depth: int = Field(default=5, ge=3, le=6)
     content_md: str | None = Field(default=None, max_length=120_000)
+    client_request_id: UUID | None = None
 
 
 class SupabaseRow(BaseModel):

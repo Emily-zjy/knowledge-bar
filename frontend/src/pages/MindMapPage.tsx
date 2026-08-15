@@ -34,6 +34,8 @@ import {
   listMindMapVersions,
   patchMindMap,
   deleteMindMap,
+  getActiveGenerationJob,
+  waitForGenerationJob,
   type LatestMindMapResponse,
   type MindMapVersionItem,
 } from "../lib/api";
@@ -47,6 +49,8 @@ type MindMapReturnState = {
 
 type GenerationStep =
   | "idle"
+  | "queued"
+  | "running"
   | "preparing"
   | "extracting"
   | "validating"
@@ -58,6 +62,8 @@ type GenerationIntent = "generate" | "regenerate";
 
 const STEP_LABELS: Record<GenerationStep, string> = {
   idle: "",
+  queued: "任务已提交，正在等待 AI 生成…",
+  running: "AI 正在整理知识结构…",
   preparing: "正在整理原文...",
   extracting: "正在提取知识点...",
   validating: "正在检查导图...",
@@ -325,13 +331,44 @@ export default function MindMapPage({
       (async () => {
         const session = await getCloudSession();
         if (!session?.access_token) return;
+        const controller = new AbortController();
+        let activeJobFailed = false;
+        try {
+          const active = await getActiveGenerationJob({ knowledge_base_id: effectiveKbId, token: session.access_token });
+          if (active && (active.status === "queued" || active.status === "running")) {
+            setActiveGenerationId(active.id);
+            setGenerating(true);
+            setStep(active.status === "queued" ? "queued" : "running");
+            await waitForGenerationJob({
+              job_id: active.id,
+              token: session.access_token,
+              signal: controller.signal,
+              onJobStatus: (status) => {
+                if (status === "queued" || status === "running") setStep(status);
+              },
+            });
+            if (controller.signal.aborted) return;
+            setGenerating(false);
+          }
+        } catch (error) {
+          if (controller.signal.aborted) return;
+          const presentation = generationErrorPresentation(error);
+          if (presentation.stage !== "client_cancelled") {
+            activeJobFailed = true;
+            setStep("failed");
+            setErrorMsg(presentation.message);
+          }
+        }
         try {
           const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
           applyResponse(latest);
-          setStep("done");
+          if (!activeJobFailed) setStep("done");
           loadVersions(session.access_token);
         } catch {
           // No existing mind map — that's fine, user can generate
+        } finally {
+          controller.abort();
+          setGenerating(false);
         }
       })();
     }
@@ -377,9 +414,9 @@ export default function MindMapPage({
       return;
     }
 
-    const timers: Array<ReturnType<typeof setTimeout>> = [];
     let kbId = effectiveKbId;
     let startTime = Date.now();
+    let queuedEventSent = false;
     try {
       const session = await getCloudSession();
       if (!session?.access_token) {
@@ -418,12 +455,6 @@ export default function MindMapPage({
         properties: { input_length: text.length, requested_max_depth: requestedDepth },
       });
 
-      timers.push(
-        setTimeout(() => { if (isCurrentRequest()) setStep("extracting"); }, 800),
-        setTimeout(() => { if (isCurrentRequest()) setStep("validating"); }, 2500),
-        setTimeout(() => { if (isCurrentRequest()) setStep("rendering"); }, 4000),
-      );
-
       const result = await generateMindMap({
         knowledge_base_id: kbId,
         title: inputTitle.trim() || "知识导图",
@@ -431,6 +462,18 @@ export default function MindMapPage({
         content_md: text,
         token: session.access_token,
         requested_max_depth: requestedDepth,
+        client_request_id: requestId,
+        onJobStatus: (status) => {
+          if (!isCurrentRequest()) return;
+          if (status === "queued") {
+            setStep("queued");
+            if (!queuedEventSent) {
+              queuedEventSent = true;
+              trackEvent({ event_name: "mindmap_generate_queued", knowledge_base_id: kbId || "", properties: {} });
+            }
+          }
+          if (status === "running") setStep("running");
+        },
         signal: controller.signal,
       });
       if (!isCurrentRequest()) return;
@@ -465,7 +508,6 @@ export default function MindMapPage({
         },
       });
     } finally {
-      timers.forEach(clearTimeout);
       if (isCurrentRequest()) {
         activeRequestRef.current = null;
         generationLockRef.current = false;
@@ -500,6 +542,7 @@ export default function MindMapPage({
     const isCurrentRequest = () => activeRequestRef.current?.id === requestId;
     const previousGenId = activeGenerationId;
     const startTime = Date.now();
+    let queuedEventSent = false;
     try {
       const session = await getCloudSession();
       if (!session?.access_token) {
@@ -525,6 +568,18 @@ export default function MindMapPage({
         token: session.access_token,
         requested_max_depth: requestedDepth,
         content_md: inputText.trim() || undefined,
+        client_request_id: requestId,
+        onJobStatus: (status) => {
+          if (!isCurrentRequest()) return;
+          if (status === "queued") {
+            setStep("queued");
+            if (!queuedEventSent) {
+              queuedEventSent = true;
+              trackEvent({ event_name: "mindmap_regenerate_queued", knowledge_base_id: effectiveKbId, properties: {} });
+            }
+          }
+          if (status === "running") setStep("running");
+        },
         signal: controller.signal,
       });
       if (!isCurrentRequest()) return;
@@ -851,12 +906,20 @@ export default function MindMapPage({
 
             {/* Status */}
             {step !== "idle" && step !== "done" && (
-              <div className={`mm-status ${step === "failed" ? "mm-status-error" : ""}`}>
+              <div
+                className={`mm-status ${step === "failed" ? "mm-status-error" : ""}`}
+                role={step === "failed" ? "alert" : "status"}
+              >
                 {step !== "failed" && <span className="mm-spinner" />}
-                {STEP_LABELS[step]}
+                <span className="mm-status-copy">
+                  <strong>{STEP_LABELS[step]}</strong>
+                  {step === "failed" && errorMsg && <span>{errorMsg}</span>}
+                </span>
               </div>
             )}
-            {errorMsg && <div className="mm-status mm-status-error">{errorMsg}</div>}
+            {errorMsg && step !== "failed" && (
+              <div className="mm-status mm-status-error" role="alert">{errorMsg}</div>
+            )}
 
             <button
               className="mm-btn-generate"

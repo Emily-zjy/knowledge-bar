@@ -7,8 +7,12 @@ describe("generation error presentation", () => {
     ["PROVIDER_5XX", "provider_5xx", "AI 服务暂时繁忙，请稍后再试"],
     ["PROVIDER_TIMEOUT", "provider_timeout", "AI 服务响应超时，请稍后再试"],
     ["PROVIDER_NETWORK_ERROR", "provider_network_error", "网络异常，请稍后再试"],
+    ["PROVIDER_RATE_LIMITED", "provider_4xx", "AI 服务请求过多或额度受限，请稍后再试"],
     ["AI_INVALID_JSON", "json_parse", "AI 返回结果异常，请重新生成"],
     ["SCHEMA_REPAIR_FAILED", "schema_repair_failed", "AI 返回结构异常，请重新生成"],
+    ["provider_5xx", "provider_5xx", "AI 服务暂时繁忙，请稍后再试"],
+    ["AI_JOB_TIMEOUT", "provider_timeout", "AI 服务响应超时，请稍后再试"],
+    ["json_parse", "json_parse", "AI 返回结果异常，请重新生成"],
   ])("maps %s to %s", (code, stage, message) => {
     expect(generationErrorPresentation(new ApiRequestError(code, "internal", 502))).toEqual({ stage, message });
   });

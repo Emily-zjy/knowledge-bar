@@ -22,6 +22,15 @@ class Settings(BaseSettings):
     ai_retry_max_seconds: float = 8.0
     ai_retry_jitter_seconds: float = 0.35
     ai_mock_fallback: bool = False
+    ai_queue_enabled: bool = False
+    ai_worker_enabled: bool = False
+    ai_max_concurrency: int = 5
+    ai_max_active_jobs_per_user: int = 1
+    ai_max_queue_size: int = 100
+    ai_worker_poll_seconds: float = 1.5
+    ai_job_timeout_seconds: int = 210
+    ai_job_lease_seconds: int = 270
+    ai_job_heartbeat_seconds: int = 30
     supabase_url: str | None = None
     supabase_publishable_key: str | None = None
     supabase_anon_key: str | None = None

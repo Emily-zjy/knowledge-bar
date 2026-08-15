@@ -98,6 +98,15 @@ class SupabaseStore:
             return None
         return response.json()
 
+    def _rpc(self, function_name: str, payload: dict[str, Any]) -> Any:
+        """Call a service-role-only Postgres RPC through Supabase REST."""
+        return self._request(
+            "POST",
+            f"rpc/{function_name}",
+            json_body=payload,
+            expected=(200, 201, 204),
+        )
+
     def get_knowledge_base_for_user(self, knowledge_base_id: str, user_id: str) -> dict[str, Any]:
         rows = _as_list(
             self._request(
@@ -147,6 +156,137 @@ class SupabaseStore:
             ),
         )
         return rows[0] if rows else job
+
+    def enqueue_generation_job(
+        self,
+        *,
+        user_id: str,
+        knowledge_base_id: str,
+        operation: str,
+        client_request_id: str,
+        request_payload: dict[str, Any],
+    ) -> dict[str, Any]:
+        rows = _as_list(
+            self._rpc(
+                "enqueue_ai_generation_job",
+                {
+                    "p_user_id": user_id,
+                    "p_knowledge_base_id": knowledge_base_id,
+                    "p_operation": operation,
+                    "p_client_request_id": client_request_id,
+                    "p_request_payload": request_payload,
+                    "p_model_name": settings.ai_model,
+                    "p_prompt_version": settings.ai_prompt_version,
+                    "p_max_active_jobs": max(settings.ai_max_active_jobs_per_user, 1),
+                    "p_max_queue_size": max(settings.ai_max_queue_size, 1),
+                },
+            ),
+        )
+        if not rows:
+            raise SupabaseStoreError(502, "QUEUE_ENQUEUE_FAILED", "Failed to enqueue AI generation job.")
+        row = rows[0]
+        if row.get("status") == "rejected":
+            reason = str(row.get("reason") or "queue_capacity")
+            if reason == "user_capacity":
+                raise SupabaseStoreError(409, "USER_GENERATION_LIMIT", "已有生成任务正在处理中，请等待完成后再试。")
+            if reason == "queue_capacity":
+                raise SupabaseStoreError(429, "AI_QUEUE_FULL", "AI 服务当前请求较多，请稍后再试。")
+            raise SupabaseStoreError(422, "QUEUE_REQUEST_INVALID", "生成任务请求无效。")
+        return row
+
+    def claim_generation_jobs(
+        self,
+        worker_id: str,
+        global_limit: int,
+        claim_limit: int,
+        lease_seconds: int,
+    ) -> list[dict[str, Any]]:
+        return _as_list(
+            self._rpc(
+                "claim_ai_generation_jobs",
+                {
+                    "p_worker_id": worker_id,
+                    "p_global_limit": max(global_limit, 1),
+                    "p_claim_limit": max(claim_limit, 1),
+                    "p_lease_seconds": max(lease_seconds, 30),
+                },
+            ),
+        )
+
+    def recover_stale_generation_jobs(self, max_claims: int = 3) -> list[dict[str, Any]]:
+        return _as_list(
+            self._rpc(
+                "recover_stale_ai_jobs",
+                {"p_max_claims": max(max_claims, 1)},
+            ),
+        )
+
+    def heartbeat_generation_job(self, job_id: str, worker_id: str, lease_seconds: int) -> bool:
+        result = self._rpc(
+            "heartbeat_ai_generation_job",
+            {
+                "p_job_id": job_id,
+                "p_worker_id": worker_id,
+                "p_lease_seconds": max(lease_seconds, 30),
+            },
+        )
+        return bool(result is True or result == [True] or (isinstance(result, dict) and result.get("heartbeat_ai_generation_job")))
+
+    def complete_generation_job(
+        self,
+        *,
+        job_id: str,
+        worker_id: str,
+        data_jsonb: dict[str, Any],
+        markdown: str,
+        metrics: dict[str, Any],
+    ) -> dict[str, Any]:
+        rows = _as_list(
+            self._rpc(
+                "complete_ai_generation_job",
+                {
+                    "p_job_id": job_id,
+                    "p_worker_id": worker_id,
+                    "p_data_jsonb": data_jsonb,
+                    "p_markdown": markdown,
+                    "p_metrics": metrics,
+                },
+            ),
+        )
+        if not rows:
+            raise SupabaseStoreError(502, "QUEUE_COMPLETE_FAILED", "Failed to persist AI generation result.")
+        return rows[0]
+
+    def fail_generation_job(
+        self,
+        *,
+        job_id: str,
+        worker_id: str,
+        error_code: str,
+        error_message: str,
+        error_stage: str,
+        retry_count: int,
+        total_latency_ms: int,
+        metrics: dict[str, Any],
+    ) -> dict[str, Any]:
+        rows = _as_list(
+            self._rpc(
+                "fail_ai_generation_job",
+                {
+                    "p_job_id": job_id,
+                    "p_worker_id": worker_id,
+                    "p_error_code": error_code,
+                    "p_error_message": error_message,
+                    "p_error_stage": error_stage,
+                    "p_retry_count": retry_count,
+                    "p_total_latency_ms": total_latency_ms,
+                    "p_metrics": metrics,
+                },
+            ),
+        )
+        if not rows:
+            raise SupabaseStoreError(502, "QUEUE_FAIL_FAILED", "Failed to persist AI generation failure.")
+        return rows[0]
 
     def update_generation_job(
         self,
@@ -238,6 +378,23 @@ class SupabaseStore:
         if not rows:
             raise SupabaseStoreError(404, "JOB_NOT_FOUND", "Generation job was not found.")
         return rows[0]
+
+    def get_active_generation_job_for_user(self, knowledge_base_id: str, user_id: str) -> dict[str, Any] | None:
+        rows = _as_list(
+            self._request(
+                "GET",
+                "ai_generation_jobs",
+                params={
+                    "select": "*",
+                    "knowledge_base_id": f"eq.{knowledge_base_id}",
+                    "user_id": f"eq.{user_id}",
+                    "status": "in.(queued,running)",
+                    "order": "created_at.desc",
+                    "limit": "1",
+                },
+            ),
+        )
+        return rows[0] if rows else None
 
     def get_latest_mind_map(self, knowledge_base_id: str, user_id: str) -> dict[str, Any]:
         rows = _as_list(

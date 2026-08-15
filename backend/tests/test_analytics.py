@@ -23,6 +23,10 @@ def test_data_consistency_events_are_allowed():
     }.issubset(ALLOWED_EVENTS)
 
 
+def test_queue_lifecycle_events_are_allowed():
+    assert {"mindmap_generate_queued", "mindmap_regenerate_queued"}.issubset(ALLOWED_EVENTS)
+
+
 @pytest.fixture
 def client():
     from app.main import app

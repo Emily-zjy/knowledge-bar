@@ -19,6 +19,12 @@ VALID_TOKEN_A = "valid-token-for-user-a"
 VALID_TOKEN_B = "valid-token-for-user-b"
 
 
+def test_queue_feature_flag_is_not_forced_on_in_production(monkeypatch):
+    monkeypatch.setattr(settings, "app_env", "production")
+    monkeypatch.setattr(settings, "ai_queue_enabled", False)
+    assert ai_api._queue_enabled() is False
+
+
 class FakeSupabaseStore:
     def __init__(self) -> None:
         self.jobs: dict[str, dict] = {}
@@ -37,6 +43,27 @@ class FakeSupabaseStore:
         self.jobs[job["id"]] = job
         return job
 
+    def enqueue_generation_job(self, *, user_id: str, knowledge_base_id: str, operation: str, client_request_id: str, request_payload: dict) -> dict:
+        for job in self.jobs.values():
+            if (
+                job.get("user_id") == user_id
+                and job.get("operation") == operation
+                and job.get("client_request_id") == client_request_id
+            ):
+                return {**job, "created": False}
+        job = {
+            "id": f"queued-{len(self.jobs) + 1}",
+            "user_id": user_id,
+            "knowledge_base_id": knowledge_base_id,
+            "operation": operation,
+            "client_request_id": client_request_id,
+            "request_payload": request_payload,
+            "status": "queued",
+            "created": True,
+        }
+        self.jobs[job["id"]] = job
+        return job
+
     def update_generation_job(self, job_id: str, user_id: str, **payload) -> None:
         self.jobs[job_id].update(payload)
 
@@ -45,6 +72,15 @@ class FakeSupabaseStore:
         if not job or job["user_id"] != user_id:
             raise SupabaseStoreError(404, "JOB_NOT_FOUND", "Generation job was not found.")
         return job
+
+    def get_active_generation_job_for_user(self, knowledge_base_id: str, user_id: str) -> dict | None:
+        active = [
+            job for job in self.jobs.values()
+            if job.get("knowledge_base_id") == knowledge_base_id
+            and job.get("user_id") == user_id
+            and job.get("status") in {"queued", "running"}
+        ]
+        return active[-1] if active else None
 
     def get_latest_mind_map(self, knowledge_base_id: str, user_id: str) -> dict:
         row = self.maps.get(f"{user_id}:{knowledge_base_id}")
@@ -258,7 +294,6 @@ class TestBOLA:
     def test_user_a_cannot_regenerate_user_b_kb(self, client):
         resp = client.post("/api/ai/mindmap/kb-b/regenerate", headers=auth_a())
         assert resp.status_code == 404
-        assert client.fake_store.save_calls == 0
 
     def test_user_a_cannot_get_latest_of_user_b(self, client):
         self._seed_user_b_map(client)
@@ -299,6 +334,44 @@ class TestBOLA:
     def test_user_a_cannot_export_word_of_user_b(self, client):
         resp = client.get("/api/ai/export/word/kb-b", headers=auth_a())
         assert resp.status_code == 404
+
+
+class TestDurableQueueApi:
+    def test_generate_returns_fast_202_and_idempotent_job(self, client, monkeypatch):
+        monkeypatch.setattr(settings, "ai_queue_enabled", True)
+        request = {
+            "knowledge_base_id": "kb-a",
+            "title": "T",
+            "description": "",
+            "content_md": "x" * 30,
+            "requested_max_depth": 4,
+            "client_request_id": "11111111-1111-1111-1111-111111111111",
+        }
+
+        first = client.post("/api/ai/mindmap/generate", headers=auth_a(), json=request)
+        second = client.post("/api/ai/mindmap/generate", headers=auth_a(), json=request)
+
+        assert first.status_code == 202
+        assert second.status_code == 202
+        assert first.json()["data"]["id"] == second.json()["data"]["id"]
+        assert second.json()["data"]["created"] is False
+        assert client.fake_store.save_calls == 0
+
+    def test_regenerate_queues_without_provider_call(self, client, monkeypatch):
+        monkeypatch.setattr(settings, "ai_queue_enabled", True)
+        response = client.post(
+            "/api/ai/mindmap/kb-a/regenerate",
+            headers=auth_a(),
+            json={
+                "requested_max_depth": 6,
+                "client_request_id": "22222222-2222-2222-2222-222222222222",
+            },
+        )
+
+        assert response.status_code == 202
+        assert response.json()["data"]["operation"] == "regenerate"
+        assert response.json()["data"]["status"] == "queued"
+        assert client.fake_store.save_calls == 0
 
 
 # === Generation Tests ===

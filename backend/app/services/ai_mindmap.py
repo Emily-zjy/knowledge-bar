@@ -37,6 +37,7 @@ class MindMapGenerationError(RuntimeError):
         self.retry_count: int | None = None
         self.input_length: int | None = None
         self.prompt_version: str | None = None
+        self.provider_status: int | None = None
         self.repair_attempted = False
         self.repair_success = False
 
@@ -311,6 +312,7 @@ def generate_mind_map(
         gen_error.retry_count = max(exc.attempts - 1, 0)
         gen_error.input_length = len(payload.content_md)
         gen_error.prompt_version = version
+        gen_error.provider_status = exc.status_code
         _save_trace(
             run_id,
             payload,
@@ -358,6 +360,7 @@ def generate_mind_map(
                 gen_error.retry_count = sum(response.attempts for response in llm_responses) + retry_exc.attempts - 1
                 gen_error.input_length = len(payload.content_md)
                 gen_error.prompt_version = version
+                gen_error.provider_status = retry_exc.status_code
                 _save_trace(
                     run_id,
                     payload,
