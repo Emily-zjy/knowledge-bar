@@ -1,5 +1,5 @@
 import type { Session } from "@supabase/supabase-js";
-import type { KnowledgeBase, MindMapData } from "../types";
+import type { KnowledgeBase } from "../types";
 import { hasSupabaseConfig, supabase } from "./supabase";
 
 function assertClient() {
@@ -21,7 +21,6 @@ export async function signInWithEmail(email: string, password: string): Promise<
   const { data, error } = await client.auth.signInWithPassword({ email, password });
   if (error) throw error;
   if (!data.session) throw new Error("登录失败，请检查邮箱和密码。");
-  await ensureProfile(data.session.user.id, email);
   return data.session;
 }
 
@@ -29,30 +28,12 @@ export async function signUpWithEmail(email: string, password: string): Promise<
   const client = assertClient();
   const { data, error } = await client.auth.signUp({ email, password });
   if (error) throw error;
-  if (data.user) {
-    await ensureProfile(data.user.id, email);
-  }
   return data.session;
 }
 
 export async function signOutCloud(): Promise<void> {
   if (!hasSupabaseConfig || !supabase) return;
   const { error } = await supabase.auth.signOut();
-  if (error) throw error;
-}
-
-export async function ensureProfile(userId: string, email?: string): Promise<void> {
-  const client = assertClient();
-  const { error } = await client
-    .from("profiles")
-    .upsert(
-      {
-        id: userId,
-        nickname: email?.split("@")[0] || "Knowledge Bar 用户",
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "id" },
-    );
   if (error) throw error;
 }
 
@@ -90,6 +71,7 @@ export async function listCloudKnowledgeBases(userId: string): Promise<Knowledge
   return (bases || []).map((item) => ({
     id: item.id,
     user_id: item.user_id,
+    origin: "cloud" as const,
     name: item.name,
     description: item.description || "",
     color: item.color || "#ff6d29",
@@ -100,67 +82,74 @@ export async function listCloudKnowledgeBases(userId: string): Promise<Knowledge
   }));
 }
 
-export async function saveCloudKnowledgeBase(kb: KnowledgeBase, userId: string): Promise<void> {
+function cloudKnowledgeBasePayload(kb: KnowledgeBase, userId: string) {
+  return {
+    id: kb.id,
+    user_id: userId,
+    name: kb.name,
+    description: kb.description,
+    color: kb.color,
+    content_md: kb.content_md,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export async function createCloudKnowledgeBase(kb: KnowledgeBase, userId: string): Promise<void> {
   const client = assertClient();
-  const timestamp = new Date().toISOString();
-  const { error } = await client.from("knowledge_bases").upsert(
-    {
-      id: kb.id,
-      user_id: userId,
-      name: kb.name,
-      description: kb.description,
-      color: kb.color,
-      content_md: kb.content_md,
-      updated_at: timestamp,
-    },
-    { onConflict: "id" },
-  );
+  let createdNow = true;
+  const { error } = await client.from("knowledge_bases").insert(cloudKnowledgeBasePayload(kb, userId));
+  if (error) {
+    if (error.code !== "23505") throw error;
+    createdNow = false;
+
+    const { data: existing, error: readError } = await client
+      .from("knowledge_bases")
+      .select("id")
+      .eq("id", kb.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (readError || !existing) throw error;
+  }
+
+  try {
+    await replaceCloudTags(kb.id, userId, kb.tags || []);
+  } catch (tagError) {
+    if (createdNow) {
+      await client.from("knowledge_bases").delete().eq("id", kb.id).eq("user_id", userId);
+    }
+    throw tagError;
+  }
+}
+
+export async function updateCloudKnowledgeBase(kb: KnowledgeBase, userId: string): Promise<void> {
+  const client = assertClient();
+  const changes = {
+    name: kb.name,
+    description: kb.description,
+    color: kb.color,
+    content_md: kb.content_md,
+    updated_at: new Date().toISOString(),
+  };
+  const { data, error } = await client
+    .from("knowledge_bases")
+    .update(changes)
+    .eq("id", kb.id)
+    .eq("user_id", userId)
+    .select("id");
   if (error) throw error;
+  if (!data?.length) {
+    throw new Error("该知识库已在其他设备删除，请刷新列表。未重新创建旧数据。");
+  }
   await replaceCloudTags(kb.id, userId, kb.tags || []);
 }
 
-export async function deleteCloudKnowledgeBase(id: string): Promise<void> {
+export async function deleteCloudKnowledgeBase(id: string, userId: string): Promise<void> {
   const client = assertClient();
-  const { error } = await client.from("knowledge_bases").delete().eq("id", id);
-  if (error) throw error;
-}
-
-export async function getCloudMindMap(knowledgeBaseId: string): Promise<MindMapData | null> {
-  const client = assertClient();
-  const { data, error } = await client
-    .from("mind_maps")
-    .select("data_jsonb")
-    .eq("knowledge_base_id", knowledgeBaseId)
-    .order("version_no", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return (data?.data_jsonb as MindMapData | undefined) || null;
-}
-
-export async function saveCloudMindMap(
-  knowledgeBaseId: string,
-  userId: string,
-  mindMap: MindMapData,
-  markdown: string,
-): Promise<void> {
-  const client = assertClient();
-  const { data: existing } = await client
-    .from("mind_maps")
-    .select("id, version_no")
-    .eq("knowledge_base_id", knowledgeBaseId)
-    .maybeSingle();
-  const versionNo = (existing?.version_no || 0) + 1;
-  const payload = {
-    user_id: userId,
-    knowledge_base_id: knowledgeBaseId,
-    data_jsonb: mindMap,
-    markdown,
-    version_no: versionNo,
-    updated_at: new Date().toISOString(),
-    ...(existing?.id ? { id: existing.id } : {}),
-  };
-  const { error } = await client.from("mind_maps").upsert(payload, { onConflict: "id" });
+  const { error } = await client
+    .from("knowledge_bases")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw error;
 }
 

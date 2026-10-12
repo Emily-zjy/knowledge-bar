@@ -1,9 +1,9 @@
 /**
- * Mind Map page - V0 refactored implementation
- * Uses @xyflow/react for rendering, communicates with new /api/mindmaps endpoints
+ * Mind Map page - V2 implementation using /api/ai/* endpoints.
+ * Guests are blocked from generation and prompted to log in.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ReactFlow,
@@ -18,62 +18,39 @@ import {
   MarkerType,
   ReactFlowProvider,
   useReactFlow,
+  getNodesBounds,
+  getViewportForBounds,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { toPng } from "html-to-image";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+import { getCloudSession } from "../lib/cloudStore";
+import { supabase } from "../lib/supabase";
+import { trackEvent, setAnalyticsToken } from "../lib/analytics";
+import { generationErrorPresentation } from "../lib/generationErrors";
+import {
+  generateMindMap,
+  regenerateMindMap,
+  getLatestMindMap,
+  listMindMapVersions,
+  patchMindMap,
+  deleteMindMap,
+  getActiveGenerationJob,
+  waitForGenerationJob,
+  type LatestMindMapResponse,
+  type MindMapVersionItem,
+} from "../lib/api";
 
 // --- Types ---
-interface RenderNode {
-  id: string;
-  parent_id: string | null;
-  text: string;
-  level: number;
-  order: number;
-  side: string | null;
-  source_ids: string[];
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-interface RenderEdge {
-  id: string;
-  source: string;
-  target: string;
-}
-
-interface ValidationResult {
-  passed: boolean;
-  score: number;
-  errors: Array<{ code: string; message: string; node_id?: string }>;
-  warnings: Array<{ code: string; message: string; node_id?: string }>;
-  retry_count: number;
-}
-
-interface MindMapResponse {
-  task_id: string;
-  status: string;
-  title: string;
-  nodes: RenderNode[];
-  edges: RenderEdge[];
-  validation: ValidationResult | null;
-  created_at: string;
-}
-
-interface HistoryItem {
-  task_id: string;
-  title: string;
-  status: string;
-  node_count: number;
-  created_at: string;
-  updated_at: string;
-}
+type MindMapReturnState = {
+  initialText?: string;
+  from?: "dashboard" | "detail";
+  knowledgeBaseId?: string;
+};
 
 type GenerationStep =
   | "idle"
+  | "queued"
+  | "running"
   | "preparing"
   | "extracting"
   | "validating"
@@ -81,8 +58,12 @@ type GenerationStep =
   | "done"
   | "failed";
 
+type GenerationIntent = "generate" | "regenerate";
+
 const STEP_LABELS: Record<GenerationStep, string> = {
   idle: "",
+  queued: "任务已提交，正在等待 AI 生成…",
+  running: "AI 正在整理知识结构…",
   preparing: "正在整理原文...",
   extracting: "正在提取知识点...",
   validating: "正在检查导图...",
@@ -91,135 +72,97 @@ const STEP_LABELS: Record<GenerationStep, string> = {
   failed: "生成失败",
 };
 
-// --- API Calls ---
-async function apiGenerate(body: {
-  text: string;
-  title?: string;
-  max_depth: number;
-  source_only: boolean;
-  map_type: string;
-}): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `生成失败 (HTTP ${res.status})`);
-  }
-  return res.json();
-}
-
-async function apiGetMindmap(taskId: string): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`);
-  if (!res.ok) throw new Error("获取导图失败");
-  return res.json();
-}
-
-async function apiRegenerate(
-  taskId: string,
-  body: { max_depth: number; map_type: string }
-): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}/regenerate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("重新生成失败");
-  return res.json();
-}
-
-async function apiPatch(
-  taskId: string,
-  body: Record<string, unknown>
-): Promise<MindMapResponse> {
-  const res = await fetch(`${API_BASE}/api/mindmaps/${taskId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("修改失败");
-  return res.json();
-}
-
-async function apiListHistory(): Promise<HistoryItem[]> {
-  const res = await fetch(`${API_BASE}/api/mindmaps`);
-  if (!res.ok) return [];
-  return res.json();
-}
-
 // --- Helpers ---
-function responseToFlow(data: MindMapResponse): { nodes: Node[]; edges: Edge[] } {
-  const nodes: Node[] = data.nodes.map((n) => {
-    let sourcePosition = Position.Right;
-    let targetPosition = Position.Left;
+function mindMapToFlowNodes(data: LatestMindMapResponse): { nodes: Node[]; edges: Edge[] } {
+  const childrenByParent = new Map<string | null, typeof data.mind_map.nodes>();
+  for (const node of data.mind_map.nodes) {
+    const list = childrenByParent.get(node.parentId) || [];
+    list.push(node);
+    childrenByParent.set(node.parentId, list);
+  }
 
-    if (n.level === 0) {
-      sourcePosition = Position.Right;
-      targetPosition = Position.Left;
-    } else if (n.side === "left") {
-      sourcePosition = Position.Left;
-      targetPosition = Position.Right;
-    } else {
-      sourcePosition = Position.Right;
-      targetPosition = Position.Left;
+  const positions = new Map<string, { x: number; y: number; level: number }>();
+  function layout(parentId: string | null, x: number, y: number, level: number): number {
+    const children = childrenByParent.get(parentId) || [];
+    children.sort((a, b) => a.order - b.order);
+    let currentY = y;
+    for (const child of children) {
+      positions.set(child.id, { x: x + level * 280, y: currentY, level });
+      const subtreeHeight = layout(child.id, x, currentY, level + 1);
+      currentY += Math.max(subtreeHeight, 80);
     }
+    return currentY - y || 60;
+  }
 
+  const root = data.mind_map.nodes.find((n) => n.parentId === null);
+  if (root) {
+    positions.set(root.id, { x: 0, y: 0, level: 0 });
+    layout(root.id, 0, 0, 1);
+    const allY = Array.from(positions.values()).map((p) => p.y);
+    const midY = (Math.min(...allY) + Math.max(...allY)) / 2;
+    const rootPos = positions.get(root.id)!;
+    rootPos.y = midY;
+  }
+
+  const flowNodes: Node[] = data.mind_map.nodes.map((n) => {
+    const pos = positions.get(n.id) || { x: 0, y: 0, level: 0 };
+    const level = pos.level;
     return {
       id: n.id,
-      position: { x: n.x, y: n.y },
-      data: { label: n.text, level: n.level, side: n.side },
+      position: { x: pos.x, y: pos.y },
+      data: { label: n.text, level },
       type: "default",
-      sourcePosition,
-      targetPosition,
+      sourcePosition: Position.Right,
+      targetPosition: Position.Left,
       style: {
-        width: n.width,
-        minHeight: n.height,
-        background: n.level === 0 ? "#22c55e" : n.level === 1 ? "#f3f4f6" : "#fafafa",
-        color: n.level === 0 ? "#fff" : "#1f2937",
-        border: n.level === 0 ? "2px solid #16a34a" : "1px solid #e5e7eb",
-        borderRadius: n.level === 0 ? "12px" : "8px",
-        padding: "10px 14px",
-        fontSize: n.level === 0 ? "15px" : "13px",
-        fontWeight: n.level === 0 ? "700" : n.level === 1 ? "600" : "400",
+        width: level === 0 ? 200 : level === 1 ? 180 : 160,
+        minHeight: 40,
+        background: level === 0 ? "#FF6A1A" : level === 1 ? (n.order % 3 === 0 ? "#171513" : "#FFE2CF") : "#FFFFFF",
+        color: level === 0 ? "#fff" : level === 1 && n.order % 3 === 0 ? "#fff" : "#171513",
+        border: level === 0 ? "2px solid #E9510E" : level === 1 ? "1.5px solid #FF813F" : "1px solid #FFB98F",
+        borderRadius: level === 0 ? "22px" : level === 1 ? "18px" : "14px",
+        padding: "12px 16px",
+        fontSize: level === 0 ? "16px" : "13px",
+        fontWeight: level === 0 ? "800" : level === 1 ? "700" : "500",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center" as const,
         lineHeight: "1.4",
-        boxShadow: n.level === 0 ? "0 2px 8px rgba(34,197,94,0.2)" : "0 1px 3px rgba(0,0,0,0.06)",
+        boxShadow: level === 0 ? "0 18px 34px rgba(255,106,26,0.24)" : "0 10px 24px rgba(23,21,19,0.08)",
       },
     };
   });
 
-  const edges: Edge[] = data.edges.map((e) => {
-    return {
-      id: e.id,
-      source: e.source,
-      target: e.target,
+  const flowEdges: Edge[] = data.mind_map.nodes
+    .filter((n) => n.parentId !== null)
+    .map((n) => ({
+      id: `edge-${n.parentId}-${n.id}`,
+      source: n.parentId!,
+      target: n.id,
       type: "smoothstep",
-      style: { stroke: "#d1d5db", strokeWidth: 1.5 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#d1d5db", width: 12, height: 12 },
-    };
-  });
+      style: { stroke: n.order % 2 === 0 ? "#FF813F" : "#4A4541", strokeWidth: 1.8 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: n.order % 2 === 0 ? "#FF813F" : "#4A4541", width: 12, height: 12 },
+    }));
 
-  return { nodes, edges };
+  return { nodes: flowNodes, edges: flowEdges };
 }
 
 // --- Flow Inner Component ---
-function FlowCanvas({
-  flowNodes,
-  flowEdges,
-  onNodeDoubleClick,
-}: {
+export interface FlowCanvasHandle {
+  exportPng: () => Promise<string | null>;
+}
+
+const FlowCanvas = forwardRef<FlowCanvasHandle, {
   flowNodes: Node[];
   flowEdges: Edge[];
-  onNodeDoubleClick: (id: string) => void;
-}) {
+  onNodeDoubleClick: (id: string, newText: string) => void;
+}>(function FlowCanvas({ flowNodes, flowEdges, onNodeDoubleClick }, ref) {
   const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges);
-  const { fitView } = useReactFlow();
+  const { fitView, getNodes } = useReactFlow();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     setNodes(flowNodes);
@@ -227,277 +170,711 @@ function FlowCanvas({
     setTimeout(() => fitView({ padding: 0.2 }), 50);
   }, [flowNodes, flowEdges, setNodes, setEdges, fitView]);
 
+  useImperativeHandle(ref, () => ({
+    exportPng: async () => {
+      const nodesBounds = getNodesBounds(getNodes());
+      const padding = 50;
+      const width = nodesBounds.width + padding * 2;
+      const height = nodesBounds.height + padding * 2;
+      const viewport = getViewportForBounds(nodesBounds, width, height, 0.5, 2, 0.2);
+      const el = document.querySelector(".react-flow__viewport") as HTMLElement;
+      if (!el) return null;
+      const prev = el.style.transform;
+      el.style.transform = `translate(${viewport.x + padding}px, ${viewport.y + padding}px) scale(${viewport.zoom})`;
+      try {
+        const dataUrl = await toPng(el, {
+          backgroundColor: "#FFFCF9",
+          width,
+          height,
+          style: {
+            width: `${width}px`,
+            height: `${height}px`,
+            transform: `translate(${viewport.x + padding}px, ${viewport.y + padding}px) scale(${viewport.zoom})`,
+          },
+        });
+        return dataUrl;
+      } finally {
+        el.style.transform = prev;
+      }
+    },
+  }), [getNodes]);
+
+  const commitEdit = useCallback(() => {
+    if (editingId && editText.trim()) {
+      onNodeDoubleClick(editingId, editText.trim());
+    }
+    setEditingId(null);
+    setEditText("");
+  }, [editingId, editText, onNodeDoubleClick]);
+
   return (
-    <ReactFlow
-      nodes={nodes}
-      edges={edges}
-      onNodesChange={onNodesChange}
-      onEdgesChange={onEdgesChange}
-      onNodeDoubleClick={(_, node) => onNodeDoubleClick(node.id)}
-      fitView
-      minZoom={0.15}
-      maxZoom={2}
-      proOptions={{ hideAttribution: true }}
-    >
-      <Background gap={20} color="#f0f0f0" />
+    <>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onNodeDoubleClick={(_, node) => {
+          setEditingId(node.id);
+          setEditText(node.data.label as string);
+        }}
+        onPaneClick={() => { if (editingId) commitEdit(); }}
+        fitView
+        minZoom={0.15}
+        maxZoom={2}
+        panOnDrag
+        zoomOnPinch
+        zoomOnScroll
+        zoomOnDoubleClick={false}
+        nodesDraggable={false}
+        elementsSelectable
+        proOptions={{ hideAttribution: true }}
+      >
+      <Background gap={22} color="#F0D8C8" />
       <Controls showInteractive={false} />
       <MiniMap
         pannable
         zoomable
-        style={{ background: "#fafafa", border: "1px solid #e5e7eb" }}
+        style={{ background: "#FFF8F3", border: "1px solid #F0C8AE", borderRadius: 16 }}
       />
     </ReactFlow>
+    {editingId && (
+      <div style={{
+        position: "absolute",
+        top: 0, left: 0, right: 0, bottom: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(255, 248, 243, 0.72)",
+        zIndex: 10,
+        padding: "16px",
+      }} onClick={commitEdit}>
+        <input
+          autoFocus
+          value={editText}
+          onChange={(e) => setEditText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commitEdit();
+            if (e.key === "Escape") { setEditingId(null); setEditText(""); }
+          }}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: "min(300px, calc(100vw - 48px))",
+            padding: "12px 16px",
+            fontSize: "15px",
+            background: "#FFFFFF",
+            color: "#171513",
+            border: "2px solid #FF6A1A",
+            borderRadius: "14px",
+            outline: "none",
+            textAlign: "center",
+          }}
+        />
+      </div>
+    )}
+    </>
   );
-}
+});
 
 // --- Main Page Component ---
-export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: () => void; initialText?: string; taskId?: string }) {
+export default function MindMapPage({
+  onBack,
+  initialText,
+  knowledgeBaseId,
+  returnState,
+  taskId: _taskId,
+}: {
+  onBack?: () => void;
+  initialText?: string;
+  knowledgeBaseId?: string;
+  returnState?: MindMapReturnState;
+  taskId?: string;
+}) {
   const navigate = useNavigate();
   const [inputText, setInputText] = useState(initialText || "");
   const [inputTitle, setInputTitle] = useState("");
-  const [maxDepth, setMaxDepth] = useState(4);
-  const [sourceOnly, setSourceOnly] = useState(true);
-  const [mapType, setMapType] = useState<"auto" | "knowledge" | "process">("auto");
 
-  const [currentData, setCurrentData] = useState<MindMapResponse | null>(null);
+  const [currentData, setCurrentData] = useState<LatestMindMapResponse | null>(null);
   const [flowNodes, setFlowNodes] = useState<Node[]>([]);
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
 
   const [step, setStep] = useState<GenerationStep>("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showGenerateConfirm, setShowGenerateConfirm] = useState(false);
+  const [generationIntent, setGenerationIntent] = useState<GenerationIntent | null>(null);
+  const [selectedDepth, setSelectedDepth] = useState<number | null>(null);
+  const [showMoreActions, setShowMoreActions] = useState(false);
 
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [versions, setVersions] = useState<MindMapVersionItem[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [activeGenerationId, setActiveGenerationId] = useState<string | null>(null);
+  const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const flowCanvasRef = useRef<FlowCanvasHandle>(null);
   const autoTriggered = useRef(false);
+  const generationLockRef = useRef(false);
+  const activeRequestRef = useRef<{ id: string; controller: AbortController } | null>(null);
 
-  // Load history on mount
-  useEffect(() => {
-    apiListHistory().then(setHistory).catch(() => {});
+  const effectiveKbId = knowledgeBaseId || returnState?.knowledgeBaseId;
+
+  useEffect(() => () => {
+    activeRequestRef.current?.controller.abort();
+    activeRequestRef.current = null;
+    generationLockRef.current = false;
   }, []);
 
-  // Load from taskId (URL-based restore)
+  // Load existing mind map if we have a KB ID
   useEffect(() => {
-    if (taskId && !currentData) {
-      apiGetMindmap(taskId)
-        .then((result) => {
-          applyResponse(result);
-          setStep("done");
-        })
-        .catch(() => {
-          setErrorMsg("导图不存在或加载失败");
-        });
+    if (effectiveKbId && !currentData && !autoTriggered.current) {
+      (async () => {
+        const session = await getCloudSession();
+        if (!session?.access_token) return;
+        const controller = new AbortController();
+        let activeJobFailed = false;
+        try {
+          const active = await getActiveGenerationJob({ knowledge_base_id: effectiveKbId, token: session.access_token });
+          if (active && (active.status === "queued" || active.status === "running")) {
+            setActiveGenerationId(active.id);
+            setGenerating(true);
+            setStep(active.status === "queued" ? "queued" : "running");
+            await waitForGenerationJob({
+              job_id: active.id,
+              token: session.access_token,
+              signal: controller.signal,
+              onJobStatus: (status) => {
+                if (status === "queued" || status === "running") setStep(status);
+              },
+            });
+            if (controller.signal.aborted) return;
+            setGenerating(false);
+          }
+        } catch (error) {
+          if (controller.signal.aborted) return;
+          const presentation = generationErrorPresentation(error);
+          if (presentation.stage !== "client_cancelled") {
+            activeJobFailed = true;
+            setStep("failed");
+            setErrorMsg(presentation.message);
+          }
+        }
+        try {
+          const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+          applyResponse(latest);
+          if (!activeJobFailed) setStep("done");
+          loadVersions(session.access_token);
+        } catch {
+          // No existing mind map — that's fine, user can generate
+        } finally {
+          controller.abort();
+          setGenerating(false);
+        }
+      })();
     }
-  }, [taskId]);
+  }, [effectiveKbId]);
 
-  const refreshHistory = useCallback(() => {
-    apiListHistory().then(setHistory).catch(() => {});
-  }, []);
+  const loadVersions = useCallback(async (token: string) => {
+    if (!effectiveKbId) return;
+    try {
+      const items = await listMindMapVersions({ knowledge_base_id: effectiveKbId, token });
+      setVersions(items);
+    } catch {
+      // ignore
+    }
+  }, [effectiveKbId]);
 
-  // Apply response to canvas
-  const applyResponse = useCallback((data: MindMapResponse) => {
+  const applyResponse = useCallback((data: LatestMindMapResponse) => {
     setCurrentData(data);
-    const { nodes, edges } = responseToFlow(data);
+    const { nodes, edges } = mindMapToFlowNodes(data);
     setFlowNodes(nodes);
     setFlowEdges(edges);
   }, []);
 
   // Generate
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(async (requestedDepth: number) => {
+    if (generationLockRef.current) return;
+    generationLockRef.current = true;
+    const requestId = crypto.randomUUID();
+    const controller = new AbortController();
+    activeRequestRef.current?.controller.abort();
+    activeRequestRef.current = { id: requestId, controller };
+    const isCurrentRequest = () => activeRequestRef.current?.id === requestId;
     const text = inputText.trim();
     if (!text) {
       setErrorMsg("请输入文本内容");
+      activeRequestRef.current = null;
+      generationLockRef.current = false;
       return;
     }
     if (text.length < 20) {
       setErrorMsg("文本内容过短，请输入至少20字");
+      activeRequestRef.current = null;
+      generationLockRef.current = false;
       return;
     }
 
-    setGenerating(true);
-    setErrorMsg("");
-    setStep("preparing");
-
-    // Simulate step progression for UX
-    const stepTimer = setTimeout(() => setStep("extracting"), 800);
-    const stepTimer2 = setTimeout(() => setStep("validating"), 2500);
-    const stepTimer3 = setTimeout(() => setStep("rendering"), 4000);
-
+    let kbId = effectiveKbId;
+    let startTime = Date.now();
+    let queuedEventSent = false;
     try {
-      const result = await apiGenerate({
-        text,
-        title: inputTitle.trim() || undefined,
-        max_depth: maxDepth,
-        source_only: sourceOnly,
-        map_type: mapType,
+      const session = await getCloudSession();
+      if (!session?.access_token) {
+        if (isCurrentRequest()) setShowLoginPrompt(true);
+        return;
+      }
+
+      if (isCurrentRequest()) {
+        setGenerating(true);
+        setErrorMsg("");
+        setStep("preparing");
+        setFeedbackGiven(false);
+      }
+      setAnalyticsToken(session.access_token);
+
+      if (!kbId) {
+        if (!supabase) throw new Error("请先保存知识库再生成导图");
+        const newId = crypto.randomUUID();
+        const { error } = await supabase.from("knowledge_bases").insert({
+          id: newId,
+          user_id: session.user.id,
+          name: inputTitle.trim() || "知识导图",
+          description: "",
+          color: "#ff6d29",
+          content_md: text,
+          updated_at: new Date().toISOString(),
+        });
+        if (error) throw error;
+        kbId = newId;
+      }
+
+      startTime = Date.now();
+      trackEvent({
+        event_name: "mindmap_generate_clicked",
+        knowledge_base_id: kbId,
+        properties: { input_length: text.length, requested_max_depth: requestedDepth },
       });
 
-      clearTimeout(stepTimer);
-      clearTimeout(stepTimer2);
-      clearTimeout(stepTimer3);
-
-      if (result.status === "failed") {
-        setStep("failed");
-        setErrorMsg("生成失败，请重试");
-      } else {
-        setStep("done");
-        applyResponse(result);
-        refreshHistory();
-        navigate(`/mindmap/${result.task_id}`, { replace: true });
-      }
+      const result = await generateMindMap({
+        knowledge_base_id: kbId,
+        title: inputTitle.trim() || "知识导图",
+        description: "",
+        content_md: text,
+        token: session.access_token,
+        requested_max_depth: requestedDepth,
+        client_request_id: requestId,
+        onJobStatus: (status) => {
+          if (!isCurrentRequest()) return;
+          if (status === "queued") {
+            setStep("queued");
+            if (!queuedEventSent) {
+              queuedEventSent = true;
+              trackEvent({ event_name: "mindmap_generate_queued", knowledge_base_id: kbId || "", properties: {} });
+            }
+          }
+          if (status === "running") setStep("running");
+        },
+        signal: controller.signal,
+      });
+      if (!isCurrentRequest()) return;
+      setStep("done");
+      setActiveGenerationId(result.generation_id);
+      const latest = await getLatestMindMap({ knowledge_base_id: kbId, token: session.access_token });
+      if (!isCurrentRequest()) return;
+      applyResponse(latest);
+      void loadVersions(session.access_token);
+      trackEvent({
+        event_name: "mindmap_generate_succeeded",
+        knowledge_base_id: kbId,
+        generation_id: result.generation_id,
+        properties: { requested_max_depth: requestedDepth, latency_ms: Date.now() - startTime },
+      });
     } catch (e) {
-      clearTimeout(stepTimer);
-      clearTimeout(stepTimer2);
-      clearTimeout(stepTimer3);
-      setStep("failed");
-      setErrorMsg(e instanceof Error ? e.message : "未知错误");
+      if (!isCurrentRequest()) return;
+      const presentation = generationErrorPresentation(e);
+      if (presentation.stage === "client_cancelled") {
+        setStep("idle");
+      } else {
+        setStep("failed");
+        setErrorMsg(presentation.message);
+      }
+      trackEvent({
+        event_name: "mindmap_generate_failed",
+        knowledge_base_id: kbId || "",
+        properties: {
+          error_stage: presentation.stage,
+          requested_max_depth: requestedDepth,
+          latency_ms: Date.now() - startTime,
+        },
+      });
     } finally {
-      setGenerating(false);
+      if (isCurrentRequest()) {
+        activeRequestRef.current = null;
+        generationLockRef.current = false;
+        setGenerating(false);
+      }
     }
-  }, [inputText, inputTitle, maxDepth, sourceOnly, mapType, applyResponse, refreshHistory, navigate]);
+  }, [inputText, inputTitle, effectiveKbId, applyResponse, loadVersions]);
 
-  // Auto-trigger generation when initialText is provided
+  // Auto-trigger: show generate confirmation when initialText is provided
   useEffect(() => {
-    if (initialText && initialText.trim().length >= 20 && !autoTriggered.current) {
+    if (initialText && initialText.trim().length >= 20 && !autoTriggered.current && effectiveKbId) {
       autoTriggered.current = true;
-      handleGenerate();
+      setSelectedDepth(null);
+      setGenerationIntent("generate");
+      setShowGenerateConfirm(true);
+      trackEvent({
+        event_name: "mindmap_generate_settings_opened",
+        knowledge_base_id: effectiveKbId,
+        properties: { source: "editor" },
+      });
     }
-  }, [initialText, handleGenerate]);
+  }, [initialText, effectiveKbId]);
 
   // Regenerate
-  const handleRegenerate = useCallback(async () => {
-    if (!currentData) return;
-    setGenerating(true);
-    setStep("preparing");
-    setErrorMsg("");
+  const handleRegenerate = useCallback(async (requestedDepth: number) => {
+    if (!effectiveKbId || generationLockRef.current) return;
+    generationLockRef.current = true;
+    const requestId = crypto.randomUUID();
+    const controller = new AbortController();
+    activeRequestRef.current?.controller.abort();
+    activeRequestRef.current = { id: requestId, controller };
+    const isCurrentRequest = () => activeRequestRef.current?.id === requestId;
+    const previousGenId = activeGenerationId;
+    const startTime = Date.now();
+    let queuedEventSent = false;
     try {
-      const result = await apiRegenerate(currentData.task_id, {
-        max_depth: maxDepth,
-        map_type: mapType,
-      });
-      setStep("done");
-      applyResponse(result);
-      refreshHistory();
-      navigate(`/mindmap/${result.task_id}`, { replace: true });
-    } catch (e) {
-      setStep("failed");
-      setErrorMsg(e instanceof Error ? e.message : "重新生成失败");
-    } finally {
-      setGenerating(false);
-    }
-  }, [currentData, maxDepth, mapType, applyResponse, refreshHistory, navigate]);
+      const session = await getCloudSession();
+      if (!session?.access_token) {
+        if (isCurrentRequest()) setShowLoginPrompt(true);
+        return;
+      }
 
-  // Load from history - navigate to URL
-  const handleLoadHistory = useCallback(
-    (taskId: string) => {
-      navigate(`/mindmap/${taskId}`);
-    },
-    [navigate]
-  );
+      if (isCurrentRequest()) {
+        setGenerating(true);
+        setStep("preparing");
+        setErrorMsg("");
+        setFeedbackGiven(false);
+      }
+      setAnalyticsToken(session.access_token);
+      trackEvent({
+        event_name: "mindmap_regenerate_clicked",
+        knowledge_base_id: effectiveKbId,
+        properties: { requested_max_depth: requestedDepth },
+      });
+
+      const result = await regenerateMindMap({
+        knowledge_base_id: effectiveKbId,
+        token: session.access_token,
+        requested_max_depth: requestedDepth,
+        content_md: inputText.trim() || undefined,
+        client_request_id: requestId,
+        onJobStatus: (status) => {
+          if (!isCurrentRequest()) return;
+          if (status === "queued") {
+            setStep("queued");
+            if (!queuedEventSent) {
+              queuedEventSent = true;
+              trackEvent({ event_name: "mindmap_regenerate_queued", knowledge_base_id: effectiveKbId, properties: {} });
+            }
+          }
+          if (status === "running") setStep("running");
+        },
+        signal: controller.signal,
+      });
+      if (!isCurrentRequest()) return;
+      setStep("done");
+      setActiveGenerationId(result.generation_id);
+      trackEvent({
+        event_name: "mindmap_regenerate_succeeded",
+        knowledge_base_id: effectiveKbId,
+        generation_id: result.generation_id,
+        properties: { previous_generation_id: previousGenId, requested_max_depth: requestedDepth, latency_ms: Date.now() - startTime },
+      });
+      const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+      if (!isCurrentRequest()) return;
+      applyResponse(latest);
+      void loadVersions(session.access_token);
+    } catch (e) {
+      if (!isCurrentRequest()) return;
+      const presentation = generationErrorPresentation(e);
+      if (presentation.stage === "client_cancelled") {
+        setStep("idle");
+      } else {
+        setStep("failed");
+        setErrorMsg(presentation.message);
+      }
+      trackEvent({
+        event_name: "mindmap_regenerate_failed",
+        knowledge_base_id: effectiveKbId,
+        properties: { error_stage: presentation.stage, requested_max_depth: requestedDepth, latency_ms: Date.now() - startTime },
+      });
+    } finally {
+      if (isCurrentRequest()) {
+        activeRequestRef.current = null;
+        generationLockRef.current = false;
+        setGenerating(false);
+      }
+    }
+  }, [effectiveKbId, applyResponse, loadVersions, activeGenerationId, inputText]);
+
+  const resetToNew = useCallback(() => {
+    activeRequestRef.current?.controller.abort();
+    activeRequestRef.current = null;
+    generationLockRef.current = false;
+    setCurrentData(null);
+    setFlowNodes([]);
+    setFlowEdges([]);
+    setInputText("");
+    setInputTitle("");
+    setStep("idle");
+    setErrorMsg("");
+    setSelectedDepth(null);
+    setGenerationIntent(null);
+    setShowMoreActions(false);
+    autoTriggered.current = false;
+  }, []);
 
   // Node edit (double-click)
   const handleNodeDoubleClick = useCallback(
-    async (nodeId: string) => {
+    async (nodeId: string, newText: string) => {
       if (!currentData) return;
-      const node = currentData.nodes.find((n) => n.id === nodeId);
-      if (!node) return;
-      const newText = prompt("编辑节点内容", node.text);
-      if (!newText?.trim() || newText.trim() === node.text) return;
+      const node = currentData.mind_map.nodes.find((n) => n.id === nodeId);
+      if (!node || newText === node.text) return;
+
+      const session = await getCloudSession();
+      if (!session?.access_token) return;
+
       try {
-        const result = await apiPatch(currentData.task_id, {
-          update_node: { id: nodeId, text: newText.trim() },
+        const result = await patchMindMap({
+          mind_map_id: currentData.id,
+          token: session.access_token,
+          update_node: { id: nodeId, text: newText },
         });
         applyResponse(result);
+        trackEvent({
+          event_name: "mindmap_node_edited",
+          knowledge_base_id: effectiveKbId,
+          generation_id: activeGenerationId,
+          mind_map_id: currentData.id,
+          properties: { node_id: nodeId, before_length: node.text.length, after_length: newText.length },
+        });
       } catch {
         setErrorMsg("修改节点失败");
       }
     },
-    [currentData, applyResponse]
+    [currentData, applyResponse, effectiveKbId, activeGenerationId]
   );
+
+  // Delete current mind map version
+  const handleDeleteVersion = useCallback(async () => {
+    if (!currentData?.id) return;
+    if (!window.confirm("确认删除这个版本的思维导图？")) return;
+
+    const session = await getCloudSession();
+    if (!session?.access_token) return;
+
+    try {
+      await deleteMindMap({ mind_map_id: currentData.id, token: session.access_token });
+      resetToNew();
+      loadVersions(session.access_token);
+    } catch (e) {
+      setErrorMsg(e instanceof Error ? e.message : "删除失败");
+    }
+  }, [currentData, resetToNew, loadVersions]);
 
   // Download PNG
   const handleDownloadPng = useCallback(async () => {
-    const el = canvasRef.current?.querySelector(".react-flow") as HTMLElement;
-    if (!el) return;
+    if (!flowCanvasRef.current) return;
     try {
-      const dataUrl = await toPng(el, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 2,
+      const dataUrl = await flowCanvasRef.current.exportPng();
+      if (!dataUrl) {
+        setErrorMsg("PNG导出失败，请重试");
+        return;
+      }
+      const title = currentData?.mind_map.title?.trim() || "mindmap";
+      const invalidFilenameCharacters = '<>:"/\\|?*';
+      const safeName = Array.from(title, (character) => (
+        character.charCodeAt(0) < 32 || invalidFilenameCharacters.includes(character) ? "_" : character
+      )).join("");
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `${safeName}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      trackEvent({
+        event_name: "mindmap_exported",
+        knowledge_base_id: effectiveKbId,
+        generation_id: activeGenerationId,
+        mind_map_id: currentData?.id,
+        properties: { format: "png" },
       });
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `${currentData?.title || "mindmap"}.png`;
-      a.click();
     } catch {
       setErrorMsg("PNG导出失败，请重试");
     }
-  }, [currentData]);
+  }, [currentData, effectiveKbId, activeGenerationId]);
 
   // Copy JSON
   const handleCopyJson = useCallback(() => {
     if (!currentData) return;
-    const json = JSON.stringify(
-      { title: currentData.title, nodes: currentData.nodes, edges: currentData.edges },
-      null,
-      2
-    );
+    const json = JSON.stringify(currentData.mind_map, null, 2);
     navigator.clipboard.writeText(json).then(() => {
       setErrorMsg("");
+      trackEvent({
+        event_name: "mindmap_exported",
+        knowledge_base_id: effectiveKbId,
+        generation_id: activeGenerationId,
+        mind_map_id: currentData.id,
+        properties: { format: "json" },
+      });
     });
-  }, [currentData]);
+  }, [currentData, effectiveKbId, activeGenerationId]);
+
+  // Feedback handler
+  const handleFeedback = useCallback((rating: "positive" | "negative", reason?: string) => {
+    setFeedbackGiven(true);
+    trackEvent({
+      event_name: "mindmap_feedback_submitted",
+      knowledge_base_id: effectiveKbId,
+      generation_id: activeGenerationId,
+      mind_map_id: currentData?.id,
+      properties: { rating, reason: reason || null, node_count: currentData?.mind_map.nodes.length },
+    });
+  }, [effectiveKbId, activeGenerationId, currentData]);
 
   return (
     <div className="mm-page">
-      {/* Sidebar - History */}
-      <aside className={`mm-sidebar ${sidebarOpen ? "" : "mm-sidebar-collapsed"}`}>
+      {/* Login prompt modal */}
+      {showLoginPrompt && (
+        <div
+          className="mm-login-overlay"
+          style={{
+            position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(23,21,19,0.5)", zIndex: 1000,
+          }}
+          onClick={() => setShowLoginPrompt(false)}
+        >
+          <div
+            style={{
+              background: "#fff", borderRadius: "20px", padding: "32px",
+              maxWidth: "380px", width: "90%", textAlign: "center",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: "0 0 12px", fontSize: "18px", color: "#171513" }}>需要登录</h3>
+            <p style={{ margin: "0 0 24px", color: "#77716c", fontSize: "14px", lineHeight: "1.6" }}>
+              生成思维导图需要登录账号。登录后即可使用 AI 生成功能。
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              <button
+                style={{
+                  padding: "10px 24px", borderRadius: "12px", border: "none",
+                  background: "#FF6A1A", color: "#fff", fontWeight: "700",
+                  cursor: "pointer", fontSize: "14px",
+                }}
+                onClick={() => { setShowLoginPrompt(false); navigate("/"); }}
+              >
+                去登录
+              </button>
+              <button
+                style={{
+                  padding: "10px 24px", borderRadius: "12px", border: "1px solid #e8e0d8",
+                  background: "#fff", color: "#171513", fontWeight: "500",
+                  cursor: "pointer", fontSize: "14px",
+                }}
+                onClick={() => setShowLoginPrompt(false)}
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile sidebar backdrop */}
+      {mobileSidebarOpen && (
+        <div className="mm-mobile-backdrop visible" onClick={() => setMobileSidebarOpen(false)} />
+      )}
+
+      {/* Sidebar - Versions */}
+      <aside className={`mm-sidebar ${sidebarOpen ? "" : "mm-sidebar-collapsed"} ${mobileSidebarOpen ? "mm-sidebar-mobile-open" : ""}`}>
         <div className="mm-sidebar-header">
-          <button className="mm-btn-icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
+          <button className="mm-btn-icon" onClick={() => { setSidebarOpen(!sidebarOpen); setMobileSidebarOpen(false); }}>
             {sidebarOpen ? "◁" : "▷"}
           </button>
-          {sidebarOpen && <span className="mm-sidebar-title">历史记录</span>}
+          {sidebarOpen && <span className="mm-sidebar-title">版本记录</span>}
         </div>
         {sidebarOpen && (
-          <div className="mm-sidebar-list">
-            <button
-              className="mm-btn-new"
-              onClick={() => {
-                setCurrentData(null);
-                setFlowNodes([]);
-                setFlowEdges([]);
-                setStep("idle");
-                setErrorMsg("");
-              }}
-            >
-              + 新建
-            </button>
-            {history.map((item) => (
-              <button
-                key={item.task_id}
-                className={`mm-history-item ${
-                  currentData?.task_id === item.task_id ? "active" : ""
-                }`}
-                onClick={() => handleLoadHistory(item.task_id)}
-              >
-                <span className="mm-history-title">{item.title}</span>
-                <span className="mm-history-meta">
-                  {item.node_count}节点 · {new Date(item.created_at).toLocaleDateString()}
-                </span>
+          <>
+            <div className="mm-sidebar-actions">
+              <button className="mm-btn-new" onClick={resetToNew}>
+                + 新建
               </button>
-            ))}
-            {history.length === 0 && (
-              <p className="mm-empty-hint">暂无历史记录</p>
-            )}
-          </div>
+              {onBack && (
+                <button className="mm-btn-back-sidebar" onClick={onBack}>
+                  返回知识库
+                </button>
+              )}
+            </div>
+            <div className="mm-sidebar-list">
+              {versions.map((item) => {
+                const isActive = currentData?.id === item.id;
+                return (
+                  <div key={item.id} className={`mm-history-row ${isActive ? "active" : ""}`}>
+                    <button
+                      className="mm-history-item"
+                      onClick={async () => {
+                        if (!effectiveKbId) return;
+                        const session = await getCloudSession();
+                        if (!session?.access_token) return;
+                        try {
+                          const latest = await getLatestMindMap({ knowledge_base_id: effectiveKbId, token: session.access_token });
+                          applyResponse(latest);
+                          setStep("done");
+                        } catch {
+                          setErrorMsg("加载版本失败");
+                        }
+                      }}
+                    >
+                      <span className="mm-history-title">版本 {item.version_no}</span>
+                      <span className="mm-history-meta">
+                        {item.updated_at ? new Date(item.updated_at).toLocaleString(undefined, { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : ""}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })}
+              {versions.length === 0 && (
+                <p className="mm-empty-hint">暂无版本记录</p>
+              )}
+            </div>
+          </>
         )}
       </aside>
 
       {/* Main content */}
       <main className="mm-main">
+        {/* Mobile toggle for sidebar */}
+        <button
+          className="mm-mobile-toggle mm-btn-icon"
+          style={{ position: "absolute", top: "8px", left: "8px", zIndex: 5 }}
+          onClick={() => setMobileSidebarOpen(true)}
+          aria-label="打开版本记录"
+        >
+          ☰
+        </button>
+
         {/* Input panel - show when no result */}
         {!currentData && (
           <div className="mm-input-panel">
+            {onBack && (
+              <button className="mm-btn-back-top" onClick={onBack}>
+                ← 返回知识库
+              </button>
+            )}
             <h2 className="mm-heading">思维导图生成</h2>
             <p className="mm-desc">
               粘贴长文本，AI 自动提取知识点并生成结构化思维导图。
@@ -527,68 +904,98 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
               <span className="mm-char-count">{inputText.length} 字</span>
             </div>
 
-            <div className="mm-options">
-              <div className="mm-option">
-                <label htmlFor="mm-depth">最大层级</label>
-                <select
-                  id="mm-depth"
-                  value={maxDepth}
-                  onChange={(e) => setMaxDepth(Number(e.target.value))}
-                >
-                  <option value={2}>2</option>
-                  <option value={3}>3</option>
-                  <option value={4}>4</option>
-                  <option value={5}>5</option>
-                  <option value={6}>6</option>
-                </select>
-              </div>
-              <div className="mm-option">
-                <label htmlFor="mm-type">类型</label>
-                <select
-                  id="mm-type"
-                  value={mapType}
-                  onChange={(e) =>
-                    setMapType(e.target.value as "auto" | "knowledge" | "process")
-                  }
-                >
-                  <option value="auto">自动</option>
-                  <option value="knowledge">知识型</option>
-                  <option value="process">流程型</option>
-                </select>
-              </div>
-              <div className="mm-option mm-checkbox">
-                <input
-                  id="mm-source"
-                  type="checkbox"
-                  checked={sourceOnly}
-                  onChange={(e) => setSourceOnly(e.target.checked)}
-                />
-                <label htmlFor="mm-source">仅依据原文</label>
-              </div>
-            </div>
-
             {/* Status */}
             {step !== "idle" && step !== "done" && (
-              <div className={`mm-status ${step === "failed" ? "mm-status-error" : ""}`}>
+              <div
+                className={`mm-status ${step === "failed" ? "mm-status-error" : ""}`}
+                role={step === "failed" ? "alert" : "status"}
+              >
                 {step !== "failed" && <span className="mm-spinner" />}
-                {STEP_LABELS[step]}
+                <span className="mm-status-copy">
+                  <strong>{STEP_LABELS[step]}</strong>
+                  {step === "failed" && errorMsg && <span>{errorMsg}</span>}
+                </span>
               </div>
             )}
-            {errorMsg && <div className="mm-status mm-status-error">{errorMsg}</div>}
+            {errorMsg && step !== "failed" && (
+              <div className="mm-status mm-status-error" role="alert">{errorMsg}</div>
+            )}
 
             <button
               className="mm-btn-generate"
-              onClick={handleGenerate}
+              onClick={() => {
+                const text = inputText.trim();
+                if (!text) { setErrorMsg("请输入文本内容"); return; }
+                if (text.length < 20) { setErrorMsg("文本内容过短，请输入至少20字"); return; }
+                setErrorMsg("");
+                setSelectedDepth(null);
+                setGenerationIntent("generate");
+                setShowGenerateConfirm(true);
+                trackEvent({ event_name: "mindmap_generate_settings_opened", knowledge_base_id: effectiveKbId || "", properties: {} });
+              }}
               disabled={generating || !inputText.trim()}
             >
               {generating ? "生成中..." : "生成思维导图"}
             </button>
+          </div>
+        )}
 
-            {onBack && (
-              <button className="mm-btn-back" onClick={onBack}>
-                ← 返回知识库
-              </button>
-            )}
+        {/* Generate Confirmation Modal */}
+        {showGenerateConfirm && (
+          <div className="mm-confirm-overlay" onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowGenerateConfirm(false);
+              setGenerationIntent(null);
+              setSelectedDepth(null);
+            }
+          }}>
+            <div className="mm-confirm-sheet" role="dialog" aria-modal="true" aria-labelledby="generate-settings-title">
+              <h3 className="mm-confirm-title" id="generate-settings-title">
+                {generationIntent === "regenerate" ? "重新生成思维导图" : "生成思维导图"}
+              </h3>
+              <p className="mm-confirm-label">选择结构层级</p>
+              <div className="mm-depth-grid">
+                {[3, 4, 5, 6].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`mm-depth-option ${selectedDepth === d ? "mm-depth-option--active" : ""}`}
+                    onClick={() => setSelectedDepth(d)}
+                    aria-pressed={selectedDepth === d}
+                  >
+                    <span>{d} 层</span>
+                    <span className="mm-depth-hint">
+                      {d === 3 ? "精简" : d === 4 ? "适中" : d === 5 ? "详细" : "深入"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <div className="mm-confirm-actions">
+                <button type="button" className="mm-confirm-cancel" onClick={() => {
+                  setShowGenerateConfirm(false);
+                  setGenerationIntent(null);
+                  setSelectedDepth(null);
+                }}>
+                  取消
+                </button>
+                <button
+                  type="button"
+                  className="mm-confirm-submit"
+                  onClick={() => {
+                    if (selectedDepth === null || !generationIntent) return;
+                    const depth = selectedDepth;
+                    const intent = generationIntent;
+                    setShowGenerateConfirm(false);
+                    setGenerationIntent(null);
+                    if (intent === "regenerate") void handleRegenerate(depth);
+                    else void handleGenerate(depth);
+                  }}
+                  disabled={generating || selectedDepth === null}
+                >
+                  确认生成
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -596,24 +1003,39 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
         {currentData && (
           <div className="mm-canvas-panel">
             <div className="mm-toolbar">
-              <h3 className="mm-canvas-title">{currentData.title}</h3>
+              <h3 className="mm-canvas-title">{currentData.mind_map.title}</h3>
               <div className="mm-toolbar-actions">
-                <button onClick={handleRegenerate} disabled={generating}>
+                <button className="mm-btn-regen" onClick={() => {
+                  setSelectedDepth(null);
+                  setGenerationIntent("regenerate");
+                  setShowGenerateConfirm(true);
+                  trackEvent({
+                    event_name: "mindmap_generate_settings_opened",
+                    knowledge_base_id: effectiveKbId || "",
+                    properties: { intent: "regenerate" },
+                  });
+                }} disabled={generating}>
                   重新生成
                 </button>
-                <button onClick={handleDownloadPng}>下载 PNG</button>
-                <button onClick={handleCopyJson}>复制 JSON</button>
+                <span className="mm-edit-hint">双击节点编辑</span>
                 <button
-                  onClick={() => {
-                    setCurrentData(null);
-                    setFlowNodes([]);
-                    setFlowEdges([]);
-                    setStep("idle");
-                  }}
+                  type="button"
+                  className="mm-btn-more"
+                  aria-label="更多操作"
+                  aria-expanded={showMoreActions}
+                  onClick={() => setShowMoreActions((value) => !value)}
                 >
-                  新建
+                  ⋯
                 </button>
-                {onBack && <button onClick={onBack}>返回</button>}
+                {showMoreActions && (
+                  <div className="mm-more-menu">
+                    <button onClick={() => { setShowMoreActions(false); void handleDownloadPng(); }}>下载 PNG</button>
+                    <button onClick={() => { setShowMoreActions(false); void handleCopyJson(); }}>复制 JSON</button>
+                    <button onClick={() => { setShowMoreActions(false); void handleDeleteVersion(); }}>删除版本</button>
+                    <button onClick={resetToNew}>新建</button>
+                    {onBack && <button onClick={onBack}>返回知识库</button>}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -624,17 +1046,10 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
               </div>
             )}
 
-            {currentData.validation && !currentData.validation.passed && (
-              <div className="mm-validation-warn">
-                校验分数: {currentData.validation.score}/100
-                {currentData.validation.errors.length > 0 &&
-                  ` · ${currentData.validation.errors.length} 个错误`}
-              </div>
-            )}
-
-            <div className="mm-canvas" ref={canvasRef}>
+            <div className="mm-canvas">
               <ReactFlowProvider>
                 <FlowCanvas
+                  ref={flowCanvasRef}
                   flowNodes={flowNodes}
                   flowEdges={flowEdges}
                   onNodeDoubleClick={handleNodeDoubleClick}
@@ -642,7 +1057,34 @@ export default function MindMapPage({ onBack, initialText, taskId }: { onBack?: 
               </ReactFlowProvider>
             </div>
 
-            <p className="mm-hint">双击节点可编辑内容</p>
+            {/* Feedback UI */}
+            {step === "done" && !feedbackGiven && (
+              <div className="mm-feedback" style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 16px" }}>
+                <span style={{ fontSize: "13px", color: "#77716c" }}>这个导图对你有帮助吗？</span>
+                <button
+                  className="mm-feedback-btn"
+                  style={{ border: "none", background: "none", cursor: "pointer", fontSize: "20px" }}
+                  onClick={() => handleFeedback("positive")}
+                  aria-label="有帮助"
+                >👍</button>
+                <button
+                  className="mm-feedback-btn"
+                  style={{ border: "none", background: "none", cursor: "pointer", fontSize: "20px" }}
+                  onClick={() => {
+                    const reasons = ["missing_content", "wrong_hierarchy", "redundant_content", "unclear_expression", "poor_structure", "other"];
+                    const labels = ["内容缺失", "层级错误", "内容冗余", "表达不清", "结构不佳", "其他"];
+                    const idx = reasons.findIndex((_, i) => window.confirm(`是否因为「${labels[i]}」？\n（取消可选下一个原因）`));
+                    handleFeedback("negative", idx >= 0 ? reasons[idx] : undefined);
+                  }}
+                  aria-label="没帮助"
+                >👎</button>
+              </div>
+            )}
+            {feedbackGiven && (
+              <div style={{ padding: "8px 16px", fontSize: "13px", color: "#77716c" }}>感谢反馈！</div>
+            )}
+
+            <p className="mm-hint">双击节点可编辑内容 · 版本 {currentData.version_no}</p>
           </div>
         )}
       </main>

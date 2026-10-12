@@ -1,0 +1,1327 @@
+/* Mobile Responsive Overrides - Knowledge Bar */
+/* Redesigned: memo-app native mobile experience */
+
+/* === Touch Targets === */
+@media (max-width: 640px) {
+  button,
+  .side-menu button,
+  .mm-btn-icon,
+  .mm-toolbar-actions button,
+  .editor-nav button,
+  .delete-confirm-btn,
+  .delete-cancel-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .mm-feedback-btn {
+    min-height: 44px !important;
+    min-width: 44px !important;
+    padding: 8px !important;
+  }
+}
+
+/* === Safe Area === */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mm-feedback,
+  .mm-hint,
+  .button-row,
+  .mm-btn-generate,
+  .editor-bottom-toolbar {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+}
+
+/* === Global Header Mobile === */
+@media (max-width: 640px) {
+  .global-header {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+  }
+
+  .brand-mark img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .brand-title {
+    font-size: 14px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  /* Hide completely on MindMap full-screen and inner app pages */
+  .shell--fullscreen .global-header {
+    display: none;
+  }
+}
+
+/* === Mobile Menu Toggle === */
+.mobile-menu-toggle {
+  display: none;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+  border: 1px solid var(--kb-line, #ded9d4);
+  border-radius: 10px;
+  background: var(--kb-white, #fff);
+  color: var(--kb-ink, #171513);
+  font-size: 20px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+  }
+}
+
+/* === Sidebar Mobile Overlay === */
+@media (max-width: 768px) {
+  .app-theme .app-layout,
+  .app-theme .app-layout.sidebar-collapsed {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .app-theme .sidebar,
+  .app-layout .sidebar {
+    position: fixed;
+    top: 48px;
+    left: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 260px;
+    max-width: 80vw;
+    border-right: 1px solid var(--kb-line, #ded9d4);
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .app-theme .sidebar.mobile-open,
+  .app-layout .sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .sidebar .collapse-btn {
+    display: none;
+  }
+
+  .mobile-sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 48px;
+    z-index: 49;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .mobile-sidebar-backdrop.visible {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-sidebar-backdrop {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   LOGIN PAGE MOBILE — Readability & Native Feel
+   ============================================================ */
+@media (max-width: 640px) {
+  .shell--fullscreen > main {
+    padding-top: 0;
+  }
+
+  .shell:not(.app-theme) .global-header {
+    display: none;
+  }
+
+  .shell:not(.app-theme) > main {
+    min-height: 100dvh;
+    padding-top: 0;
+  }
+
+  .hero-slab {
+    grid-template-columns: 1fr;
+    min-height: 100dvh;
+    place-items: center;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .page {
+    padding: 0;
+  }
+
+  .surface {
+    border-radius: 0;
+  }
+
+  .hero-slab__bg {
+    display: none;
+  }
+
+  .shell:not(.app-theme) .hero-blue {
+    display: none;
+  }
+
+  .hero-blue h1 {
+    font-size: 36px;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .shell:not(.app-theme) .hero-blue h1.register-title {
+    font-size: 28px;
+    white-space: normal !important;
+  }
+
+  .kicker {
+    margin-top: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    justify-content: center;
+    color: rgba(255, 250, 243, 0.9);
+  }
+
+  .kicker::before {
+    display: none;
+  }
+
+  .hero-copy {
+    font-size: 14px;
+    margin-top: 8px;
+    color: rgba(255, 250, 243, 0.85);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* Login panel — high contrast, clear hierarchy */
+  .login-panel {
+    width: min(100% - 32px, 420px);
+    margin: 16px;
+    padding: 28px 22px;
+    border: 1px solid #e7dfd8;
+    border-radius: 22px;
+    background: rgba(255, 252, 249, 0.96);
+    color: #171513;
+    box-shadow: 0 24px 64px rgba(23, 21, 19, 0.18);
+    backdrop-filter: blur(18px);
+  }
+
+  .login-panel--entry {
+    animation: none;
+  }
+
+  .login-panel--entry::before {
+    display: none;
+  }
+
+  .panel-title {
+    font-size: 22px;
+    margin-bottom: 4px;
+    color: #171513;
+  }
+
+  .login-panel-title {
+    gap: 4px;
+  }
+
+  .login-panel .panel-desc,
+  .login-panel label,
+  .login-panel .hint-link,
+  .login-panel .hint-link span {
+    color: #625c57;
+  }
+
+  .login-panel input {
+    color: #171513;
+    border-color: #ded9d4;
+    background: #fff;
+  }
+
+  .login-panel input::placeholder {
+    color: #9b948e;
+  }
+
+  .login-panel .button-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .login-panel .button-row button {
+    width: 100%;
+  }
+
+  .login-panel-title__lead {
+    font-size: 16px;
+    color: rgba(255, 250, 243, 0.95);
+  }
+
+  .login-panel-title__lead::before {
+    width: 24px;
+    height: 3px;
+    margin-right: 8px;
+  }
+
+  .login-panel-title__brand {
+    font-size: 26px;
+    white-space: normal;
+    animation: none;
+  }
+
+  .panel-desc {
+    margin-bottom: 20px;
+    font-size: 14px;
+    color: rgba(255, 250, 243, 0.8);
+    line-height: 1.5;
+  }
+
+  /* Form fields — high readability */
+  .login-panel .field {
+    margin-bottom: 18px;
+    gap: 6px;
+  }
+
+  .login-panel .field label {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 250, 243, 0.95);
+    letter-spacing: 0.02em;
+  }
+
+  .login-panel input {
+    height: 50px;
+    padding: 14px 16px;
+    font-size: 16px;
+    color: #fffaf3;
+    border: 1.5px solid rgba(255, 250, 243, 0.35);
+    border-radius: 12px;
+    background: rgba(255, 250, 243, 0.1);
+  }
+
+  .login-panel input::placeholder {
+    color: rgba(255, 250, 243, 0.5);
+    font-size: 15px;
+  }
+
+  .login-panel input:focus {
+    border-color: #F97316;
+    background: rgba(255, 250, 243, 0.12);
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+  }
+
+  /* Status/error message */
+  .login-panel .status,
+  .login-panel + .status {
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: #fb923c;
+    background: rgba(249, 115, 22, 0.08);
+    border-color: rgba(249, 115, 22, 0.3);
+  }
+
+  /* Button row — clear CTA hierarchy */
+  .login-panel .button-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .login-panel .button-row .primary {
+    height: 52px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  .login-panel .button-row .ghost {
+    height: 46px;
+    font-size: 15px;
+    color: rgba(255, 250, 243, 0.8);
+    border: 1px solid rgba(255, 250, 243, 0.2);
+    border-radius: 12px;
+    background: transparent;
+  }
+
+  /* Hint link */
+  .login-panel .hint-link {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 14px;
+    color: rgba(255, 250, 243, 0.75);
+  }
+
+  .login-panel .hint-link button {
+    font-size: 14px;
+    font-weight: 600;
+    color: #F97316;
+    min-height: auto;
+    min-width: auto;
+    padding: 4px 8px;
+  }
+}
+
+/* ============================================================
+   DASHBOARD MOBILE
+   ============================================================ */
+@media (max-width: 640px) {
+  /* Keep the navigation header visible where it is the only path to the mobile sidebar. */
+  .app-theme:not(.shell--editor):not(.shell--fullscreen) .global-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    height: 48px;
+    padding: 4px 12px;
+  }
+
+  .shell.app-theme.shell--fullscreen .global-header {
+    display: none;
+  }
+
+  .shell.app-theme.shell--fullscreen > main {
+    min-height: 100dvh;
+    padding: 0;
+  }
+
+  .dashboard-hero,
+  .settings-hero {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .detail-hero {
+    padding: 14px 16px;
+    border-radius: 0;
+  }
+
+  .dashboard-hero h1 {
+    font-size: 22px;
+    margin: 0 0 8px;
+  }
+
+  .detail-hero h1,
+  .settings-hero h1 {
+    font-size: clamp(20px, 5vw, 24px);
+  }
+
+  .dashboard-hero .section-kicker {
+    display: none;
+  }
+
+  .dashboard-hero p {
+    display: none;
+  }
+
+  .dashboard-actions {
+    gap: 8px;
+  }
+
+  .dashboard-actions .primary {
+    font-size: 14px;
+    padding: 8px 14px;
+    min-height: 38px;
+    border-radius: 10px;
+  }
+
+  .ai-map-entry {
+    font-size: 13px;
+    padding: 8px 12px !important;
+    min-height: 38px !important;
+    border-radius: 10px !important;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .summary-card {
+    min-height: 70px;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .summary-card strong {
+    font-size: 20px;
+  }
+
+  .summary-card span {
+    font-size: 12px;
+  }
+
+  .summary-card small {
+    font-size: 11px;
+  }
+
+  .app-theme .card-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .app-theme .kb-card,
+  .app-theme .new-card {
+    min-height: 100px;
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .app-theme .kb-card h4,
+  .app-theme .new-card h4 {
+    font-size: 16px;
+  }
+
+  .app-theme .new-card-visual {
+    display: none;
+  }
+
+  .app-theme .new-card-copy .new-card-kicker {
+    display: none;
+  }
+
+  .app-theme .new-card-copy p {
+    font-size: 13px;
+  }
+
+  .guest-ribbon {
+    font-size: 13px;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+
+  .search-row input {
+    height: 40px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+}
+
+/* ============================================================
+   KNOWLEDGE EDITOR — MEMO-APP LAYOUT (Mobile)
+   ============================================================
+   Structure:
+   1. Compact top nav (back + title + save indicator)
+   2. Metadata strip (light, not dominant)
+   3. Content editor (first visual focus, large area)
+   4. Bottom toolbar (fixed, icon-based actions)
+   ============================================================ */
+@media (max-width: 640px) {
+  .shell--editor .global-header {
+    display: none;
+  }
+
+  .shell.app-theme.shell--editor > main {
+    min-height: 100dvh;
+    padding: 0;
+  }
+
+  .shell.app-theme.shell--editor .page.active,
+  .shell.app-theme.shell--editor .surface.detail-layout,
+  .shell.app-theme.shell--editor .workspace.detail-workspace {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: hidden;
+  }
+
+  .shell.app-theme.shell--editor .surface.detail-layout {
+    min-height: 100dvh;
+  }
+
+  .workspace {
+    padding: 0;
+  }
+
+  .dashboard-workspace,
+  .settings-workspace {
+    padding: 12px;
+  }
+
+  /* Hide the large hero banner on mobile editor — not memo-like */
+  .detail-workspace .detail-hero {
+    display: none;
+  }
+
+  .detail-workspace .detail-hero h1 {
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .detail-workspace .detail-hero p {
+    display: none;
+  }
+
+  .detail-workspace .detail-hero .section-kicker {
+    display: none;
+  }
+
+  .detail-workspace .detail-hero .detail-node-map {
+    display: none;
+  }
+
+  .detail-workspace {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-theme .mobile-editor-header {
+    position: relative;
+    z-index: 7;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    align-items: center;
+    min-height: calc(52px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) 10px 0;
+    border-bottom: 1px solid #e8e2dc;
+    background: #fffdfa;
+    color: #171513;
+  }
+
+  .mobile-editor-header strong {
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-editor-header > button {
+    border: 0;
+    background: transparent;
+    color: #171513;
+    font-size: 22px;
+  }
+
+  .mobile-editor-menu {
+    position: absolute;
+    top: calc(48px + env(safe-area-inset-top));
+    right: 10px;
+    display: grid;
+    min-width: 148px;
+    padding: 6px;
+    border: 1px solid #e8e2dc;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 44px rgba(23, 21, 19, 0.16);
+  }
+
+  .mobile-editor-menu button {
+    min-height: 40px;
+    border: 0;
+    background: transparent;
+    color: #171513;
+    text-align: left;
+  }
+
+  /* Editor nav → transformed into compact inline bar + bottom toolbar */
+  .app-theme .editor-nav {
+    display: none;
+  }
+
+  .app-theme .editor-nav .nav-title {
+    display: none;
+  }
+
+  .app-theme .editor-nav .spacer {
+    display: none;
+  }
+
+  /* Hide secondary actions from top bar — they go to bottom toolbar */
+  .app-theme .editor-nav .btn-image,
+  .app-theme .editor-nav .btn-tag,
+  .app-theme .editor-nav .btn-export,
+  .app-theme .editor-nav .btn-rename {
+    display: none;
+  }
+
+  /* Keep only: Save + Generate in the compact top bar */
+  .app-theme .editor-nav .btn-save {
+    flex: none;
+    font-size: 13px;
+    padding: 0 14px;
+    min-height: 36px;
+    border-radius: 8px;
+    background: transparent;
+    border-color: rgba(255, 250, 243, 0.2);
+    color: rgba(255, 250, 243, 0.85);
+  }
+
+  .app-theme .editor-nav .btn-generate {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 700;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 10px;
+  }
+
+  /* Muted text and tags — compact */
+  .detail-workspace > .muted {
+    display: none;
+  }
+
+  .detail-workspace > .status {
+    margin: 8px 16px;
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .detail-workspace > .conditional-box {
+    margin: 0 16px 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+  }
+
+  .detail-workspace > .conditional-box .tag {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+
+  /* Doc editor — THE primary focus, memo-style */
+  .detail-workspace .doc {
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 20px 18px;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--paper, #1c1917);
+    overflow-y: auto;
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  .detail-workspace .doc-editor {
+    min-height: 100%;
+    font-size: 16px;
+  }
+
+  .doc-image-block {
+    max-width: 100%;
+  }
+}
+
+/* Editor Bottom Toolbar — hidden on desktop, visible on mobile */
+.editor-bottom-toolbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .editor-bottom-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 4px;
+    padding: 8px 12px;
+    border-top: 1px solid rgba(68, 64, 60, 0.6);
+    background: rgba(28, 25, 23, 0.97);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+  }
+
+  .editor-bottom-toolbar button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 44px;
+    min-width: 56px;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: rgba(255, 250, 243, 0.75);
+    font-size: 11px;
+    transition: background 120ms ease;
+  }
+
+  .editor-bottom-toolbar button:active {
+    background: rgba(255, 109, 41, 0.12);
+  }
+
+  .editor-bottom-toolbar .toolbar-icon {
+    font-size: 18px;
+    line-height: 1;
+  }
+
+  .editor-bottom-toolbar .toolbar-label {
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .editor-bottom-toolbar .toolbar-cta-generate {
+    background: linear-gradient(135deg, #FF6A1A 0%, #E9510E 100%);
+    color: #fff;
+    border-radius: 12px;
+    flex: 1.5;
+    min-width: 72px;
+  }
+
+  .editor-bottom-toolbar .toolbar-cta-generate .toolbar-icon {
+    font-size: 20px;
+  }
+
+  .editor-bottom-toolbar .toolbar-cta-generate .toolbar-label {
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .editor-bottom-toolbar .toolbar-cta-generate:active {
+    background: linear-gradient(135deg, #E9510E 0%, #c7400a 100%);
+  }
+}
+
+/* === Create Page Mobile — Notes-App Style === */
+.create-mobile-header {
+  display: none;
+}
+.create-desktop-kicker,
+.create-desktop-title,
+.create-desktop-buttons {
+  display: block;
+}
+.create-desktop-buttons {
+  display: flex;
+}
+
+@media (max-width: 640px) {
+  .page--create {
+    padding: 0 !important;
+  }
+
+  .create-studio {
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+  }
+
+  /* Hide the decorative brand panel entirely on mobile */
+  .create-brand-panel {
+    display: none;
+  }
+
+  .node-orbit {
+    display: none;
+  }
+
+  /* Mobile header: ‹ 返回   新建 Bar   创建 */
+  .create-mobile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(68, 64, 60, 0.4);
+    background: rgba(28, 25, 23, 0.97);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .create-mobile-back {
+    font-size: 28px;
+    line-height: 1;
+    color: rgba(255, 250, 243, 0.85);
+    background: none !important;
+    border: none !important;
+    padding: 0 8px !important;
+    min-height: 36px !important;
+    min-width: 36px !important;
+  }
+
+  .create-mobile-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 250, 243, 0.9);
+  }
+
+  .create-mobile-submit {
+    font-size: 15px;
+    font-weight: 600;
+    color: #F97316;
+    background: none !important;
+    border: none !important;
+    padding: 0 8px !important;
+    min-height: 36px !important;
+    min-width: auto !important;
+  }
+
+  .create-mobile-submit:disabled {
+    color: rgba(255, 250, 243, 0.3);
+  }
+
+  /* Hide desktop-only elements */
+  .create-desktop-kicker,
+  .create-desktop-title,
+  .create-desktop-buttons {
+    display: none !important;
+  }
+
+  /* Form panel — lightweight, content-first */
+  .create-form-panel {
+    padding: 24px 20px;
+    flex: 1;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .create-form-panel.form-card {
+    padding: 24px 20px;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .create-form-panel .two-col-field {
+    margin-bottom: 20px;
+  }
+
+  .create-form-panel .two-col-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 250, 243, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .create-form-panel .two-col-field input,
+  .create-form-panel .two-col-field textarea {
+    border: none;
+    border-bottom: 1px solid rgba(255, 250, 243, 0.15);
+    border-radius: 0;
+    background: transparent;
+    padding: 10px 0;
+    font-size: 16px;
+    color: #fffaf3;
+  }
+
+  .create-form-panel .two-col-field input:focus,
+  .create-form-panel .two-col-field textarea:focus {
+    border-bottom-color: #F97316;
+    box-shadow: none;
+    outline: none;
+  }
+
+  .create-form-panel .two-col-field input::placeholder,
+  .create-form-panel .two-col-field textarea::placeholder {
+    color: rgba(255, 250, 243, 0.35);
+  }
+
+  .create-form-panel .two-col-field textarea {
+    min-height: 60px;
+    resize: vertical;
+  }
+
+  .create-form-panel .status {
+    font-size: 14px;
+    padding: 10px 0;
+    color: #fb923c;
+  }
+}
+
+/* === Settings Page Mobile === */
+@media (max-width: 640px) {
+  .settings-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .settings-hero-map {
+    display: none;
+  }
+
+  .app-theme .settings-hero h1 {
+    font-size: clamp(26px, 8vw, 34px);
+    white-space: normal;
+  }
+}
+
+/* === Modal / Dialog Mobile === */
+@media (max-width: 640px) {
+  .delete-dialog {
+    max-width: calc(100vw - 24px);
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .delete-dialog-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .delete-confirm-btn,
+  .delete-cancel-btn {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+/* === Legacy Mindmap Canvas Overflow Fix === */
+@media (max-width: 1024px) {
+  .mindmap-canvas .react-flow {
+    min-width: 0;
+  }
+
+  .mindmap {
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 24px;
+  }
+}
+
+/* ============================================================
+   MIND MAP PAGE MOBILE
+   ============================================================ */
+@media (max-width: 768px) {
+  .mm-page {
+    flex-direction: column;
+  }
+
+  .mm-sidebar {
+    display: none;
+  }
+
+  .mm-sidebar.mm-sidebar-mobile-open {
+    display: flex;
+    position: fixed;
+    top: 48px;
+    left: 0;
+    bottom: 0;
+    z-index: 60;
+    width: 260px;
+    max-width: 80vw;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+  }
+
+  .mm-mobile-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    top: 48px;
+    z-index: 59;
+    background: rgba(0, 0, 0, 0.3);
+  }
+
+  .mm-mobile-backdrop.visible {
+    display: block;
+  }
+}
+
+@media (min-width: 769px) {
+  .mm-mobile-backdrop,
+  .mm-mobile-toggle {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .mm-mobile-toggle {
+    display: flex !important;
+  }
+}
+
+/* Mind Map Input Panel — content-first mobile */
+@media (max-width: 640px) {
+  .mm-input-panel {
+    width: 100%;
+    padding: 16px;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .mm-heading {
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  .mm-desc {
+    font-size: 13px;
+    margin-bottom: 12px;
+    color: rgba(255, 250, 243, 0.65);
+  }
+
+  .mm-field {
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .mm-field textarea {
+    min-height: 180px;
+    font-size: 16px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 250, 243, 0.15);
+    background: rgba(255, 250, 243, 0.04);
+    line-height: 1.7;
+  }
+
+  .mm-field textarea:focus {
+    border-color: #F97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+  }
+
+  .mm-options {
+    padding: 12px;
+    border-radius: 12px;
+    background: rgba(255, 250, 243, 0.03);
+    border: 1px solid rgba(255, 250, 243, 0.08);
+  }
+
+  .mm-depth-selector {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mm-depth-selector label {
+    font-size: 13px;
+    white-space: nowrap;
+    color: rgba(255, 250, 243, 0.75);
+  }
+
+  .mm-depth-selector select {
+    min-height: 40px;
+    font-size: 15px;
+    flex: 1;
+    border-radius: 10px;
+  }
+
+  .mm-btn-generate {
+    min-height: 48px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+
+  .mm-btn-back-top {
+    font-size: 13px;
+    padding: 8px 14px;
+    min-height: 36px;
+  }
+
+  /* Status overlay */
+  .mm-status-overlay {
+    left: 16px;
+    right: 16px;
+    transform: none;
+    text-align: center;
+    border-radius: 12px;
+  }
+}
+
+/* Mind Map Canvas Panel — maximize canvas, compact controls */
+@media (max-width: 640px) {
+  .mm-canvas-panel {
+    margin: 0;
+    border-radius: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mm-canvas {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .mm-toolbar {
+    padding: 10px 12px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid rgba(68, 64, 60, 0.5);
+    background: rgba(255, 252, 249, 0.96);
+    backdrop-filter: blur(12px);
+  }
+
+  .mm-canvas-title {
+    font-size: 14px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mm-toolbar-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 6px;
+    width: auto;
+  }
+
+  .mm-toolbar-actions button {
+    min-height: 38px;
+    font-size: 12px;
+    padding: 6px 10px;
+    flex: 0 0 auto;
+    border-radius: 8px;
+  }
+
+  .mm-toolbar-actions .mm-btn-regen {
+    flex: 0 0 auto;
+    font-weight: 600;
+    background: rgba(255, 109, 41, 0.12);
+    border-color: rgba(255, 109, 41, 0.4);
+  }
+
+  .mm-edit-hint {
+    display: none;
+  }
+
+  /* Feedback section — compact */
+  .mm-feedback {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid rgba(68, 64, 60, 0.4);
+  }
+
+  .mm-hint {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+}
+
+/* === ReactFlow Mobile === */
+@media (max-width: 640px) {
+  .mm-canvas .react-flow__controls {
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .mm-canvas .react-flow__controls button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mm-canvas .react-flow__minimap {
+    display: none;
+  }
+}
+
+/* === Node Edit Overlay Mobile === */
+@media (max-width: 640px) {
+  .mm-node-edit-overlay input {
+    width: calc(100vw - 48px) !important;
+    max-width: 300px;
+    font-size: 16px;
+    min-height: 44px;
+  }
+}
+
+/* === Page Level Overflow Prevention === */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.page,
+.surface,
+.mm-page,
+.mm-main {
+  max-width: 100vw;
+}
+
+/* === Tablet (640-1023px) === */
+@media (min-width: 641px) and (max-width: 1023px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .app-theme .card-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .mm-canvas-panel {
+    margin: 12px;
+  }
+}
+
+/* === Prevent 100vh issues on mobile browsers === */
+@supports (height: 100dvh) {
+  @media (max-width: 768px) {
+    .shell {
+      height: 100dvh;
+    }
+
+    .shell--fullscreen {
+      height: 100dvh;
+    }
+  }
+}
+
+/* === Hover-only controls fix for touch === */
+@media (hover: none), (pointer: coarse) {
+  .doc-image-toolbar {
+    display: flex;
+    pointer-events: auto;
+    opacity: 0.9;
+  }
+
+  .kb-card-delete {
+    opacity: 1;
+  }
+
+  button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .app-theme button:hover {
+    transform: none;
+  }
+
+  .app-theme .kb-card:hover,
+  .app-theme .new-card:hover {
+    transform: none;
+  }
+
+  .app-theme .kb-card:nth-child(even):hover {
+    transform: none;
+  }
+}

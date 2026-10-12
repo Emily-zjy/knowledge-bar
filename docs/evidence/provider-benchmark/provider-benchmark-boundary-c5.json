@@ -1,0 +1,32 @@
+{
+  "provider": "openai_compatible",
+  "model": "claude-sonnet-4-6",
+  "prompt_version": "p0-mindmap-v1",
+  "requested_depth": 4,
+  "fixture_length": 368,
+  "results": [
+    {
+      "concurrency": 5,
+      "requests": 5,
+      "first_attempt_success": 5,
+      "final_success": 5,
+      "retry_recovered": 0,
+      "provider_429": 0,
+      "provider_4xx": 0,
+      "provider_5xx": 0,
+      "provider_timeout": 0,
+      "provider_network_error": 0,
+      "json_parse_failure": 0,
+      "schema_failure": 0,
+      "retry_count": 0,
+      "p50_ms": 9725.0,
+      "p95_ms": 9864.0,
+      "max_provider_inflight": 5,
+      "llm_calls": 5,
+      "repair_attempted": 1,
+      "repair_success": 1,
+      "input_tokens": 3395,
+      "output_tokens": 3957
+    }
+  ]
+}

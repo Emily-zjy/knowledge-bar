@@ -1,8 +1,11 @@
 export type UserMode = "guest" | "authenticated";
 
+export type KnowledgeBaseOrigin = "guest" | "cloud";
+
 export type KnowledgeBase = {
   id: string;
   user_id?: string;
+  origin: KnowledgeBaseOrigin;
   name: string;
   description: string;
   color: string;
@@ -32,4 +35,13 @@ export type ApiError = {
 export type GenerateMindMapResponse = {
   generation_id: string;
   mind_map: MindMapData;
+};
+
+export type GenerationJobAccepted = {
+  id: string;
+  knowledge_base_id: string;
+  status: "queued" | "running" | "succeeded" | "failed" | string;
+  operation: "generate" | "regenerate" | string;
+  client_request_id: string;
+  created?: boolean;
 };

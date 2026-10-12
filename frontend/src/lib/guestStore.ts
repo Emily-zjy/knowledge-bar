@@ -28,7 +28,9 @@ export async function listGuestKnowledgeBases(): Promise<KnowledgeBase[]> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(kbStore, "readonly");
     const request = tx.objectStore(kbStore).getAll();
-    request.onsuccess = () => resolve(request.result);
+    request.onsuccess = () => resolve(
+      (request.result as KnowledgeBase[]).map((item) => ({ ...item, origin: "guest" })),
+    );
     request.onerror = () => reject(request.error);
   });
 }
@@ -37,7 +39,7 @@ export async function saveGuestKnowledgeBase(kb: KnowledgeBase): Promise<void> {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(kbStore, "readwrite");
-    tx.objectStore(kbStore).put(kb);
+    tx.objectStore(kbStore).put({ ...kb, origin: "guest", user_id: undefined });
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });

@@ -1,0 +1,5306 @@
+{
+  "pilot": {
+    "prompt_v1": [
+      {
+        "run_id": "ab_prompt_v1_T04_run1_b340b188",
+        "prompt_version": "prompt_v1",
+        "case_id": "T04",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 20,
+        "precision": 0.5263,
+        "recall": 1.0,
+        "fp_count": 11,
+        "missed_count": 0,
+        "total_latency_ms": 9896.26,
+        "depth": 3,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "Q3产品迭代规划",
+            "order": 0
+          },
+          {
+            "id": "node-attendees",
+            "parentId": "node-root",
+            "text": "参会人",
+            "order": 1
+          },
+          {
+            "id": "node-attendee-1",
+            "parentId": "node-attendees",
+            "text": "产品负责人 张三",
+            "order": 2
+          },
+          {
+            "id": "node-attendee-2",
+            "parentId": "node-attendees",
+            "text": "技术负责人 李四",
+            "order": 3
+          },
+          {
+            "id": "node-attendee-3",
+            "parentId": "node-attendees",
+            "text": "设计师 王五",
+            "order": 4
+          },
+          {
+            "id": "node-decisions",
+            "parentId": "node-root",
+            "text": "决议事项",
+            "order": 5
+          },
+          {
+            "id": "node-p0",
+            "parentId": "node-decisions",
+            "text": "P0：修复支付系统超时Bug",
+            "order": 6
+          },
+          {
+            "id": "node-p0-detail",
+            "parentId": "node-p0",
+            "text": "预计3天 · 负责人：李四",
+            "order": 7
+          },
+          {
+            "id": "node-p1",
+            "parentId": "node-decisions",
+            "text": "P1：新增用户画像模块",
+            "order": 8
+          },
+          {
+            "id": "node-p1-behavior",
+            "parentId": "node-p1",
+            "text": "行为标签",
+            "order": 9
+          },
+          {
+            "id": "node-p1-consumption",
+            "parentId": "node-p1",
+            "text": "消费偏好",
+            "order": 10
+          },
+          {
+            "id": "node-p1-activity",
+            "parentId": "node-p1",
+            "text": "活跃度分析",
+            "order": 11
+          },
+          {
+            "id": "node-p1-detail",
+            "parentId": "node-p1",
+            "text": "预计2周 · 负责人：张三",
+            "order": 12
+          },
+          {
+            "id": "node-p2",
+            "parentId": "node-decisions",
+            "text": "P2：界面改版",
+            "order": 13
+          },
+          {
+            "id": "node-p2-detail",
+            "parentId": "node-p2",
+            "text": "卡片式布局（参考竞品A）",
+            "order": 14
+          },
+          {
+            "id": "node-p2-timeline",
+            "parentId": "node-p2",
+            "text": "预计1周 · 负责人：王五",
+            "order": 15
+          },
+          {
+            "id": "node-pending",
+            "parentId": "node-root",
+            "text": "待确认事项",
+            "order": 16
+          },
+          {
+            "id": "node-pending-1",
+            "parentId": "node-pending",
+            "text": "用户画像数据源：埋点 vs 问卷",
+            "order": 17
+          },
+          {
+            "id": "node-pending-2",
+            "parentId": "node-pending",
+            "text": "是否沿用现有 Design System",
+            "order": 18
+          },
+          {
+            "id": "node-next-meeting",
+            "parentId": "node-root",
+            "text": "下次会议：7月15日",
+            "order": 19
+          }
+        ],
+        "false_positives": [
+          "参会人",
+          "产品负责人张三",
+          "技术负责人李四",
+          "设计师王五",
+          "预计3天·负责人：李四",
+          "预计2周·负责人：张三",
+          "卡片式布局(参考竞品a)",
+          "预计1周·负责人：王五",
+          "用户画像数据源：埋点vs问卷",
+          "是否沿用现有designsystem",
+          "下次会议：7月15日"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T04_run2_6b8fd98d",
+        "prompt_version": "prompt_v1",
+        "case_id": "T04",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 20,
+        "precision": 0.5263,
+        "recall": 1.0,
+        "fp_count": 11,
+        "missed_count": 0,
+        "total_latency_ms": 11127.03,
+        "depth": 3,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "Q3产品迭代规划",
+            "order": 0
+          },
+          {
+            "id": "node-attendees",
+            "parentId": "node-root",
+            "text": "参会人",
+            "order": 1
+          },
+          {
+            "id": "node-p1",
+            "parentId": "node-attendees",
+            "text": "产品负责人张三",
+            "order": 2
+          },
+          {
+            "id": "node-p2",
+            "parentId": "node-attendees",
+            "text": "技术负责人李四",
+            "order": 3
+          },
+          {
+            "id": "node-p3",
+            "parentId": "node-attendees",
+            "text": "设计师王五",
+            "order": 4
+          },
+          {
+            "id": "node-decisions",
+            "parentId": "node-root",
+            "text": "决议事项",
+            "order": 5
+          },
+          {
+            "id": "node-p0",
+            "parentId": "node-decisions",
+            "text": "P0：修复支付系统超时Bug",
+            "order": 6
+          },
+          {
+            "id": "node-p0-detail",
+            "parentId": "node-p0",
+            "text": "预计3天，负责人李四",
+            "order": 7
+          },
+          {
+            "id": "node-p1-task",
+            "parentId": "node-decisions",
+            "text": "P1：新增用户画像模块",
+            "order": 8
+          },
+          {
+            "id": "node-p1-sub1",
+            "parentId": "node-p1-task",
+            "text": "行为标签",
+            "order": 9
+          },
+          {
+            "id": "node-p1-sub2",
+            "parentId": "node-p1-task",
+            "text": "消费偏好",
+            "order": 10
+          },
+          {
+            "id": "node-p1-sub3",
+            "parentId": "node-p1-task",
+            "text": "活跃度分析",
+            "order": 11
+          },
+          {
+            "id": "node-p1-detail",
+            "parentId": "node-p1-task",
+            "text": "预计2周，负责人张三",
+            "order": 12
+          },
+          {
+            "id": "node-p2-task",
+            "parentId": "node-decisions",
+            "text": "P2：界面改版",
+            "order": 13
+          },
+          {
+            "id": "node-p2-sub1",
+            "parentId": "node-p2-task",
+            "text": "参考竞品A卡片式布局",
+            "order": 14
+          },
+          {
+            "id": "node-p2-detail",
+            "parentId": "node-p2-task",
+            "text": "预计1周，负责人王五",
+            "order": 15
+          },
+          {
+            "id": "node-pending",
+            "parentId": "node-root",
+            "text": "待确认事项",
+            "order": 16
+          },
+          {
+            "id": "node-pending1",
+            "parentId": "node-pending",
+            "text": "用户画像数据源：埋点 vs 问卷",
+            "order": 17
+          },
+          {
+            "id": "node-pending2",
+            "parentId": "node-pending",
+            "text": "是否沿用现有Design System",
+            "order": 18
+          },
+          {
+            "id": "node-next",
+            "parentId": "node-root",
+            "text": "下次会议：7月15日",
+            "order": 19
+          }
+        ],
+        "false_positives": [
+          "参会人",
+          "产品负责人张三",
+          "技术负责人李四",
+          "设计师王五",
+          "预计3天，负责人李四",
+          "预计2周，负责人张三",
+          "参考竞品a卡片式布局",
+          "预计1周，负责人王五",
+          "用户画像数据源：埋点vs问卷",
+          "是否沿用现有designsystem",
+          "下次会议：7月15日"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T08_run1_7f462567",
+        "prompt_version": "prompt_v1",
+        "case_id": "T08",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.5417,
+        "recall": 1.0,
+        "fp_count": 11,
+        "missed_count": 0,
+        "total_latency_ms": 14706.82,
+        "depth": 3,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "分布式缓存架构",
+            "order": 0
+          },
+          {
+            "id": "node-selection",
+            "parentId": "node-root",
+            "text": "选型对比",
+            "order": 1
+          },
+          {
+            "id": "node-redis",
+            "parentId": "node-selection",
+            "text": "Redis Cluster（最终选择）",
+            "order": 2
+          },
+          {
+            "id": "node-redis-reason",
+            "parentId": "node-redis",
+            "text": "持久化 / 丰富数据结构 / 原生集群",
+            "order": 3
+          },
+          {
+            "id": "node-memcached",
+            "parentId": "node-selection",
+            "text": "Memcached",
+            "order": 4
+          },
+          {
+            "id": "node-codis",
+            "parentId": "node-selection",
+            "text": "Codis",
+            "order": 5
+          },
+          {
+            "id": "node-arch",
+            "parentId": "node-root",
+            "text": "架构设计",
+            "order": 6
+          },
+          {
+            "id": "node-deploy",
+            "parentId": "node-arch",
+            "text": "6节点（3主3从）跨机房部署",
+            "order": 7
+          },
+          {
+            "id": "node-shard",
+            "parentId": "node-arch",
+            "text": "Hash Slot分片（16384槽位）",
+            "order": 8
+          },
+          {
+            "id": "node-failover",
+            "parentId": "node-arch",
+            "text": "Sentinel哨兵 failover（30s内）",
+            "order": 9
+          },
+          {
+            "id": "node-consistency",
+            "parentId": "node-arch",
+            "text": "异步复制 + WAIT命令可选同步",
+            "order": 10
+          },
+          {
+            "id": "node-strategy",
+            "parentId": "node-root",
+            "text": "缓存策略",
+            "order": 11
+          },
+          {
+            "id": "node-read",
+            "parentId": "node-strategy",
+            "text": "读：Cache-Aside（未命中回填DB）",
+            "order": 12
+          },
+          {
+            "id": "node-write",
+            "parentId": "node-strategy",
+            "text": "写：Write-Through（先写DB再更新缓存）",
+            "order": 13
+          },
+          {
+            "id": "node-ttl",
+            "parentId": "node-strategy",
+            "text": "TTL：热数据1h / 冷数据10min",
+            "order": 14
+          },
+          {
+            "id": "node-evict",
+            "parentId": "node-strategy",
+            "text": "淘汰：allkeys-lru",
+            "order": 15
+          },
+          {
+            "id": "node-protection",
+            "parentId": "node-root",
+            "text": "防护措施",
+            "order": 16
+          },
+          {
+            "id": "node-penetration",
+            "parentId": "node-protection",
+            "text": "缓存穿透：布隆过滤器 + 空值缓存（TTL 60s）",
+            "order": 17
+          },
+          {
+            "id": "node-breakdown",
+            "parentId": "node-protection",
+            "text": "缓存击穿：互斥锁（SETNX）+ 热点预加载",
+            "order": 18
+          },
+          {
+            "id": "node-avalanche",
+            "parentId": "node-protection",
+            "text": "缓存雪崩：TTL随机化 + 多级缓存（L1本地 + L2 Redis）",
+            "order": 19
+          },
+          {
+            "id": "node-monitor",
+            "parentId": "node-root",
+            "text": "监控指标",
+            "order": 20
+          },
+          {
+            "id": "node-hitrate",
+            "parentId": "node-monitor",
+            "text": "命中率 > 95%",
+            "order": 21
+          },
+          {
+            "id": "node-latency",
+            "parentId": "node-monitor",
+            "text": "P99延迟 < 5ms",
+            "order": 22
+          },
+          {
+            "id": "node-memory",
+            "parentId": "node-monitor",
+            "text": "内存使用率 < 70%",
+            "order": 23
+          },
+          {
+            "id": "node-slowquery",
+            "parentId": "node-monitor",
+            "text": "慢查询 < 1次/分钟",
+            "order": 24
+          }
+        ],
+        "false_positives": [
+          "持久化/丰富数据结构/原生集群",
+          "memcached",
+          "codis",
+          "6节点(3主3从)跨机房部署",
+          "异步复制+wait命令可选同步",
+          "ttl：热数据1h/冷数据10min",
+          "淘汰：allkeys-lru",
+          "命中率>95%",
+          "p99延迟<5ms",
+          "内存使用率<70%",
+          "慢查询<1次/分钟"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T08_run2_d6b7050d",
+        "prompt_version": "prompt_v1",
+        "case_id": "T08",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.5417,
+        "recall": 1.0,
+        "fp_count": 12,
+        "missed_count": 0,
+        "total_latency_ms": 13092.13,
+        "depth": 3,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "分布式缓存架构",
+            "order": 0
+          },
+          {
+            "id": "node-selection",
+            "parentId": "node-root",
+            "text": "选型对比",
+            "order": 1
+          },
+          {
+            "id": "node-redis",
+            "parentId": "node-selection",
+            "text": "Redis Cluster（最终选型）",
+            "order": 2
+          },
+          {
+            "id": "node-redis-reason",
+            "parentId": "node-redis",
+            "text": "持久化 / 丰富数据结构 / 原生集群",
+            "order": 3
+          },
+          {
+            "id": "node-memcached",
+            "parentId": "node-selection",
+            "text": "Memcached",
+            "order": 4
+          },
+          {
+            "id": "node-codis",
+            "parentId": "node-selection",
+            "text": "Codis",
+            "order": 5
+          },
+          {
+            "id": "node-arch",
+            "parentId": "node-root",
+            "text": "架构设计",
+            "order": 6
+          },
+          {
+            "id": "node-deploy",
+            "parentId": "node-arch",
+            "text": "6节点：3主3从，跨机房部署",
+            "order": 7
+          },
+          {
+            "id": "node-slot",
+            "parentId": "node-arch",
+            "text": "Hash Slot分片，共16384槽位",
+            "order": 8
+          },
+          {
+            "id": "node-failover",
+            "parentId": "node-arch",
+            "text": "Sentinel自动failover，30秒内完成",
+            "order": 9
+          },
+          {
+            "id": "node-consistency",
+            "parentId": "node-arch",
+            "text": "异步复制 + WAIT命令可选同步",
+            "order": 10
+          },
+          {
+            "id": "node-strategy",
+            "parentId": "node-root",
+            "text": "缓存策略",
+            "order": 11
+          },
+          {
+            "id": "node-read",
+            "parentId": "node-strategy",
+            "text": "读：Cache-Aside，未命中回填DB",
+            "order": 12
+          },
+          {
+            "id": "node-write",
+            "parentId": "node-strategy",
+            "text": "写：Write-Through，先写DB再更新缓存",
+            "order": 13
+          },
+          {
+            "id": "node-ttl",
+            "parentId": "node-strategy",
+            "text": "TTL：热数据1h / 冷数据10min",
+            "order": 14
+          },
+          {
+            "id": "node-evict",
+            "parentId": "node-strategy",
+            "text": "淘汰：allkeys-lru",
+            "order": 15
+          },
+          {
+            "id": "node-protect",
+            "parentId": "node-root",
+            "text": "防护措施",
+            "order": 16
+          },
+          {
+            "id": "node-penetration",
+            "parentId": "node-protect",
+            "text": "穿透：布隆过滤器 + 空值缓存(TTL 60s)",
+            "order": 17
+          },
+          {
+            "id": "node-breakdown",
+            "parentId": "node-protect",
+            "text": "击穿：互斥锁SETNX + 热点预加载",
+            "order": 18
+          },
+          {
+            "id": "node-avalanche",
+            "parentId": "node-protect",
+            "text": "雪崩：TTL随机化 + L1本地+L2 Redis多级缓存",
+            "order": 19
+          },
+          {
+            "id": "node-monitor",
+            "parentId": "node-root",
+            "text": "监控指标",
+            "order": 20
+          },
+          {
+            "id": "node-hitrate",
+            "parentId": "node-monitor",
+            "text": "命中率 > 95%",
+            "order": 21
+          },
+          {
+            "id": "node-latency",
+            "parentId": "node-monitor",
+            "text": "P99延迟 < 5ms",
+            "order": 22
+          },
+          {
+            "id": "node-memory",
+            "parentId": "node-monitor",
+            "text": "内存使用率 < 70%",
+            "order": 23
+          },
+          {
+            "id": "node-slowquery",
+            "parentId": "node-monitor",
+            "text": "慢查询 < 1次/分钟",
+            "order": 24
+          }
+        ],
+        "false_positives": [
+          "持久化/丰富数据结构/原生集群",
+          "memcached",
+          "codis",
+          "6节点：3主3从，跨机房部署",
+          "异步复制+wait命令可选同步",
+          "ttl：热数据1h/冷数据10min",
+          "淘汰：allkeys-lru",
+          "击穿：互斥锁setnx+热点预加载",
+          "命中率>95%",
+          "p99延迟<5ms",
+          "内存使用率<70%",
+          "慢查询<1次/分钟"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T11_run1_315f9703",
+        "prompt_version": "prompt_v1",
+        "case_id": "T11",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 21,
+        "precision": 0.4,
+        "recall": 1.0,
+        "fp_count": 12,
+        "missed_count": 0,
+        "total_latency_ms": 10895.1,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "并发 vs 并行 vs 异步",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "并发 Concurrency",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "多任务在重叠时间段内推进",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "不一定同时执行",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "单核CPU时间片轮转",
+            "order": 4
+          },
+          {
+            "id": "node-1-4",
+            "parentId": "node-1",
+            "text": "关键词：交替执行、逻辑上同时",
+            "order": 5
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "并行 Parallelism",
+            "order": 6
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "多任务物理上同时执行",
+            "order": 7
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "需要多核CPU或多台机器",
+            "order": 8
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "关键词：物理同时、多核",
+            "order": 9
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "异步 Asynchronous",
+            "order": 10
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "调用方不等待结果",
+            "order": 11
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "通过回调/Promise/事件获通知",
+            "order": 12
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "核心：非阻塞",
+            "order": 13
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "可在单线程实现（如Node.js事件循环）",
+            "order": 14
+          },
+          {
+            "id": "node-3-5",
+            "parentId": "node-3",
+            "text": "关键词：非阻塞、回调驱动",
+            "order": 15
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "三者关系",
+            "order": 16
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "并行一定是并发",
+            "order": 17
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "并发不一定是并行",
+            "order": 18
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "异步是编程模型，与并发/并行正交",
+            "order": 19
+          },
+          {
+            "id": "node-4-4",
+            "parentId": "node-4",
+            "text": "异步可运行于单核（并发）或多核（并行）",
+            "order": 20
+          }
+        ],
+        "false_positives": [
+          "多任务在重叠时间段内推进",
+          "不一定同时执行",
+          "关键词：交替执行、逻辑上同时",
+          "多任务物理上同时执行",
+          "关键词：物理同时、多核",
+          "调用方不等待结果",
+          "通过回调/promise/事件获通知",
+          "可在单线程实现(如node.js事件循环)",
+          "并行一定是并发",
+          "并发不一定是并行",
+          "异步是编程模型，与并发/并行正交",
+          "异步可运行于单核(并发)或多核(并行)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T11_run2_4f10feee",
+        "prompt_version": "prompt_v1",
+        "case_id": "T11",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 21,
+        "precision": 0.4,
+        "recall": 1.0,
+        "fp_count": 12,
+        "missed_count": 0,
+        "total_latency_ms": 10790.17,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "并发 vs 并行 vs 异步",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "并发 Concurrency",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "多任务在重叠时间段内推进",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "不一定同时执行",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "单核CPU时间片轮转实现",
+            "order": 4
+          },
+          {
+            "id": "node-1-4",
+            "parentId": "node-1",
+            "text": "关键词：交替执行、逻辑上同时",
+            "order": 5
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "并行 Parallelism",
+            "order": 6
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "多任务物理上同时执行",
+            "order": 7
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "需要多核CPU或多台机器",
+            "order": 8
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "关键词：物理同时、多核",
+            "order": 9
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "异步 Asynchronous",
+            "order": 10
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "调用方不等待结果，继续执行",
+            "order": 11
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "通过回调/Promise/事件获通知",
+            "order": 12
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "核心：非阻塞",
+            "order": 13
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "可在单线程实现（如Node.js事件循环）",
+            "order": 14
+          },
+          {
+            "id": "node-3-5",
+            "parentId": "node-3",
+            "text": "关键词：非阻塞、回调驱动",
+            "order": 15
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "三者关系",
+            "order": 16
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "并行一定是并发",
+            "order": 17
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "并发不一定是并行",
+            "order": 18
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "异步是编程模型，与并发/并行正交",
+            "order": 19
+          },
+          {
+            "id": "node-4-4",
+            "parentId": "node-4",
+            "text": "异步可运行于单核（并发）或多核（并行）",
+            "order": 20
+          }
+        ],
+        "false_positives": [
+          "多任务在重叠时间段内推进",
+          "不一定同时执行",
+          "关键词：交替执行、逻辑上同时",
+          "多任务物理上同时执行",
+          "关键词：物理同时、多核",
+          "调用方不等待结果，继续执行",
+          "通过回调/promise/事件获通知",
+          "可在单线程实现(如node.js事件循环)",
+          "并行一定是并发",
+          "并发不一定是并行",
+          "异步是编程模型，与并发/并行正交",
+          "异步可运行于单核(并发)或多核(并行)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T14_run1_a450b1d5",
+        "prompt_version": "prompt_v1",
+        "case_id": "T14",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.4167,
+        "recall": 1.0,
+        "fp_count": 14,
+        "missed_count": 0,
+        "total_latency_ms": 14462.73,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "Q2电商运营数据报告",
+            "order": 0
+          },
+          {
+            "id": "node-gmv",
+            "parentId": "node-root",
+            "text": "GMV总览",
+            "order": 1
+          },
+          {
+            "id": "node-gmv-total",
+            "parentId": "node-gmv",
+            "text": "总成交额12.8亿",
+            "order": 2
+          },
+          {
+            "id": "node-gmv-qoq",
+            "parentId": "node-gmv",
+            "text": "环比增长18%",
+            "order": 3
+          },
+          {
+            "id": "node-gmv-yoy",
+            "parentId": "node-gmv",
+            "text": "同比增长42%",
+            "order": 4
+          },
+          {
+            "id": "node-gmv-arpu",
+            "parentId": "node-gmv",
+            "text": "客单价186元→215元",
+            "order": 5
+          },
+          {
+            "id": "node-user",
+            "parentId": "node-root",
+            "text": "用户数据",
+            "order": 6
+          },
+          {
+            "id": "node-user-mau",
+            "parentId": "node-user",
+            "text": "MAU 3200万 / DAU 890万",
+            "order": 7
+          },
+          {
+            "id": "node-user-ratio",
+            "parentId": "node-user",
+            "text": "DAU/MAU 27.8%",
+            "order": 8
+          },
+          {
+            "id": "node-user-new",
+            "parentId": "node-user",
+            "text": "新增用户450万",
+            "order": 9
+          },
+          {
+            "id": "node-funnel",
+            "parentId": "node-root",
+            "text": "转化漏斗",
+            "order": 11
+          },
+          {
+            "id": "node-funnel-uv",
+            "parentId": "node-funnel",
+            "text": "首页UV 2100万",
+            "order": 12
+          },
+          {
+            "id": "node-funnel-detail",
+            "parentId": "node-funnel",
+            "text": "商品详情页1050万（50%）",
+            "order": 13
+          },
+          {
+            "id": "node-funnel-cart",
+            "parentId": "node-funnel",
+            "text": "加购210万（20%）",
+            "order": 14
+          },
+          {
+            "id": "node-funnel-order",
+            "parentId": "node-funnel",
+            "text": "提交订单147万→支付132万",
+            "order": 15
+          },
+          {
+            "id": "node-funnel-cvr",
+            "parentId": "node-funnel",
+            "text": "整体转化率6.3%",
+            "order": 16
+          },
+          {
+            "id": "node-category",
+            "parentId": "node-root",
+            "text": "品类表现",
+            "order": 17
+          },
+          {
+            "id": "node-cat-fashion",
+            "parentId": "node-category",
+            "text": "服饰 35% +12%",
+            "order": 18
+          },
+          {
+            "id": "node-cat-beauty",
+            "parentId": "node-category",
+            "text": "美妆 25% +28%",
+            "order": 19
+          },
+          {
+            "id": "node-cat-3c",
+            "parentId": "node-category",
+            "text": "3C数码 20% +8%",
+            "order": 20
+          },
+          {
+            "id": "node-cat-food",
+            "parentId": "node-category",
+            "text": "食品 12% -3%",
+            "order": 21
+          },
+          {
+            "id": "node-cat-home",
+            "parentId": "node-category",
+            "text": "家居 8% +15%",
+            "order": 22
+          },
+          {
+            "id": "node-retention",
+            "parentId": "node-root",
+            "text": "复购与留存",
+            "order": 23
+          },
+          {
+            "id": "node-retention-30",
+            "parentId": "node-retention",
+            "text": "30日复购34% / 90日复购52%",
+            "order": 24
+          },
+          {
+            "id": "node-retention-hvip",
+            "parentId": "node-retention",
+            "text": "高价值用户贡献42% GMV",
+            "order": 25
+          }
+        ],
+        "false_positives": [
+          "环比增长18%",
+          "同比增长42%",
+          "dau/mau27.8%",
+          "新增用户450万",
+          "首页uv2100万",
+          "商品详情页1050万(50%)",
+          "加购210万(20%)",
+          "提交订单147万→支付132万",
+          "3c数码20%+8%",
+          "食品12%-3%",
+          "家居8%+15%",
+          "复购与留存",
+          "30日复购34%/90日复购52%",
+          "高价值用户贡献42%gmv"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T14_run2_673dc52a",
+        "prompt_version": "prompt_v1",
+        "case_id": "T14",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.4167,
+        "recall": 1.0,
+        "fp_count": 14,
+        "missed_count": 0,
+        "total_latency_ms": 12438.22,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "Q2电商运营数据报告",
+            "order": 0
+          },
+          {
+            "id": "node-gmv",
+            "parentId": "node-root",
+            "text": "GMV总览",
+            "order": 1
+          },
+          {
+            "id": "node-gmv-total",
+            "parentId": "node-gmv",
+            "text": "总成交额12.8亿",
+            "order": 2
+          },
+          {
+            "id": "node-gmv-qoq",
+            "parentId": "node-gmv",
+            "text": "环比增长18%",
+            "order": 3
+          },
+          {
+            "id": "node-gmv-yoy",
+            "parentId": "node-gmv",
+            "text": "同比增长42%",
+            "order": 4
+          },
+          {
+            "id": "node-gmv-arpu",
+            "parentId": "node-gmv",
+            "text": "客单价186元→215元",
+            "order": 5
+          },
+          {
+            "id": "node-user",
+            "parentId": "node-root",
+            "text": "用户数据",
+            "order": 6
+          },
+          {
+            "id": "node-user-mau",
+            "parentId": "node-user",
+            "text": "MAU 3200万 / DAU 890万",
+            "order": 7
+          },
+          {
+            "id": "node-user-ratio",
+            "parentId": "node-user",
+            "text": "DAU/MAU 27.8%",
+            "order": 8
+          },
+          {
+            "id": "node-user-new",
+            "parentId": "node-user",
+            "text": "新增用户450万",
+            "order": 9
+          },
+          {
+            "id": "node-funnel",
+            "parentId": "node-root",
+            "text": "转化漏斗",
+            "order": 11
+          },
+          {
+            "id": "node-funnel-uv",
+            "parentId": "node-funnel",
+            "text": "首页UV 2100万",
+            "order": 12
+          },
+          {
+            "id": "node-funnel-detail",
+            "parentId": "node-funnel",
+            "text": "商品详情页1050万（50%）",
+            "order": 13
+          },
+          {
+            "id": "node-funnel-cart",
+            "parentId": "node-funnel",
+            "text": "加购210万（20%）",
+            "order": 14
+          },
+          {
+            "id": "node-funnel-order",
+            "parentId": "node-funnel",
+            "text": "提交订单147万（70%）",
+            "order": 15
+          },
+          {
+            "id": "node-funnel-pay",
+            "parentId": "node-funnel",
+            "text": "支付成功132万（90%）整体转化率6.3%",
+            "order": 16
+          },
+          {
+            "id": "node-category",
+            "parentId": "node-root",
+            "text": "品类表现",
+            "order": 17
+          },
+          {
+            "id": "node-cat-fashion",
+            "parentId": "node-category",
+            "text": "服饰 35% +12%",
+            "order": 18
+          },
+          {
+            "id": "node-cat-beauty",
+            "parentId": "node-category",
+            "text": "美妆 25% +28%",
+            "order": 19
+          },
+          {
+            "id": "node-cat-3c",
+            "parentId": "node-category",
+            "text": "3C数码 20% +8%",
+            "order": 20
+          },
+          {
+            "id": "node-cat-food",
+            "parentId": "node-category",
+            "text": "食品 12% -3%",
+            "order": 21
+          },
+          {
+            "id": "node-cat-home",
+            "parentId": "node-category",
+            "text": "家居 8% +15%",
+            "order": 22
+          },
+          {
+            "id": "node-retention",
+            "parentId": "node-root",
+            "text": "复购与高价值用户",
+            "order": 23
+          },
+          {
+            "id": "node-retention-rate",
+            "parentId": "node-retention",
+            "text": "30日复购34% / 90日复购52%",
+            "order": 24
+          },
+          {
+            "id": "node-retention-hvu",
+            "parentId": "node-retention",
+            "text": "高价值用户贡献42% GMV",
+            "order": 25
+          }
+        ],
+        "false_positives": [
+          "环比增长18%",
+          "同比增长42%",
+          "dau/mau27.8%",
+          "新增用户450万",
+          "首页uv2100万",
+          "商品详情页1050万(50%)",
+          "加购210万(20%)",
+          "提交订单147万(70%)",
+          "3c数码20%+8%",
+          "食品12%-3%",
+          "家居8%+15%",
+          "复购与高价值用户",
+          "30日复购34%/90日复购52%",
+          "高价值用户贡献42%gmv"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T17_run1_ebf82a10",
+        "prompt_version": "prompt_v1",
+        "case_id": "T17",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 21,
+        "precision": 0.4,
+        "recall": 1.0,
+        "fp_count": 12,
+        "missed_count": 0,
+        "total_latency_ms": 10720.65,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "GraphQL引入讨论",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "支持方观点",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "减少过度获取",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "前端自主查询",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "适合复杂嵌套数据",
+            "order": 4
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "反对方观点",
+            "order": 5
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "学习成本高",
+            "order": 6
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "缓存困难",
+            "order": 7
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "现有REST API已足够",
+            "order": 8
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "N+1查询问题",
+            "order": 9
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "讨论结果",
+            "order": 10
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "未达成一致",
+            "order": 11
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "暂维持现有REST架构",
+            "order": 12
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "下周邀请架构师评估",
+            "order": 13
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "折中方案",
+            "order": 14
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "BFF层使用GraphQL聚合",
+            "order": 15
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "后端服务仍用REST",
+            "order": 16
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "后续TODO",
+            "order": 17
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "架构师评估（待排期）",
+            "order": 18
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "性能对比测试（如决定推进）",
+            "order": 19
+          },
+          {
+            "id": "node-5-3",
+            "parentId": "node-5",
+            "text": "团队培训计划（如最终采用）",
+            "order": 20
+          }
+        ],
+        "false_positives": [
+          "前端自主查询",
+          "适合复杂嵌套数据",
+          "学习成本高",
+          "现有restapi已足够",
+          "n+1查询问题",
+          "暂维持现有rest架构",
+          "下周邀请架构师评估",
+          "bff层使用graphql聚合",
+          "后端服务仍用rest",
+          "架构师评估(待排期)",
+          "性能对比测试(如决定推进)",
+          "团队培训计划(如最终采用)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T17_run2_7a7f8d11",
+        "prompt_version": "prompt_v1",
+        "case_id": "T17",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 19,
+        "precision": 0.4444,
+        "recall": 1.0,
+        "fp_count": 10,
+        "missed_count": 0,
+        "total_latency_ms": 9398.2,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "GraphQL引入讨论",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "支持方观点",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "反对方观点",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "讨论结果",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "后续TODO",
+            "order": 4
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "减少过度获取",
+            "order": 5
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "前端自主查询",
+            "order": 6
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "适合复杂嵌套数据",
+            "order": 7
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "学习成本高",
+            "order": 8
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "缓存困难",
+            "order": 9
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "现有REST API已足够",
+            "order": 10
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "N+1查询问题",
+            "order": 11
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "未达成一致",
+            "order": 12
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "下周邀请架构师评估",
+            "order": 13
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "暂时维持现有REST架构",
+            "order": 14
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "折中方案：BFF层用GraphQL聚合，后端仍用REST",
+            "order": 15
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "架构师评估（待排期）",
+            "order": 16
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "性能对比测试（如决定推进）",
+            "order": 17
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "团队培训计划（如最终采用）",
+            "order": 18
+          }
+        ],
+        "false_positives": [
+          "前端自主查询",
+          "适合复杂嵌套数据",
+          "学习成本高",
+          "现有restapi已足够",
+          "n+1查询问题",
+          "下周邀请架构师评估",
+          "暂时维持现有rest架构",
+          "架构师评估(待排期)",
+          "性能对比测试(如决定推进)",
+          "团队培训计划(如最终采用)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T18_run1_aa2e65f8",
+        "prompt_version": "prompt_v1",
+        "case_id": "T18",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 22,
+        "precision": 0.381,
+        "recall": 1.0,
+        "fp_count": 13,
+        "missed_count": 0,
+        "total_latency_ms": 10528.32,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "面试准备笔记",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "TCP握手与挥手",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "三次握手：SYN → SYN+ACK → ACK",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "四次挥手：FIN → ACK → FIN → ACK",
+            "order": 3
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "HTTP状态码",
+            "order": 4
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "200 成功",
+            "order": 5
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "301 永久重定向（待核实与302区别）",
+            "order": 6
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "302 临时重定向",
+            "order": 7
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "404 未找到",
+            "order": 8
+          },
+          {
+            "id": "node-2-5",
+            "parentId": "node-2",
+            "text": "500 服务器错误",
+            "order": 9
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "排序算法时间复杂度",
+            "order": 10
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "快速排序：平均O(nlogn)，最坏O(n²)",
+            "order": 11
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "归并排序：始终O(nlogn)",
+            "order": 12
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "冒泡排序：O(n²)",
+            "order": 13
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "堆排序：O(nlogn)，不稳定（待核实）",
+            "order": 14
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "Redis数据类型",
+            "order": 15
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "String",
+            "order": 16
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "List",
+            "order": 17
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "Set",
+            "order": 18
+          },
+          {
+            "id": "node-4-4",
+            "parentId": "node-4",
+            "text": "Sorted Set",
+            "order": 19
+          },
+          {
+            "id": "node-4-5",
+            "parentId": "node-4",
+            "text": "Hash",
+            "order": 20
+          },
+          {
+            "id": "node-4-6",
+            "parentId": "node-4",
+            "text": "Stream / HyperLogLog（待确认是否为核心类型）",
+            "order": 21
+          }
+        ],
+        "false_positives": [
+          "200成功",
+          "301永久重定向(待核实与302区别)",
+          "302临时重定向",
+          "404未找到",
+          "500服务器错误",
+          "冒泡排序：o(n²)",
+          "堆排序：o(nlogn)，不稳定(待核实)",
+          "string",
+          "list",
+          "set",
+          "sortedset",
+          "hash",
+          "stream/hyperloglog(待确认是否为核心类型)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T18_run2_9c13e8b7",
+        "prompt_version": "prompt_v1",
+        "case_id": "T18",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 18,
+        "precision": 0.4706,
+        "recall": 1.0,
+        "fp_count": 9,
+        "missed_count": 0,
+        "total_latency_ms": 10580.25,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "面试准备笔记",
+            "order": 0
+          },
+          {
+            "id": "node-tcp",
+            "parentId": "node-root",
+            "text": "TCP握手与挥手",
+            "order": 1
+          },
+          {
+            "id": "node-tcp-handshake",
+            "parentId": "node-tcp",
+            "text": "三次握手：SYN → SYN+ACK → ACK",
+            "order": 2
+          },
+          {
+            "id": "node-tcp-wave",
+            "parentId": "node-tcp",
+            "text": "四次挥手：FIN → ACK → FIN → ACK",
+            "order": 3
+          },
+          {
+            "id": "node-http",
+            "parentId": "node-root",
+            "text": "HTTP状态码",
+            "order": 4
+          },
+          {
+            "id": "node-http-200",
+            "parentId": "node-http",
+            "text": "200 成功",
+            "order": 5
+          },
+          {
+            "id": "node-http-301",
+            "parentId": "node-http",
+            "text": "301 永久重定向（需确认与302区别）",
+            "order": 6
+          },
+          {
+            "id": "node-http-302",
+            "parentId": "node-http",
+            "text": "302 临时重定向",
+            "order": 7
+          },
+          {
+            "id": "node-http-404",
+            "parentId": "node-http",
+            "text": "404 未找到",
+            "order": 8
+          },
+          {
+            "id": "node-http-500",
+            "parentId": "node-http",
+            "text": "500 服务器错误",
+            "order": 9
+          },
+          {
+            "id": "node-sort",
+            "parentId": "node-root",
+            "text": "排序算法时间复杂度",
+            "order": 10
+          },
+          {
+            "id": "node-sort-quick",
+            "parentId": "node-sort",
+            "text": "快速排序：平均O(nlogn)，最坏O(n²)",
+            "order": 11
+          },
+          {
+            "id": "node-sort-merge",
+            "parentId": "node-sort",
+            "text": "归并排序：始终O(nlogn)",
+            "order": 12
+          },
+          {
+            "id": "node-sort-bubble",
+            "parentId": "node-sort",
+            "text": "冒泡排序：O(n²)",
+            "order": 13
+          },
+          {
+            "id": "node-sort-heap",
+            "parentId": "node-sort",
+            "text": "堆排序：O(nlogn)，不稳定（待验证）",
+            "order": 14
+          },
+          {
+            "id": "node-redis",
+            "parentId": "node-root",
+            "text": "Redis数据类型",
+            "order": 15
+          },
+          {
+            "id": "node-redis-core",
+            "parentId": "node-redis",
+            "text": "核心类型：String、List、Set、Sorted Set、Hash",
+            "order": 16
+          },
+          {
+            "id": "node-redis-extra",
+            "parentId": "node-redis",
+            "text": "Stream、HyperLogLog（是否核心类型待确认）",
+            "order": 17
+          }
+        ],
+        "false_positives": [
+          "200成功",
+          "301永久重定向(需确认与302区别)",
+          "302临时重定向",
+          "404未找到",
+          "500服务器错误",
+          "冒泡排序：o(n²)",
+          "堆排序：o(nlogn)，不稳定(待验证)",
+          "核心类型：string、list、set、sortedset、hash",
+          "stream、hyperloglog(是否核心类型待确认)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T21_run1_a4284005",
+        "prompt_version": "prompt_v1",
+        "case_id": "T21",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.4167,
+        "recall": 1.0,
+        "fp_count": 15,
+        "missed_count": 0,
+        "total_latency_ms": 13484.25,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": false,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "软件工程实践",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "版本控制",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "测试策略",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "CI/CD",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "代码质量",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "架构设计原则",
+            "order": 5
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "常用操作：clone/add/commit/push/pull/merge/rebase",
+            "order": 7
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "分支策略：Git Flow / GitHub Flow / Trunk Based",
+            "order": 8
+          },
+          {
+            "id": "node-1-4",
+            "parentId": "node-1",
+            "text": "最佳实践：原子提交、清晰commit message、PR review",
+            "order": 9
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "测试金字塔：单元70% / 集成20% / E2E 10%",
+            "order": 10
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "单元测试：JUnit / pytest / Jest",
+            "order": 11
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "E2E测试：Selenium / Playwright / Cypress",
+            "order": 12
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "TDD：红灯→绿灯→重构",
+            "order": 13
+          },
+          {
+            "id": "node-2-5",
+            "parentId": "node-2",
+            "text": "代码覆盖率：目标80%+，不盲目追求100%",
+            "order": 14
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "持续集成：提交触发构建和测试",
+            "order": 15
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "工具：Jenkins / GitHub Actions / GitLab CI",
+            "order": 16
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "流水线：检出→安装→静态分析→测试→构建→部署",
+            "order": 17
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "发布策略：蓝绿部署/金丝雀发布/滚动更新",
+            "order": 18
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "静态分析：SonarQube / ESLint / Pylint",
+            "order": 19
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "代码指标：圈复杂度<10，函数<50行，文件<500行",
+            "order": 20
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "技术债务：定期偿还、记录决策、质量门禁",
+            "order": 21
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "SOLID原则：单一职责/开闭/里氏替换/接口隔离/依赖反转",
+            "order": 22
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "设计模式：创建型/结构型/行为型",
+            "order": 23
+          },
+          {
+            "id": "node-5-3",
+            "parentId": "node-5",
+            "text": "DDD：限界上下文/聚合根/领域事件/CQRS",
+            "order": 24
+          },
+          {
+            "id": "node-5-4",
+            "parentId": "node-5",
+            "text": "微服务：单一职责/自治/独立部署/去中心化治理",
+            "order": 25
+          }
+        ],
+        "false_positives": [
+          "常用操作：clone/add/commit/push/pull/merge/rebase",
+          "最佳实践：原子提交、清晰commitmessage、prreview",
+          "单元测试：junit/pytest/jest",
+          "e2e测试：selenium/playwright/cypress",
+          "tdd：红灯→绿灯→重构",
+          "代码覆盖率：目标80%+，不盲目追求100%",
+          "持续集成：提交触发构建和测试",
+          "工具：jenkins/githubactions/gitlabci",
+          "发布策略：蓝绿部署/金丝雀发布/滚动更新",
+          "静态分析：sonarqube/eslint/pylint",
+          "代码指标：圈复杂度<10，函数<50行，文件<500行",
+          "技术债务：定期偿还、记录决策、质量门禁",
+          "设计模式：创建型/结构型/行为型",
+          "ddd：限界上下文/聚合根/领域事件/cqrs",
+          "微服务：单一职责/自治/独立部署/去中心化治理"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T21_run2_60552966",
+        "prompt_version": "prompt_v1",
+        "case_id": "T21",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.4167,
+        "recall": 1.0,
+        "fp_count": 14,
+        "missed_count": 0,
+        "total_latency_ms": 13528.41,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": false,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "软件工程实践",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "版本控制",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "测试策略",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "CI/CD",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "代码质量",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "架构设计原则",
+            "order": 5
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "常用操作：clone/add/commit/push/pull/merge/rebase",
+            "order": 7
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "分支策略：Git Flow / GitHub Flow / Trunk Based",
+            "order": 8
+          },
+          {
+            "id": "node-1-4",
+            "parentId": "node-1",
+            "text": "最佳实践：原子提交、清晰message、PR review、CI集成",
+            "order": 9
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "测试金字塔：单元70% / 集成20% / E2E 10%",
+            "order": 10
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "单元测试：JUnit / pytest / Jest",
+            "order": 11
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "E2E测试：Selenium / Playwright / Cypress",
+            "order": 12
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "TDD：红灯→绿灯→重构",
+            "order": 13
+          },
+          {
+            "id": "node-2-5",
+            "parentId": "node-2",
+            "text": "代码覆盖率：目标80%+，不盲目追求100%",
+            "order": 14
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "持续集成：提交触发构建和测试",
+            "order": 15
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "工具链：Jenkins / GitHub Actions / GitLab CI",
+            "order": 16
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "流水线：检出→安装→静态分析→测试→构建→部署",
+            "order": 17
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "发布策略：蓝绿部署 / 金丝雀 / 滚动更新",
+            "order": 18
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "代码审查：PR大小控制、逻辑与风格一致性",
+            "order": 19
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "静态分析：SonarQube / ESLint / Pylint",
+            "order": 20
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "代码指标：圈复杂度<10、函数<50行、文件<500行",
+            "order": 21
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "SOLID原则",
+            "order": 22
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "设计模式：创建型 / 结构型 / 行为型",
+            "order": 23
+          },
+          {
+            "id": "node-5-3",
+            "parentId": "node-5",
+            "text": "DDD：限界上下文 / 聚合根 / 领域事件 / CQRS",
+            "order": 24
+          },
+          {
+            "id": "node-5-4",
+            "parentId": "node-5",
+            "text": "微服务：单一职责、自治、可独立部署、去中心化",
+            "order": 25
+          }
+        ],
+        "false_positives": [
+          "常用操作：clone/add/commit/push/pull/merge/rebase",
+          "最佳实践：原子提交、清晰message、prreview、ci集成",
+          "单元测试：junit/pytest/jest",
+          "e2e测试：selenium/playwright/cypress",
+          "tdd：红灯→绿灯→重构",
+          "代码覆盖率：目标80%+，不盲目追求100%",
+          "持续集成：提交触发构建和测试",
+          "工具链：jenkins/githubactions/gitlabci",
+          "发布策略：蓝绿部署/金丝雀/滚动更新",
+          "静态分析：sonarqube/eslint/pylint",
+          "代码指标：圈复杂度<10、函数<50行、文件<500行",
+          "设计模式：创建型/结构型/行为型",
+          "ddd：限界上下文/聚合根/领域事件/cqrs",
+          "微服务：单一职责、自治、可独立部署、去中心化"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T23_run1_272e4277",
+        "prompt_version": "prompt_v1",
+        "case_id": "T23",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 19,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "fp_count": 12,
+        "missed_count": 0,
+        "total_latency_ms": 12507.73,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "产品设计原则",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "用户体验优先",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "功能不堆砌",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "以用户需求为核心",
+            "order": 3
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "界面简洁一致",
+            "order": 4
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "统一视觉风格",
+            "order": 5
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "减少认知负担",
+            "order": 6
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "操作反馈及时",
+            "order": 7
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "即时响应用户操作",
+            "order": 8
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "状态变化清晰可见",
+            "order": 9
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "性能即功能",
+            "order": 10
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "加载速度是体验的一部分",
+            "order": 11
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "性能优化不可忽视",
+            "order": 12
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "移动端优先",
+            "order": 13
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "适配小屏幕交互",
+            "order": 14
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "触控友好设计",
+            "order": 15
+          },
+          {
+            "id": "node-6",
+            "parentId": "node-root",
+            "text": "无障碍设计",
+            "order": 16
+          },
+          {
+            "id": "node-6-1",
+            "parentId": "node-6",
+            "text": "支持辅助技术",
+            "order": 17
+          },
+          {
+            "id": "node-6-2",
+            "parentId": "node-6",
+            "text": "满足多样用户需求",
+            "order": 18
+          }
+        ],
+        "false_positives": [
+          "功能不堆砌",
+          "以用户需求为核心",
+          "统一视觉风格",
+          "减少认知负担",
+          "即时响应用户操作",
+          "状态变化清晰可见",
+          "加载速度是体验的一部分",
+          "性能优化不可忽视",
+          "适配小屏幕交互",
+          "触控友好设计",
+          "支持辅助技术",
+          "满足多样用户需求"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T23_run2_e8394d1c",
+        "prompt_version": "prompt_v1",
+        "case_id": "T23",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 19,
+        "precision": 0.3333,
+        "recall": 1.0,
+        "fp_count": 12,
+        "missed_count": 0,
+        "total_latency_ms": 12645.07,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "产品设计原则",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "用户体验优先",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "功能不堆砌，以用户需求为核心",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "UX优先于Feature数量",
+            "order": 3
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "界面简洁一致",
+            "order": 4
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "保持视觉与交互一致性",
+            "order": 5
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "避免不必要的复杂度",
+            "order": 6
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "操作反馈及时",
+            "order": 7
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "用户操作后给予清晰反馈",
+            "order": 8
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "反馈须即时、可感知",
+            "order": 9
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "性能即功能",
+            "order": 10
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "性能是产品体验的组成部分",
+            "order": 11
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "加载与响应速度影响用户感知",
+            "order": 12
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "移动端优先",
+            "order": 13
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "优先为移动设备设计",
+            "order": 14
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "适配小屏与触控交互",
+            "order": 15
+          },
+          {
+            "id": "node-6",
+            "parentId": "node-root",
+            "text": "无障碍设计",
+            "order": 16
+          },
+          {
+            "id": "node-6-1",
+            "parentId": "node-6",
+            "text": "支持辅助技术与多元用户",
+            "order": 17
+          },
+          {
+            "id": "node-6-2",
+            "parentId": "node-6",
+            "text": "遵循可访问性标准",
+            "order": 18
+          }
+        ],
+        "false_positives": [
+          "功能不堆砌，以用户需求为核心",
+          "ux优先于feature数量",
+          "保持视觉与交互一致性",
+          "避免不必要的复杂度",
+          "用户操作后给予清晰反馈",
+          "反馈须即时、可感知",
+          "性能是产品体验的组成部分",
+          "加载与响应速度影响用户感知",
+          "优先为移动设备设计",
+          "适配小屏与触控交互",
+          "支持辅助技术与多元用户",
+          "遵循可访问性标准"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T25_run1_dfc1349a",
+        "prompt_version": "prompt_v1",
+        "case_id": "T25",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 10,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "fp_count": 3,
+        "missed_count": 0,
+        "total_latency_ms": 7777.74,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "数据库索引",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "B+树索引",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-1",
+            "text": "叶子节点存储数据",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-1",
+            "text": "非叶子节点存储键值",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-1",
+            "text": "支持范围查询",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "Hash索引",
+            "order": 5
+          },
+          {
+            "id": "node-6",
+            "parentId": "node-5",
+            "text": "等值查询O(1)",
+            "order": 6
+          },
+          {
+            "id": "node-7",
+            "parentId": "node-5",
+            "text": "不支持范围查询",
+            "order": 7
+          },
+          {
+            "id": "node-8",
+            "parentId": "node-root",
+            "text": "复合索引",
+            "order": 8
+          },
+          {
+            "id": "node-9",
+            "parentId": "node-8",
+            "text": "最左前缀原则",
+            "order": 9
+          }
+        ],
+        "false_positives": [
+          "非叶子节点存储键值",
+          "等值查询o(1)",
+          "不支持范围查询"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v1_T25_run2_e6cb5d22",
+        "prompt_version": "prompt_v1",
+        "case_id": "T25",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 10,
+        "precision": 0.6667,
+        "recall": 1.0,
+        "fp_count": 3,
+        "missed_count": 0,
+        "total_latency_ms": 7795.49,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "数据库索引",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "B+树索引",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-1",
+            "text": "叶子节点存储数据",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-1",
+            "text": "非叶子节点存储键值",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-1",
+            "text": "支持范围查询",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "Hash索引",
+            "order": 5
+          },
+          {
+            "id": "node-6",
+            "parentId": "node-5",
+            "text": "等值查询O(1)",
+            "order": 6
+          },
+          {
+            "id": "node-7",
+            "parentId": "node-5",
+            "text": "不支持范围查询",
+            "order": 7
+          },
+          {
+            "id": "node-8",
+            "parentId": "node-root",
+            "text": "复合索引",
+            "order": 8
+          },
+          {
+            "id": "node-9",
+            "parentId": "node-8",
+            "text": "最左前缀原则",
+            "order": 9
+          }
+        ],
+        "false_positives": [
+          "非叶子节点存储键值",
+          "等值查询o(1)",
+          "不支持范围查询"
+        ],
+        "missed_nodes": []
+      }
+    ],
+    "prompt_v2": [
+      {
+        "run_id": "ab_prompt_v2_T04_run1_6cbaedd6",
+        "prompt_version": "prompt_v2",
+        "case_id": "T04",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 14,
+        "precision": 0.7692,
+        "recall": 1.0,
+        "fp_count": 7,
+        "missed_count": 0,
+        "total_latency_ms": 11308.58,
+        "depth": 3,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "Q3产品迭代规划",
+            "order": 0
+          },
+          {
+            "id": "node-attendees",
+            "parentId": "node-root",
+            "text": "参会人",
+            "order": 1
+          },
+          {
+            "id": "node-zhangsan",
+            "parentId": "node-attendees",
+            "text": "产品负责人张三",
+            "order": 2
+          },
+          {
+            "id": "node-lisi",
+            "parentId": "node-attendees",
+            "text": "技术负责人李四",
+            "order": 3
+          },
+          {
+            "id": "node-wangwu",
+            "parentId": "node-attendees",
+            "text": "设计师王五",
+            "order": 4
+          },
+          {
+            "id": "node-decisions",
+            "parentId": "node-root",
+            "text": "决议事项",
+            "order": 5
+          },
+          {
+            "id": "node-p0",
+            "parentId": "node-decisions",
+            "text": "P0：修复支付系统超时Bug，预计3天，负责人李四",
+            "order": 6
+          },
+          {
+            "id": "node-p1",
+            "parentId": "node-decisions",
+            "text": "P1：新增用户画像模块，预计2周，负责人张三",
+            "order": 7
+          },
+          {
+            "id": "node-p1-detail",
+            "parentId": "node-p1",
+            "text": "行为标签、消费偏好、活跃度分析",
+            "order": 8
+          },
+          {
+            "id": "node-p2",
+            "parentId": "node-decisions",
+            "text": "P2：界面改版，参考竞品A卡片式布局，预计1周，负责人王五",
+            "order": 9
+          },
+          {
+            "id": "node-tbd",
+            "parentId": "node-root",
+            "text": "待确认",
+            "order": 10
+          },
+          {
+            "id": "node-tbd-datasource",
+            "parentId": "node-tbd",
+            "text": "用户画像数据源：埋点数据还是问卷数据（TBD）",
+            "order": 11
+          },
+          {
+            "id": "node-tbd-design",
+            "parentId": "node-tbd",
+            "text": "设计规范是否沿用现有Design System（TBD）",
+            "order": 12
+          },
+          {
+            "id": "node-next-meeting",
+            "parentId": "node-root",
+            "text": "下次会议：7月15日",
+            "order": 13
+          }
+        ],
+        "false_positives": [
+          "参会人",
+          "产品负责人张三",
+          "技术负责人李四",
+          "设计师王五",
+          "用户画像数据源：埋点数据还是问卷数据(tbd)",
+          "设计规范是否沿用现有designsystem(tbd)",
+          "下次会议：7月15日"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T04_run2_9ffbef66",
+        "prompt_version": "prompt_v2",
+        "case_id": "T04",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 14,
+        "precision": 0.7692,
+        "recall": 1.0,
+        "fp_count": 7,
+        "missed_count": 0,
+        "total_latency_ms": 9904.36,
+        "depth": 3,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "Q3产品迭代规划",
+            "order": 0
+          },
+          {
+            "id": "node-attendees",
+            "parentId": "node-root",
+            "text": "参会人",
+            "order": 1
+          },
+          {
+            "id": "node-att-1",
+            "parentId": "node-attendees",
+            "text": "产品负责人张三",
+            "order": 2
+          },
+          {
+            "id": "node-att-2",
+            "parentId": "node-attendees",
+            "text": "技术负责人李四",
+            "order": 3
+          },
+          {
+            "id": "node-att-3",
+            "parentId": "node-attendees",
+            "text": "设计师王五",
+            "order": 4
+          },
+          {
+            "id": "node-decisions",
+            "parentId": "node-root",
+            "text": "决议事项",
+            "order": 5
+          },
+          {
+            "id": "node-p0",
+            "parentId": "node-decisions",
+            "text": "P0：修复支付系统超时Bug，预计3天，负责人李四",
+            "order": 6
+          },
+          {
+            "id": "node-p1",
+            "parentId": "node-decisions",
+            "text": "P1：新增用户画像模块，预计2周，负责人张三",
+            "order": 7
+          },
+          {
+            "id": "node-p1-detail",
+            "parentId": "node-p1",
+            "text": "包括行为标签、消费偏好、活跃度分析",
+            "order": 8
+          },
+          {
+            "id": "node-p2",
+            "parentId": "node-decisions",
+            "text": "P2：界面改版，参考竞品A卡片式布局，预计1周，负责人王五",
+            "order": 9
+          },
+          {
+            "id": "node-tbd",
+            "parentId": "node-root",
+            "text": "待确认",
+            "order": 10
+          },
+          {
+            "id": "node-tbd-1",
+            "parentId": "node-tbd",
+            "text": "用户画像数据源：埋点数据还是问卷数据（TBD）",
+            "order": 11
+          },
+          {
+            "id": "node-tbd-2",
+            "parentId": "node-tbd",
+            "text": "设计规范是否沿用现有Design System（TBD）",
+            "order": 12
+          },
+          {
+            "id": "node-next",
+            "parentId": "node-root",
+            "text": "下次会议：7月15日",
+            "order": 13
+          }
+        ],
+        "false_positives": [
+          "参会人",
+          "产品负责人张三",
+          "技术负责人李四",
+          "设计师王五",
+          "用户画像数据源：埋点数据还是问卷数据(tbd)",
+          "设计规范是否沿用现有designsystem(tbd)",
+          "下次会议：7月15日"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T08_run1_2a3e51c6",
+        "prompt_version": "prompt_v2",
+        "case_id": "T08",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 24,
+        "precision": 0.5652,
+        "recall": 1.0,
+        "fp_count": 10,
+        "missed_count": 0,
+        "total_latency_ms": 11931.93,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "分布式缓存架构设计方案",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "选型对比与决策",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "候选方案：Redis Cluster / Memcached / Codis",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "最终选择：Redis Cluster",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "原因：数据持久化、丰富数据结构、原生集群模式",
+            "order": 4
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "架构设计",
+            "order": 5
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "6节点（3主3从），跨机房部署",
+            "order": 6
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "Hash Slot分片，共16384槽位",
+            "order": 7
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "Sentinel哨兵自动failover，30秒内完成主从切换",
+            "order": 8
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "数据一致性：异步复制 + WAIT命令可选同步",
+            "order": 9
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "缓存策略",
+            "order": 10
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "读：Cache-Aside，命中返回，未命中查DB回填",
+            "order": 11
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "写：Write-Through，先写DB成功再更新缓存",
+            "order": 12
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "TTL：热数据1小时，冷数据10分钟",
+            "order": 13
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "淘汰策略：allkeys-lru",
+            "order": 14
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "防护措施",
+            "order": 15
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "缓存穿透：布隆过滤器 + 空值缓存（TTL 60秒）",
+            "order": 16
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "缓存击穿：互斥锁（SETNX）+ 热点预加载",
+            "order": 17
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "缓存雪崩：TTL随机化 + 多级缓存（本地L1 + Redis L2）",
+            "order": 18
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "监控指标",
+            "order": 19
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "命中率 > 95%",
+            "order": 20
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "P99延迟 < 5ms",
+            "order": 21
+          },
+          {
+            "id": "node-5-3",
+            "parentId": "node-5",
+            "text": "内存使用率 < 70%",
+            "order": 22
+          },
+          {
+            "id": "node-5-4",
+            "parentId": "node-5",
+            "text": "慢查询 < 1次/分钟",
+            "order": 23
+          }
+        ],
+        "false_positives": [
+          "最终选择：rediscluster",
+          "原因：数据持久化、丰富数据结构、原生集群模式",
+          "6节点(3主3从)，跨机房部署",
+          "数据一致性：异步复制+wait命令可选同步",
+          "ttl：热数据1小时，冷数据10分钟",
+          "淘汰策略：allkeys-lru",
+          "命中率>95%",
+          "p99延迟<5ms",
+          "内存使用率<70%",
+          "慢查询<1次/分钟"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T08_run2_d82a4955",
+        "prompt_version": "prompt_v2",
+        "case_id": "T08",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 24,
+        "precision": 0.5652,
+        "recall": 1.0,
+        "fp_count": 10,
+        "missed_count": 0,
+        "total_latency_ms": 12071.29,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "分布式缓存架构设计方案",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "选型对比与决策",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "候选方案：Redis Cluster / Memcached / Codis",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "最终选择：Redis Cluster",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "原因：数据持久化、丰富数据结构、原生集群模式",
+            "order": 4
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "架构设计",
+            "order": 5
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "部署：6节点（3主3从），跨机房部署",
+            "order": 6
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "分片策略：Hash Slot，共16384槽位",
+            "order": 7
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "故障转移：Sentinel哨兵自动failover，30秒内完成主从切换",
+            "order": 8
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "数据一致性：异步复制 + WAIT命令可选同步",
+            "order": 9
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "缓存策略",
+            "order": 10
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "读：Cache-Aside模式，命中返回，未命中查DB回填",
+            "order": 11
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "写：Write-Through模式，先写DB成功再更新缓存",
+            "order": 12
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "过期：热数据TTL 1小时，冷数据TTL 10分钟",
+            "order": 13
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "淘汰：allkeys-lru策略",
+            "order": 14
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "防护措施",
+            "order": 15
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "缓存穿透：布隆过滤器 + 空值缓存（TTL 60秒）",
+            "order": 16
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "缓存击穿：互斥锁（SETNX）+ 热点预加载",
+            "order": 17
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "缓存雪崩：TTL随机化 + 多级缓存（本地L1 + Redis L2）",
+            "order": 18
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "监控指标",
+            "order": 19
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "命中率 > 95%",
+            "order": 20
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "P99延迟 < 5ms",
+            "order": 21
+          },
+          {
+            "id": "node-5-3",
+            "parentId": "node-5",
+            "text": "内存使用率 < 70%",
+            "order": 22
+          },
+          {
+            "id": "node-5-4",
+            "parentId": "node-5",
+            "text": "慢查询 < 1次/分钟",
+            "order": 23
+          }
+        ],
+        "false_positives": [
+          "最终选择：rediscluster",
+          "原因：数据持久化、丰富数据结构、原生集群模式",
+          "部署：6节点(3主3从)，跨机房部署",
+          "数据一致性：异步复制+wait命令可选同步",
+          "过期：热数据ttl1小时，冷数据ttl10分钟",
+          "淘汰：allkeys-lru策略",
+          "命中率>95%",
+          "p99延迟<5ms",
+          "内存使用率<70%",
+          "慢查询<1次/分钟"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T11_run1_48adb84a",
+        "prompt_version": "prompt_v2",
+        "case_id": "T11",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 18,
+        "precision": 0.4706,
+        "recall": 1.0,
+        "fp_count": 10,
+        "missed_count": 0,
+        "total_latency_ms": 10539.6,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "并发 vs 并行 vs 异步",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "并发（Concurrency）",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "多个任务在重叠时间段内推进，不一定同时执行",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "单核CPU通过时间片轮转实现",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "关键词：交替执行、逻辑上同时",
+            "order": 4
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "并行（Parallelism）",
+            "order": 5
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "多个任务在物理上同时执行",
+            "order": 6
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "需要多核CPU或多台机器",
+            "order": 7
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "关键词：物理同时、多核",
+            "order": 8
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "异步（Asynchronous）",
+            "order": 9
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "调用方发起操作后不等待结果",
+            "order": 10
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "通过回调 / Promise / 事件获得通知",
+            "order": 11
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "可在单线程实现，如Node.js事件循环",
+            "order": 12
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "关键词：非阻塞、回调驱动",
+            "order": 13
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "三者关系",
+            "order": 14
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "并行一定是并发，并发不一定是并行",
+            "order": 15
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "异步是编程模型，与并发/并行正交",
+            "order": 16
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "异步代码可跑在单核（并发）或多核（并行）上",
+            "order": 17
+          }
+        ],
+        "false_positives": [
+          "多个任务在重叠时间段内推进，不一定同时执行",
+          "关键词：交替执行、逻辑上同时",
+          "多个任务在物理上同时执行",
+          "关键词：物理同时、多核",
+          "调用方发起操作后不等待结果",
+          "通过回调/promise/事件获得通知",
+          "可在单线程实现，如node.js事件循环",
+          "并行一定是并发，并发不一定是并行",
+          "异步是编程模型，与并发/并行正交",
+          "异步代码可跑在单核(并发)或多核(并行)上"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T11_run2_d4b48bea",
+        "prompt_version": "prompt_v2",
+        "case_id": "T11",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 17,
+        "precision": 0.5,
+        "recall": 1.0,
+        "fp_count": 9,
+        "missed_count": 0,
+        "total_latency_ms": 10574.65,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "并发 vs 并行 vs 异步",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "并发（Concurrency）",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "多个任务在重叠时间段内推进，不一定同时执行",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "单核CPU通过时间片轮转实现，任意时刻只有一个任务执行",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "关键词：交替执行、逻辑上同时",
+            "order": 4
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "并行（Parallelism）",
+            "order": 5
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "多个任务在物理上同时执行",
+            "order": 6
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "需要多核CPU或多台机器",
+            "order": 7
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "关键词：物理同时、多核",
+            "order": 8
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "异步（Asynchronous）",
+            "order": 9
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "调用方发起操作后不等待结果，通过回调/Promise/事件获得通知",
+            "order": 10
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "核心：非阻塞、回调驱动",
+            "order": 11
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "可在单线程实现，如Node.js事件循环，不一定需要多线程",
+            "order": 12
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "三者关系",
+            "order": 13
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "并行一定是并发，但并发不一定是并行",
+            "order": 14
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "异步是编程模型，与并发/并行正交",
+            "order": 15
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "异步代码可跑在单核（并发）或多核（并行）上",
+            "order": 16
+          }
+        ],
+        "false_positives": [
+          "多个任务在重叠时间段内推进，不一定同时执行",
+          "关键词：交替执行、逻辑上同时",
+          "多个任务在物理上同时执行",
+          "关键词：物理同时、多核",
+          "调用方发起操作后不等待结果，通过回调/promise/事件获得通知",
+          "可在单线程实现，如node.js事件循环，不一定需要多线程",
+          "并行一定是并发，但并发不一定是并行",
+          "异步是编程模型，与并发/并行正交",
+          "异步代码可跑在单核(并发)或多核(并行)上"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T14_run1_1c7bd86c",
+        "prompt_version": "prompt_v2",
+        "case_id": "T14",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 22,
+        "precision": 0.4762,
+        "recall": 1.0,
+        "fp_count": 11,
+        "missed_count": 0,
+        "total_latency_ms": 13431.06,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "Q2电商运营数据报告",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "GMV",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "总成交额12.8亿",
+            "order": 1
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "环比增长18%，同比增长42%",
+            "order": 2
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "客单价186元→215元",
+            "order": 3
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "用户数据",
+            "order": 2
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "MAU 3200万，DAU 890万，DAU/MAU 27.8%",
+            "order": 1
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "新增用户450万",
+            "order": 2
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "自然增长60%，付费获客40%（CPA 23元）",
+            "order": 3
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "转化漏斗",
+            "order": 3
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "首页UV 2100万→商品详情页1050万（50%）",
+            "order": 1
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "加购210万（20%）→提交订单147万（70%）→支付成功132万（90%）",
+            "order": 2
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "整体转化率6.3%",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "品类表现",
+            "order": 4
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "服饰 35%，增长12%",
+            "order": 1
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "美妆 25%，增长28%",
+            "order": 2
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "3C数码 20%，增长8%",
+            "order": 3
+          },
+          {
+            "id": "node-4-4",
+            "parentId": "node-4",
+            "text": "食品 12%，下降3%",
+            "order": 4
+          },
+          {
+            "id": "node-4-5",
+            "parentId": "node-4",
+            "text": "家居 8%，增长15%",
+            "order": 5
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "复购与高价值用户",
+            "order": 5
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "30日复购率34%，90日复购率52%",
+            "order": 1
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "高价值用户（年消费>5000元）贡献42% GMV",
+            "order": 2
+          }
+        ],
+        "false_positives": [
+          "环比增长18%，同比增长42%",
+          "新增用户450万",
+          "自然增长60%，付费获客40%(cpa23元)",
+          "首页uv2100万→商品详情页1050万(50%)",
+          "加购210万(20%)→提交订单147万(70%)→支付成功132万(90%)",
+          "3c数码20%，增长8%",
+          "食品12%，下降3%",
+          "家居8%，增长15%",
+          "复购与高价值用户",
+          "30日复购率34%，90日复购率52%",
+          "高价值用户(年消费>5000元)贡献42%gmv"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T14_run2_25f206c5",
+        "prompt_version": "prompt_v2",
+        "case_id": "T14",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 18,
+        "precision": 0.5882,
+        "recall": 1.0,
+        "fp_count": 9,
+        "missed_count": 0,
+        "total_latency_ms": 13778.96,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "2024年Q2电商平台运营数据",
+            "order": 0
+          },
+          {
+            "id": "node-gmv",
+            "parentId": "node-root",
+            "text": "GMV：12.8亿",
+            "order": 1
+          },
+          {
+            "id": "node-gmv-growth",
+            "parentId": "node-gmv",
+            "text": "环比+18%，同比+42%",
+            "order": 2
+          },
+          {
+            "id": "node-arpu",
+            "parentId": "node-gmv",
+            "text": "客单价：186元 → 215元",
+            "order": 3
+          },
+          {
+            "id": "node-user",
+            "parentId": "node-root",
+            "text": "用户数据",
+            "order": 4
+          },
+          {
+            "id": "node-mau-dau",
+            "parentId": "node-user",
+            "text": "MAU 3200万，DAU 890万，DAU/MAU 27.8%",
+            "order": 5
+          },
+          {
+            "id": "node-newuser",
+            "parentId": "node-user",
+            "text": "新增用户450万（自然增长60%，付费获客40%，CPA 23元）",
+            "order": 6
+          },
+          {
+            "id": "node-funnel",
+            "parentId": "node-root",
+            "text": "转化漏斗（整体转化率6.3%）",
+            "order": 7
+          },
+          {
+            "id": "node-funnel-steps",
+            "parentId": "node-funnel",
+            "text": "首页UV 2100万→详情页1050万(50%)→加购210万(20%)→提交订单147万(70%)→支付成功132万(90%)",
+            "order": 8
+          },
+          {
+            "id": "node-category",
+            "parentId": "node-root",
+            "text": "品类表现",
+            "order": 9
+          },
+          {
+            "id": "node-cat-fashion",
+            "parentId": "node-category",
+            "text": "服饰：占比35%，增长12%",
+            "order": 10
+          },
+          {
+            "id": "node-cat-beauty",
+            "parentId": "node-category",
+            "text": "美妆：占比25%，增长28%",
+            "order": 11
+          },
+          {
+            "id": "node-cat-3c",
+            "parentId": "node-category",
+            "text": "3C数码：占比20%，增长8%",
+            "order": 12
+          },
+          {
+            "id": "node-cat-food",
+            "parentId": "node-category",
+            "text": "食品：占比12%，下降3%",
+            "order": 13
+          },
+          {
+            "id": "node-cat-home",
+            "parentId": "node-category",
+            "text": "家居：占比8%，增长15%",
+            "order": 14
+          },
+          {
+            "id": "node-retention",
+            "parentId": "node-root",
+            "text": "复购与用户价值",
+            "order": 15
+          },
+          {
+            "id": "node-repurchase",
+            "parentId": "node-retention",
+            "text": "30日复购率34%，90日复购率52%",
+            "order": 16
+          },
+          {
+            "id": "node-highvalue",
+            "parentId": "node-retention",
+            "text": "高价值用户（年消费>5000元）贡献42% GMV",
+            "order": 17
+          }
+        ],
+        "false_positives": [
+          "环比+18%，同比+42%",
+          "新增用户450万(自然增长60%，付费获客40%，cpa23元)",
+          "首页uv2100万→详情页1050万(50%)→加购210万(20%)→提交订单147万(70%)→支付成功132万(90%)",
+          "3c数码：占比20%，增长8%",
+          "食品：占比12%，下降3%",
+          "家居：占比8%，增长15%",
+          "复购与用户价值",
+          "30日复购率34%，90日复购率52%",
+          "高价值用户(年消费>5000元)贡献42%gmv"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T17_run1_b3df64b6",
+        "prompt_version": "prompt_v2",
+        "case_id": "T17",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 18,
+        "precision": 0.4706,
+        "recall": 1.0,
+        "fp_count": 10,
+        "missed_count": 0,
+        "total_latency_ms": 9568.28,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "GraphQL引入讨论",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "支持方观点",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "减少过度获取",
+            "order": 0
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "前端自主查询",
+            "order": 1
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "适合复杂嵌套数据",
+            "order": 2
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "反对方观点",
+            "order": 2
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "学习成本高",
+            "order": 0
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "缓存困难",
+            "order": 1
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "现有REST API已足够",
+            "order": 2
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "N+1查询问题",
+            "order": 3
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "讨论结果：未达成一致",
+            "order": 3
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "暂时维持现有REST架构不变",
+            "order": 0
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "下周邀请架构师进一步评估",
+            "order": 1
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "折中方案：仅在BFF层使用GraphQL聚合，后端服务仍用REST",
+            "order": 2
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "后续TODO",
+            "order": 4
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "架构师评估（待排期）",
+            "order": 0
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "性能对比测试（如果决定推进）",
+            "order": 1
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "团队培训计划（如果最终采用）",
+            "order": 2
+          }
+        ],
+        "false_positives": [
+          "前端自主查询",
+          "适合复杂嵌套数据",
+          "学习成本高",
+          "现有restapi已足够",
+          "n+1查询问题",
+          "暂时维持现有rest架构不变",
+          "下周邀请架构师进一步评估",
+          "架构师评估(待排期)",
+          "性能对比测试(如果决定推进)",
+          "团队培训计划(如果最终采用)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T17_run2_1a7dbc84",
+        "prompt_version": "prompt_v2",
+        "case_id": "T17",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 18,
+        "precision": 0.4706,
+        "recall": 1.0,
+        "fp_count": 10,
+        "missed_count": 0,
+        "total_latency_ms": 9436.66,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": false,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "GraphQL引入讨论",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "支持方观点",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "减少过度获取",
+            "order": 0
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "前端自主查询",
+            "order": 1
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "适合复杂嵌套数据",
+            "order": 2
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "反对方观点",
+            "order": 2
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "学习成本高",
+            "order": 0
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "缓存困难",
+            "order": 1
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "现有REST API已足够",
+            "order": 2
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "N+1查询问题",
+            "order": 3
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "讨论结果：未达成一致",
+            "order": 3
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "暂时维持现有REST架构不变",
+            "order": 0
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "下周邀请架构师进一步评估",
+            "order": 1
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "折中方案：仅在BFF层使用GraphQL聚合，后端服务仍用REST",
+            "order": 2
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "后续TODO",
+            "order": 4
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "架构师评估（待排期）",
+            "order": 0
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "性能对比测试（如果决定推进）",
+            "order": 1
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "团队培训计划（如果最终采用）",
+            "order": 2
+          }
+        ],
+        "false_positives": [
+          "前端自主查询",
+          "适合复杂嵌套数据",
+          "学习成本高",
+          "现有restapi已足够",
+          "n+1查询问题",
+          "暂时维持现有rest架构不变",
+          "下周邀请架构师进一步评估",
+          "架构师评估(待排期)",
+          "性能对比测试(如果决定推进)",
+          "团队培训计划(如果最终采用)"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T18_run1_51c690c9",
+        "prompt_version": "prompt_v2",
+        "case_id": "T18",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 18,
+        "precision": 0.4706,
+        "recall": 1.0,
+        "fp_count": 9,
+        "missed_count": 0,
+        "total_latency_ms": 11169.74,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "面试准备笔记",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "TCP握手与挥手",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "三次握手：SYN → SYN+ACK → ACK",
+            "order": 1
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "四次挥手：FIN → ACK → FIN → ACK",
+            "order": 2
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "HTTP状态码",
+            "order": 2
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "200 成功",
+            "order": 1
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "301 永久重定向（需确认与302的区别是否记错）",
+            "order": 2
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "302 临时重定向",
+            "order": 3
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "404 未找到",
+            "order": 4
+          },
+          {
+            "id": "node-2-5",
+            "parentId": "node-2",
+            "text": "500 服务器错误",
+            "order": 5
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "排序算法时间复杂度",
+            "order": 3
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "快速排序：平均O(nlogn)，最坏O(n²)",
+            "order": 1
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "归并排序：始终O(nlogn)",
+            "order": 2
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "冒泡排序：O(n²)",
+            "order": 3
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "堆排序：O(nlogn)，不稳定（需验证）",
+            "order": 4
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "Redis数据类型",
+            "order": 4
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "核心类型：String、List、Set、Sorted Set、Hash",
+            "order": 1
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "Stream、HyperLogLog 是否属于核心类型？记不清，待确认",
+            "order": 2
+          }
+        ],
+        "false_positives": [
+          "200成功",
+          "301永久重定向(需确认与302的区别是否记错)",
+          "302临时重定向",
+          "404未找到",
+          "500服务器错误",
+          "冒泡排序：o(n²)",
+          "堆排序：o(nlogn)，不稳定(需验证)",
+          "核心类型：string、list、set、sortedset、hash",
+          "stream、hyperloglog是否属于核心类型？记不清，待确认"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T18_run2_30af8359",
+        "prompt_version": "prompt_v2",
+        "case_id": "T18",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 18,
+        "precision": 0.4706,
+        "recall": 1.0,
+        "fp_count": 9,
+        "missed_count": 0,
+        "total_latency_ms": 23645.3,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "面试准备笔记",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "TCP握手与挥手",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "三次握手：SYN → SYN+ACK → ACK",
+            "order": 1
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "四次挥手：FIN → ACK → FIN → ACK",
+            "order": 2
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "HTTP状态码",
+            "order": 2
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "200 成功",
+            "order": 1
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "301 永久重定向（需确认301与302区别是否记错）",
+            "order": 2
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "302 临时重定向",
+            "order": 3
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "404 未找到",
+            "order": 4
+          },
+          {
+            "id": "node-2-5",
+            "parentId": "node-2",
+            "text": "500 服务器错误",
+            "order": 5
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "排序算法时间复杂度",
+            "order": 3
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "快速排序：平均O(nlogn)，最坏O(n²)",
+            "order": 1
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "归并排序：始终O(nlogn)",
+            "order": 2
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "冒泡排序：O(n²)",
+            "order": 3
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "堆排序：O(nlogn)，不稳定（需验证）",
+            "order": 4
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "Redis数据类型",
+            "order": 4
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "核心类型：String、List、Set、Sorted Set、Hash",
+            "order": 1
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "Stream、HyperLogLog 是否属于核心类型？记不清，待确认",
+            "order": 2
+          }
+        ],
+        "false_positives": [
+          "200成功",
+          "301永久重定向(需确认301与302区别是否记错)",
+          "302临时重定向",
+          "404未找到",
+          "500服务器错误",
+          "冒泡排序：o(n²)",
+          "堆排序：o(nlogn)，不稳定(需验证)",
+          "核心类型：string、list、set、sortedset、hash",
+          "stream、hyperloglog是否属于核心类型？记不清，待确认"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T21_run1_b9ec40b2",
+        "prompt_version": "prompt_v2",
+        "case_id": "T21",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.4167,
+        "recall": 1.0,
+        "fp_count": 15,
+        "missed_count": 0,
+        "total_latency_ms": 13838.06,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": false,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "软件工程实践",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "版本控制",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "测试策略",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "CI/CD",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "代码质量",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "架构设计原则",
+            "order": 5
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "常用操作：clone/add/commit/push/pull/merge/rebase/cherry-pick/stash",
+            "order": 7
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "分支策略：Git Flow / GitHub Flow / Trunk Based Development",
+            "order": 8
+          },
+          {
+            "id": "node-1-4",
+            "parentId": "node-1",
+            "text": "最佳实践：原子提交、清晰commit message、PR review、CI集成",
+            "order": 9
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "测试金字塔：单元测试70%、集成测试20%、端到端测试10%",
+            "order": 10
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "单元测试：快速隔离，覆盖边界条件；框架：JUnit/pytest/Jest",
+            "order": 11
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "集成测试：验证模块间交互，使用测试数据库",
+            "order": 12
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "端到端测试：Selenium/Playwright/Cypress",
+            "order": 13
+          },
+          {
+            "id": "node-2-5",
+            "parentId": "node-2",
+            "text": "TDD流程：红灯→绿灯→重构；覆盖率目标80%以上",
+            "order": 14
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "持续集成：每次提交触发构建和测试；持续交付：随时可部署；持续部署：自动部署到生产",
+            "order": 15
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "工具链：Jenkins/GitHub Actions/GitLab CI/CircleCI",
+            "order": 16
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "流水线：代码检出→依赖安装→静态分析→单元测试→构建→集成测试→制品发布→部署",
+            "order": 17
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "部署策略：蓝绿部署、金丝雀发布、滚动更新",
+            "order": 18
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "静态分析：SonarQube/ESLint/Pylint",
+            "order": 19
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "代码指标：圈复杂度<10、函数长度<50行、文件长度<500行",
+            "order": 20
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "技术债务：定期偿还、记录决策、设置质量门禁",
+            "order": 21
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "SOLID原则：单一职责、开闭、里氏替换、接口隔离、依赖反转",
+            "order": 22
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "设计模式：创建型（工厂/单例/建造者）、结构型（适配器/装饰器/代理）、行为型（策略/观察者/命令）",
+            "order": 23
+          },
+          {
+            "id": "node-5-3",
+            "parentId": "node-5",
+            "text": "DDD：限界上下文、聚合根、领域事件、CQRS",
+            "order": 24
+          },
+          {
+            "id": "node-5-4",
+            "parentId": "node-5",
+            "text": "微服务原则：单一职责、自治、可独立部署、去中心化治理",
+            "order": 25
+          }
+        ],
+        "false_positives": [
+          "常用操作：clone/add/commit/push/pull/merge/rebase/cherry-pick/stash",
+          "最佳实践：原子提交、清晰commitmessage、prreview、ci集成",
+          "单元测试：快速隔离，覆盖边界条件；框架：junit/pytest/jest",
+          "集成测试：验证模块间交互，使用测试数据库",
+          "端到端测试：selenium/playwright/cypress",
+          "tdd流程：红灯→绿灯→重构；覆盖率目标80%以上",
+          "持续集成：每次提交触发构建和测试；持续交付：随时可部署；持续部署：自动部署到生产",
+          "工具链：jenkins/githubactions/gitlabci/circleci",
+          "部署策略：蓝绿部署、金丝雀发布、滚动更新",
+          "静态分析：sonarqube/eslint/pylint",
+          "代码指标：圈复杂度<10、函数长度<50行、文件长度<500行",
+          "技术债务：定期偿还、记录决策、设置质量门禁",
+          "设计模式：创建型(工厂/单例/建造者)、结构型(适配器/装饰器/代理)、行为型(策略/观察者/命令)",
+          "ddd：限界上下文、聚合根、领域事件、cqrs",
+          "微服务原则：单一职责、自治、可独立部署、去中心化治理"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T21_run2_bed4d15a",
+        "prompt_version": "prompt_v2",
+        "case_id": "T21",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 25,
+        "precision": 0.4167,
+        "recall": 1.0,
+        "fp_count": 14,
+        "missed_count": 0,
+        "total_latency_ms": 30076.76,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": false,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "软件工程实践",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "版本控制",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "测试策略",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "CI/CD",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "代码质量",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "架构设计原则",
+            "order": 5
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "常用操作：clone、add、commit、push、pull、merge、rebase、cherry-pick、stash",
+            "order": 7
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "分支策略：Git Flow / GitHub Flow / Trunk Based Development",
+            "order": 8
+          },
+          {
+            "id": "node-1-4",
+            "parentId": "node-1",
+            "text": "最佳实践：原子提交、清晰commit message、PR review、CI集成",
+            "order": 9
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "测试金字塔：单元测试70%、集成测试20%、端到端测试10%",
+            "order": 10
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "框架：JUnit / pytest / Jest（单元）；Selenium / Playwright / Cypress（E2E）",
+            "order": 11
+          },
+          {
+            "id": "node-2-3",
+            "parentId": "node-2",
+            "text": "TDD流程：红灯→绿灯→重构",
+            "order": 12
+          },
+          {
+            "id": "node-2-4",
+            "parentId": "node-2",
+            "text": "代码覆盖率：行/分支/路径覆盖，目标80%以上，不盲目追求100%",
+            "order": 13
+          },
+          {
+            "id": "node-3-1",
+            "parentId": "node-3",
+            "text": "持续集成：每次提交触发构建和测试；持续交付：随时可部署；持续部署：自动部署到生产",
+            "order": 14
+          },
+          {
+            "id": "node-3-2",
+            "parentId": "node-3",
+            "text": "工具链：Jenkins、GitHub Actions、GitLab CI、CircleCI",
+            "order": 15
+          },
+          {
+            "id": "node-3-3",
+            "parentId": "node-3",
+            "text": "流水线：代码检出→依赖安装→静态分析→单元测试→构建→集成测试→制品发布→部署",
+            "order": 16
+          },
+          {
+            "id": "node-3-4",
+            "parentId": "node-3",
+            "text": "部署策略：蓝绿部署、金丝雀发布、滚动更新",
+            "order": 17
+          },
+          {
+            "id": "node-4-1",
+            "parentId": "node-4",
+            "text": "代码审查：PR size控制、逻辑审查、风格一致性",
+            "order": 18
+          },
+          {
+            "id": "node-4-2",
+            "parentId": "node-4",
+            "text": "静态分析：SonarQube、ESLint、Pylint",
+            "order": 19
+          },
+          {
+            "id": "node-4-3",
+            "parentId": "node-4",
+            "text": "代码指标：圈复杂度<10、函数长度<50行、文件长度<500行",
+            "order": 20
+          },
+          {
+            "id": "node-4-4",
+            "parentId": "node-4",
+            "text": "技术债务管理：定期偿还、记录决策、设置质量门禁",
+            "order": 21
+          },
+          {
+            "id": "node-5-1",
+            "parentId": "node-5",
+            "text": "SOLID原则：单一职责、开闭、里氏替换、接口隔离、依赖反转",
+            "order": 22
+          },
+          {
+            "id": "node-5-2",
+            "parentId": "node-5",
+            "text": "设计模式：创建型（工厂、单例、建造者）、结构型（适配器、装饰器、代理）、行为型（策略、观察者、命令）",
+            "order": 23
+          },
+          {
+            "id": "node-5-3",
+            "parentId": "node-5",
+            "text": "DDD：限界上下文、聚合根、领域事件、CQRS",
+            "order": 24
+          },
+          {
+            "id": "node-5-4",
+            "parentId": "node-5",
+            "text": "微服务原则：单一职责、自治、可独立部署、去中心化治理",
+            "order": 25
+          }
+        ],
+        "false_positives": [
+          "常用操作：clone、add、commit、push、pull、merge、rebase、cherry-pick、stash",
+          "最佳实践：原子提交、清晰commitmessage、prreview、ci集成",
+          "框架：junit/pytest/jest(单元)；selenium/playwright/cypress(e2e)",
+          "tdd流程：红灯→绿灯→重构",
+          "代码覆盖率：行/分支/路径覆盖，目标80%以上，不盲目追求100%",
+          "持续集成：每次提交触发构建和测试；持续交付：随时可部署；持续部署：自动部署到生产",
+          "工具链：jenkins、githubactions、gitlabci、circleci",
+          "部署策略：蓝绿部署、金丝雀发布、滚动更新",
+          "静态分析：sonarqube、eslint、pylint",
+          "代码指标：圈复杂度<10、函数长度<50行、文件长度<500行",
+          "技术债务管理：定期偿还、记录决策、设置质量门禁",
+          "设计模式：创建型(工厂、单例、建造者)、结构型(适配器、装饰器、代理)、行为型(策略、观察者、命令)",
+          "ddd：限界上下文、聚合根、领域事件、cqrs",
+          "微服务原则：单一职责、自治、可独立部署、去中心化治理"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T23_run1_8487a50f",
+        "prompt_version": "prompt_v2",
+        "case_id": "T23",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 7,
+        "precision": 1.0,
+        "recall": 1.0,
+        "fp_count": 0,
+        "missed_count": 0,
+        "total_latency_ms": 6576.68,
+        "depth": 1,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "产品设计原则",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "用户体验优先",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "界面简洁一致",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "操作反馈及时",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "性能即功能",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "移动端优先",
+            "order": 5
+          },
+          {
+            "id": "node-6",
+            "parentId": "node-root",
+            "text": "无障碍设计",
+            "order": 6
+          }
+        ],
+        "false_positives": [],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T23_run2_102f329c",
+        "prompt_version": "prompt_v2",
+        "case_id": "T23",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 7,
+        "precision": 1.0,
+        "recall": 1.0,
+        "fp_count": 0,
+        "missed_count": 0,
+        "total_latency_ms": 6764.54,
+        "depth": 1,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "产品设计原则",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "用户体验优先",
+            "order": 1
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "界面简洁一致",
+            "order": 2
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "操作反馈及时",
+            "order": 3
+          },
+          {
+            "id": "node-4",
+            "parentId": "node-root",
+            "text": "性能即功能",
+            "order": 4
+          },
+          {
+            "id": "node-5",
+            "parentId": "node-root",
+            "text": "移动端优先",
+            "order": 5
+          },
+          {
+            "id": "node-6",
+            "parentId": "node-root",
+            "text": "无障碍设计",
+            "order": 6
+          }
+        ],
+        "false_positives": [],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T25_run1_d07902ba",
+        "prompt_version": "prompt_v2",
+        "case_id": "T25",
+        "run_number": 1,
+        "success": true,
+        "error_code": null,
+        "node_count": 9,
+        "precision": 0.75,
+        "recall": 1.0,
+        "fp_count": 3,
+        "missed_count": 0,
+        "total_latency_ms": 7343.47,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "数据库索引",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "B+树索引",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "叶子节点存储数据",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "非叶子节点存储键值",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "支持范围查询",
+            "order": 4
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "Hash索引",
+            "order": 5
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "等值查询 O(1)",
+            "order": 6
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "不支持范围查询",
+            "order": 7
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "复合索引：最左前缀原则",
+            "order": 8
+          }
+        ],
+        "false_positives": [
+          "非叶子节点存储键值",
+          "等值查询o(1)",
+          "不支持范围查询"
+        ],
+        "missed_nodes": []
+      },
+      {
+        "run_id": "ab_prompt_v2_T25_run2_f008d6ec",
+        "prompt_version": "prompt_v2",
+        "case_id": "T25",
+        "run_number": 2,
+        "success": true,
+        "error_code": null,
+        "node_count": 9,
+        "precision": 0.75,
+        "recall": 1.0,
+        "fp_count": 3,
+        "missed_count": 0,
+        "total_latency_ms": 7488.71,
+        "depth": 2,
+        "root_correct": true,
+        "forbidden_found": [],
+        "node_count_ok": true,
+        "depth_ok": true,
+        "generated_nodes": [
+          {
+            "id": "node-root",
+            "parentId": null,
+            "text": "数据库索引",
+            "order": 0
+          },
+          {
+            "id": "node-1",
+            "parentId": "node-root",
+            "text": "B+树索引",
+            "order": 1
+          },
+          {
+            "id": "node-1-1",
+            "parentId": "node-1",
+            "text": "叶子节点存储数据",
+            "order": 2
+          },
+          {
+            "id": "node-1-2",
+            "parentId": "node-1",
+            "text": "非叶子节点存储键值",
+            "order": 3
+          },
+          {
+            "id": "node-1-3",
+            "parentId": "node-1",
+            "text": "支持范围查询",
+            "order": 4
+          },
+          {
+            "id": "node-2",
+            "parentId": "node-root",
+            "text": "Hash索引",
+            "order": 5
+          },
+          {
+            "id": "node-2-1",
+            "parentId": "node-2",
+            "text": "等值查询 O(1)",
+            "order": 6
+          },
+          {
+            "id": "node-2-2",
+            "parentId": "node-2",
+            "text": "不支持范围查询",
+            "order": 7
+          },
+          {
+            "id": "node-3",
+            "parentId": "node-root",
+            "text": "复合索引：最左前缀原则",
+            "order": 8
+          }
+        ],
+        "false_positives": [
+          "非叶子节点存储键值",
+          "等值查询o(1)",
+          "不支持范围查询"
+        ],
+        "missed_nodes": []
+      }
+    ]
+  },
+  "pilot_stats": {
+    "v1": {
+      "count": 18,
+      "success_count": 18,
+      "success_rate": 1.0,
+      "avg_precision": 0.4610444444444444,
+      "median_precision": 0.4167,
+      "std_precision": 0.09839098609014367,
+      "avg_recall": 1.0,
+      "median_recall": 1.0,
+      "std_recall": 0.0,
+      "avg_node_count": 20.555555555555557,
+      "std_node_count": 4.591837031108731,
+      "avg_latency_ms": 11465.253888888888,
+      "p50_latency_ms": 11127.03,
+      "p95_latency_ms": 14706.82,
+      "forbidden_violations": 0,
+      "node_range_pass_rate": 0.3888888888888889,
+      "fp_rate": 0.5405405405405406
+    },
+    "v2": {
+      "count": 18,
+      "success_count": 18,
+      "success_rate": 1.0,
+      "avg_precision": 0.6066444444444444,
+      "median_precision": 0.5326,
+      "std_precision": 0.18790954401526852,
+      "avg_recall": 1.0,
+      "median_recall": 1.0,
+      "std_recall": 0.0,
+      "avg_node_count": 16.944444444444443,
+      "std_node_count": 5.955444589737857,
+      "avg_latency_ms": 12191.590555555555,
+      "p50_latency_ms": 11169.74,
+      "p95_latency_ms": 30076.76,
+      "forbidden_violations": 0,
+      "node_range_pass_rate": 0.8888888888888888,
+      "fp_rate": 0.4786885245901639
+    }
+  }
+}

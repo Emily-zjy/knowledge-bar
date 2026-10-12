@@ -19,7 +19,7 @@ from app.models.mindmap import (
     RegenerateRequest,
 )
 from app.services.actions import render_mindmap, validate_mindmap
-from app.services.auth import verify_optional_supabase_jwt
+from app.services.auth import AuthError, verify_optional_supabase_jwt
 from app.services.mindmap_agent import generate_mindmap_pipeline
 
 logger = logging.getLogger(__name__)
@@ -28,10 +28,19 @@ router = APIRouter(prefix="/mindmaps", tags=["mindmaps"])
 
 
 def _get_user_id(authorization: str | None) -> str | None:
+    return verify_optional_supabase_jwt(authorization)
+
+
+def _assert_row_access(row: dict, authorization: str | None) -> None:
+    owner_id = row.get("user_id")
     try:
-        return verify_optional_supabase_jwt(authorization)
-    except Exception:
-        return None
+        user_id = _get_user_id(authorization)
+    except AuthError as exc:
+        raise HTTPException(status_code=401, detail=exc.message) from exc
+    if owner_id and not user_id:
+        raise HTTPException(status_code=401, detail="Login is required for this mind map.")
+    if owner_id and user_id and owner_id != user_id:
+        raise HTTPException(status_code=403, detail="You do not have access to this mind map.")
 
 
 def _state_to_response(state: MindMapState) -> GenerateResponse:
@@ -88,18 +97,22 @@ def generate(
     authorization: str | None = Header(default=None),
 ) -> GenerateResponse:
     """Generate a mind map from text input."""
-    user_id = _get_user_id(authorization)
+    try:
+        user_id = _get_user_id(authorization)
+    except AuthError as exc:
+        raise HTTPException(status_code=401, detail=exc.message) from exc
     state = generate_mindmap_pipeline(payload)
     _persist_state(state, user_id, payload)
     return _state_to_response(state)
 
 
 @router.get("/{task_id}", response_model=GenerateResponse)
-def get_mindmap(task_id: str) -> GenerateResponse:
+def get_mindmap(task_id: str, authorization: str | None = Header(default=None)) -> GenerateResponse:
     """Retrieve a previously generated mind map by task_id."""
     row = db.get(task_id)
     if not row:
         raise HTTPException(status_code=404, detail="Mind map not found")
+    _assert_row_access(row, authorization)
     return _db_row_to_response(row)
 
 
@@ -113,6 +126,7 @@ def regenerate(
     row = db.get(task_id)
     if not row:
         raise HTTPException(status_code=404, detail="Mind map not found")
+    _assert_row_access(row, authorization)
 
     user_id = _get_user_id(authorization)
     new_request = GenerateRequest(
@@ -136,6 +150,7 @@ def patch_mindmap(
     row = db.get(task_id)
     if not row:
         raise HTTPException(status_code=404, detail="Mind map not found")
+    _assert_row_access(row, authorization)
 
     draft_data = row.get("draft_json")
     if not draft_data:
@@ -176,10 +191,29 @@ def patch_mindmap(
 
     render_result = render_mindmap(draft_data)
     title = draft_data.get("title", row["title"])
-    now = datetime.utcnow()
+    now = datetime.now()
     db.update_draft_and_render(task_id, title, draft_data, render_result, now)
 
     return _db_row_to_response(db.get(task_id))
+
+
+@router.delete("/{task_id}")
+def delete_mindmap(
+    task_id: str,
+    authorization: str | None = Header(default=None),
+) -> dict[str, bool]:
+    """Delete a generated mind map from history."""
+    try:
+        user_id = _get_user_id(authorization)
+    except AuthError as exc:
+        raise HTTPException(status_code=401, detail=exc.message) from exc
+    row = db.get(task_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Mind map not found")
+    _assert_row_access(row, authorization)
+    if not db.delete(task_id, user_id):
+        raise HTTPException(status_code=404, detail="Mind map not found")
+    return {"deleted": True}
 
 
 @router.get("", response_model=list[MindMapListItem])
@@ -187,7 +221,10 @@ def list_mindmaps(
     authorization: str | None = Header(default=None),
 ) -> list[MindMapListItem]:
     """List all generated mind maps for the current session."""
-    user_id = _get_user_id(authorization)
+    try:
+        user_id = _get_user_id(authorization)
+    except AuthError as exc:
+        raise HTTPException(status_code=401, detail=exc.message) from exc
     rows = db.list_by_user(user_id)
     items = []
     for row in rows:

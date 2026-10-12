@@ -1,0 +1,226 @@
+[
+  {
+    "case_id": "T04",
+    "node": "P0支付Bug",
+    "agent_output_node": "P0：修复支付系统超时Bug",
+    "human_label": "correct",
+    "reason": "关键词等价，Agent添加了前缀和细节但核心概念一致"
+  },
+  {
+    "case_id": "T04",
+    "node": "P1用户画像",
+    "agent_output_node": "P1：完善用户画像模块",
+    "human_label": "correct",
+    "reason": "语义等价，核心关键词'用户画像'完全匹配"
+  },
+  {
+    "case_id": "T04",
+    "node": "数据源待定",
+    "agent_output_node": "用户画像数据源：埋点 vs 问卷",
+    "human_label": "correct",
+    "reason": "语义等价，Agent具体化了'数据源'的待定选项"
+  },
+  {
+    "case_id": "T04",
+    "node": "设计规范待定",
+    "agent_output_node": "是否沿用现有Design System",
+    "human_label": "correct",
+    "reason": "跨语言语义等价，设计规范=Design System，待定=是否"
+  },
+  {
+    "case_id": "T08",
+    "node": "Redis Cluster",
+    "agent_output_node": "Redis Cluster（最终选型）",
+    "human_label": "correct",
+    "reason": "精确匹配+补充信息"
+  },
+  {
+    "case_id": "T08",
+    "node": "故障转移",
+    "agent_output_node": "Sentinel自动failover，30秒内完成",
+    "human_label": "correct",
+    "reason": "跨语言语义等价，故障转移=failover"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存雪崩",
+    "agent_output_node": "缓存雪崩：TTL随机化 + L1/L2多级缓存",
+    "human_label": "correct",
+    "reason": "完全包含核心概念，Agent补充了解决方案细节"
+  },
+  {
+    "case_id": "T11",
+    "node": "关系区分",
+    "agent_output_node": "三者关系",
+    "human_label": "correct",
+    "reason": "语义等价，'关系区分'和'三者关系'表达同一概念节点"
+  },
+  {
+    "case_id": "T14",
+    "node": "客单价215元",
+    "agent_output_node": "客单价215元",
+    "human_label": "correct",
+    "reason": "完全精确匹配"
+  },
+  {
+    "case_id": "T14",
+    "node": "MAU 3200万",
+    "agent_output_node": "MAU 3200万",
+    "human_label": "correct",
+    "reason": "完全精确匹配"
+  },
+  {
+    "case_id": "T21",
+    "node": "流水线",
+    "agent_output_node": "CI/CD流水线",
+    "human_label": "correct",
+    "reason": "关键词匹配，'流水线'是子串"
+  },
+  {
+    "case_id": "T25",
+    "node": "B+树索引",
+    "agent_output_node": "B+树索引",
+    "human_label": "correct",
+    "reason": "完全精确匹配"
+  },
+  {
+    "case_id": "T08",
+    "node": "Redis Cluster",
+    "agent_output_node": "MongoDB Cluster",
+    "human_label": "incorrect",
+    "reason": "技术方案错误，原文明确选型Redis不是MongoDB"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存雪崩",
+    "agent_output_node": "缓存策略优化",
+    "human_label": "incorrect",
+    "reason": "概念不对等，'缓存策略优化'是泛化描述，不等于特定问题'缓存雪崩'"
+  },
+  {
+    "case_id": "T08",
+    "node": "Hash Slot",
+    "agent_output_node": "一致性Hash",
+    "human_label": "incorrect",
+    "reason": "技术概念错误，Hash Slot是Redis Cluster的分片方式，不是一致性Hash"
+  },
+  {
+    "case_id": "T11",
+    "node": "时间片轮转",
+    "agent_output_node": "进程调度",
+    "human_label": "incorrect",
+    "reason": "概念过于泛化，'进程调度'不等于具体机制'时间片轮转'"
+  },
+  {
+    "case_id": "T14",
+    "node": "12.8亿",
+    "agent_output_node": "15.2亿",
+    "human_label": "incorrect",
+    "reason": "数据错误，原文GMV为12.8亿不是15.2亿"
+  },
+  {
+    "case_id": "T14",
+    "node": "转化率6.3%",
+    "agent_output_node": "转化率8.5%",
+    "human_label": "incorrect",
+    "reason": "数据错误，原文转化率6.3%不是8.5%"
+  },
+  {
+    "case_id": "T18",
+    "node": "快速排序",
+    "agent_output_node": "GPU并行排序",
+    "human_label": "incorrect",
+    "reason": "幻觉内容，原文讨论快速排序，未涉及GPU并行排序"
+  },
+  {
+    "case_id": "T25",
+    "node": "B+树索引",
+    "agent_output_node": "红黑树索引",
+    "human_label": "incorrect",
+    "reason": "技术概念错误，原文讨论B+树不是红黑树"
+  },
+  {
+    "case_id": "T17",
+    "node": "未达成一致",
+    "agent_output_node": "已决定采用GraphQL",
+    "human_label": "incorrect",
+    "reason": "事实相反，原文明确未达成一致，不是已决定采用"
+  },
+  {
+    "case_id": "T21",
+    "node": "测试金字塔",
+    "agent_output_node": "自动化测试框架",
+    "human_label": "incorrect",
+    "reason": "概念不等价，'测试金字塔'是分层策略，不是'测试框架'"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存穿透",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent未生成任何匹配'缓存穿透'的节点"
+  },
+  {
+    "case_id": "T08",
+    "node": "监控指标",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent遗漏了监控指标相关内容"
+  },
+  {
+    "case_id": "T11",
+    "node": "回调驱动",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent未生成关于回调驱动机制的节点"
+  },
+  {
+    "case_id": "T14",
+    "node": "12.8亿",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent未生成GMV总额数据节点"
+  },
+  {
+    "case_id": "T17",
+    "node": "折中方案",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent未明确提出折中方案节点"
+  },
+  {
+    "case_id": "T18",
+    "node": "Redis数据类型",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent遗漏了Redis数据类型知识点"
+  },
+  {
+    "case_id": "T21",
+    "node": "SOLID",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent未生成SOLID原则相关节点"
+  },
+  {
+    "case_id": "T23",
+    "node": "无障碍设计",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent遗漏了无障碍设计原则"
+  },
+  {
+    "case_id": "T25",
+    "node": "最左前缀",
+    "agent_output_node": null,
+    "human_label": "missing",
+    "reason": "Agent未生成最左前缀匹配规则节点"
+  },
+  {
+    "case_id": "T04",
+    "node": "行为标签",
+    "agent_output_node": "行为标签",
+    "human_label": "correct",
+    "reason": "完全精确匹配"
+  }
+]

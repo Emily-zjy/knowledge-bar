@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Short text",
+    "success": true,
+    "node_count": 5,
+    "depth": 1,
+    "latency_ms": 3664.578914642334,
+    "injection_safe": true,
+    "root": "Python基础"
+  },
+  {
+    "name": "Long text",
+    "success": true,
+    "node_count": 18,
+    "depth": 2,
+    "latency_ms": 7648.3964920043945,
+    "injection_safe": true,
+    "root": "微服务架构设计"
+  },
+  {
+    "name": "Data report",
+    "success": true,
+    "node_count": 9,
+    "depth": 2,
+    "latency_ms": 7096.850872039795,
+    "injection_safe": true,
+    "root": "2024年Q2销售数据"
+  },
+  {
+    "name": "Uncertainty",
+    "success": true,
+    "node_count": 10,
+    "depth": 2,
+    "latency_ms": 7922.37663269043,
+    "injection_safe": true,
+    "root": "数据库选型"
+  },
+  {
+    "name": "Injection",
+    "success": true,
+    "node_count": 6,
+    "depth": 2,
+    "latency_ms": 8432.59882926941,
+    "injection_safe": true,
+    "root": "数据库优化笔记"
+  }
+]

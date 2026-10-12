@@ -1,0 +1,1092 @@
+[
+  {
+    "case_id": "T04",
+    "node": "决议事项",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "待确认",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "P0支付Bug",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "P1用户画像",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "P2界面改版",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "行为标签",
+    "evaluator_label": "missing"
+  },
+  {
+    "case_id": "T04",
+    "node": "消费偏好",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "活跃度分析",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "数据源待定",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "设计规范待定",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T04",
+    "node": "参会人员",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "下次会议",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "张三 - 产品负责人",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "李四 - 技术负责人",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "王五 - 设计师",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "P0 优先级",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "P1 优先级",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "P2 优先级",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "参考竞品A卡片式布局",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "预计1周，负责人王五",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "用户画像数据源选择",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "设计规范沿用确认",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "埋点数据",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "问卷数据",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "是否沿用现有Design System",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "7月15日",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T04",
+    "node": "负责人：张三，预计2周",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "选型",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "架构设计",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存策略",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "防护措施",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "监控指标",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "Redis Cluster",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "Hash Slot",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "故障转移",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "Cache-Aside",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "Write-Through",
+    "evaluator_label": "missing"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存穿透",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存击穿",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "缓存雪崩",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T08",
+    "node": "选择原因",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "丰富数据结构",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "原生集群模式",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "部署方案",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "6节点（3主3从）",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "跨机房部署",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "分片策略",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "共16384槽位",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "Sentinel哨兵自动failover",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "30秒内完成主从切换",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "命中返回缓存",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "未命中查DB回填",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "布隆过滤器",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T08",
+    "node": "空值缓存TTL 60秒",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "并发",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "并行",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "异步",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "时间片轮转",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "多核CPU",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "非阻塞",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "回调驱动",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "关系区分",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T11",
+    "node": "定义：多任务在重叠时间段内推进",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "实现方式",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "关键词",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "定义：多任务物理上同时执行",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "硬件要求",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "关键词",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "定义：调用方不等待结果",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "通知机制",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "实现特性",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "并行 ⊆ 并发",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "异步与并发/并行正交",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "任意时刻只有一个任务执行",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "交替执行、逻辑上同时",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "物理同时、真正同时计算",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "Node.js 事件循环为典型案例",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T11",
+    "node": "异步代码可跑在单核（并发）或多核（并行）",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "GMV",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "用户数据",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "转化漏斗",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "品类表现",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "12.8亿",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "MAU 3200万",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "客单价215元",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "转化率6.3%",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "服饰35%",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "美妆25%",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T14",
+    "node": "复购与用户价值",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "增长率",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "活跃用户",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "新增用户450万",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "DAU 890万",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "自然增长60%",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "付费获客40%，CPA 23元",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "首页UV 2100万",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "支付成功132万",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "复购率",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "高价值用户贡献42% GMV",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "30日复购率34%",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "90日复购率52%",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T14",
+    "node": "年消费>5000元",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "支持方观点",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "反对方观点",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "讨论结果",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "后续TODO",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "减少过度获取",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "缓存困难",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "未达成一致",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "折中方案",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T17",
+    "node": "前端自主查询",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "适合复杂嵌套数据",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "学习成本高",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "现有REST已足够",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "N+1查询问题",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "暂维持REST架构",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "下周邀请架构师评估",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "前端按需组合查询，减少后端接口迭代",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "BFF层使用GraphQL聚合",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "后端服务仍用REST",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "架构师评估",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "性能对比测试",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "团队培训计划",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "待排期",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "决定推进后执行",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T17",
+    "node": "最终采用后启动",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "TCP握手",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "HTTP状态码",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "排序算法",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "Redis数据类型",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "三次握手",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "四次挥手",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "快速排序",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "归并排序",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T18",
+    "node": "2xx 成功",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "3xx 重定向",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "4xx 客户端错误",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "5xx 服务端错误",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "O(nlogn) 算法",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "O(n²) 算法",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "堆排序",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "核心类型",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "扩展类型（待确认）",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "String",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "List",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "Set",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "Sorted Set",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "Hash",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "Stream（是否核心类型待确认）",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T18",
+    "node": "HyperLogLog（是否核心类型待确认）",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "版本控制",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "测试策略",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "CI/CD",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "代码质量",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "架构设计原则",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "Git",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "测试金字塔",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "流水线",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "代码审查",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "SOLID",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T21",
+    "node": "分支策略",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "最佳实践",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "TDD流程",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "部署策略",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "设计模式",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "Trunk Based Development",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "单元测试 70%",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "集成测试 20%",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "端到端测试 10%",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "创建型模式",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "结构型模式",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "master/develop/feature/release/hotfix",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "JUnit/pytest/Jest框架",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "工厂/单例/建造者",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T21",
+    "node": "适配器/装饰器/代理",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "用户体验优先",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T23",
+    "node": "界面简洁一致",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T23",
+    "node": "操作反馈及时",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T23",
+    "node": "性能即功能",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T23",
+    "node": "移动端优先",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T23",
+    "node": "无障碍设计",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T23",
+    "node": "功能不过多",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "以用户需求驱动设计",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "视觉一致性",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "减少界面噪音",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "即时状态提示",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "错误与成功反馈",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "加载速度",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "响应流畅性",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "触控优化",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "小屏幕布局",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "屏幕阅读器支持",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "色彩对比度",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "避免功能堆砌",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "统一组件规范",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "操作进度可见",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "首屏加载优化",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "点击区域足够大",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T23",
+    "node": "语义化HTML结构",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "B+树索引",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T25",
+    "node": "Hash索引",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T25",
+    "node": "复合索引",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T25",
+    "node": "叶子节点",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T25",
+    "node": "范围查询",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T25",
+    "node": "最左前缀",
+    "evaluator_label": "correct"
+  },
+  {
+    "case_id": "T25",
+    "node": "节点结构",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "查询能力",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "查询性能",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "查询限制",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "非叶子节点",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "等值查询",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "不支持范围查询",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "索引使用规则",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "存储实际数据行",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "仅存储键值用于导航",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "支持有序区间扫描",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "时间复杂度O(1)",
+    "evaluator_label": "incorrect"
+  },
+  {
+    "case_id": "T25",
+    "node": "查询须从最左列开始",
+    "evaluator_label": "incorrect"
+  }
+]
